@@ -1,0 +1,184 @@
+module o-ran-alarm-id {
+  yang-version 1.1;
+  namespace "urn:o-ran:alarms:1.0";
+  prefix "o-ran-alarms";
+
+  organization "oO-RAN Alliance";
+
+  contact
+    "www.o-ran.org";
+
+  description
+    "This module defines the alarm identities for the oRAN Equipment.
+
+    Copyright 2019 the O-RAN Alliance.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS'
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the above disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the above disclaimer in the documentation
+    and/or other materials provided with the distribution.
+    * Neither the Members of the O-RAN Alliance nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.";
+
+  revision "2019-02-04" {
+    description
+      "version 1.0.0
+
+      1) imported model from xRAN
+      2) changed namespace and reference from xran to o-ran";
+
+    reference "ORAN-WG4.M.0-v01.00";
+  }
+
+
+  typedef alarm-id {
+    type enumeration {
+      enum ORAN_HIGH_TEMP_ALARM {
+        value 1;
+        description "A temperature is higher than expected";
+      }
+      enum ORAN_OVERHEATING_ALARM {
+        value 2;
+        description "A temperature is dangerously high";
+      }
+      enum ORAN_AMBIENT_TEMP_ALARM {
+        value 3;
+        description "A temperature related alarm due to ambient temperature
+        value going outside the allowed ambient temperature range";
+      }
+      enum ORAN_TEMP_TOO_LOW_ALARM {
+        value 4;
+        description "A temperature related alarm due to the temperature inside
+        the unit being too low";
+      }
+      enum ORAN_BROKEN_FAN_ALARM {
+        value 5;
+        description "A broken fan";
+      }
+      enum ORAN_FAN_NOT_DETECTED_ALARM {
+        value 6;
+        description "A fan not detected";
+      }
+      enum ORAN_TUNING_ALARM {
+        value 7;
+        description "A tuning failure.";
+      }
+      enum ORAN_FILTER_ALARM {
+        value 8;
+        description "A faulty filter.";
+      }
+      enum ORAN_TX_QUALITY_ALARM {
+        value 9;
+        description "A transmission quality.";
+      }
+      enum ORAN_OVERVOLTAGE_ALARM {
+        value 10;
+        description "A RF  overvoltage protection.";
+      }
+      enum ORAN_CONFIG_ALARM {
+        value 11;
+        description "A configuration failed.";
+      }
+      enum ORAN_CRITICAL_FILE_ALARM {
+        value 12;
+        description "A Critical file not found.";
+      }
+      enum ORAN_FILE_ALARM {
+        value 13;
+        description "A non-critical file not found.";
+      }
+      enum ORAN_CORRUPT_FILE_ALARM {
+        value 14;
+        description "A corrupt configuration file.";
+      }
+      enum ORAN_OPERATION_ALARM {
+        value 15;
+        description "A unit out of order.";
+      }
+      enum ORAN_NO_IDENTITY_ALARM {
+        value 16;
+        description "A unit cannot be identified.";
+      }
+      enum ORAN_NO_EXT_SYNC_SOURCE {
+        value 17;
+        description "A unit has no external sync source.";
+      }
+      enum ORAN_SYNC_ALARM {
+        value 18;
+        description "A unit is out of synchronization.";
+      }
+      enum ORAN_TX_OUT_OF_ORDER_ALARM {
+        value 19;
+        description "A TX path is not usable.";
+      }
+      enum ORAN_RX_OUT_OF_ORDER_ALARM {
+        value 20;
+        description "A RX path is not usable.";
+      }
+      enum ORAN_OPTICAL_BER_ALARM {
+        value 21;
+        description "An increased bit error rate on the optical link";
+      }
+      enum ORAN_SELF_TEST_ALARM {
+        value 22;
+        description "A power-on self test";
+      }
+      enum ORAN_FPGA_UPDATE_ALARM {
+        value 23;
+        description "An FPGA software update";
+      }
+      enum ORAN_UNIT_BLOCKED_ALARM {
+        value 24;
+        description "A unit is blocked";
+      }
+      enum ORAN_RESET_REQUEST_ALARM {
+        value 25;
+        description "A unit requires a reset";
+      }
+      enum ORAN_POWER_SUPPLY_FAULTY {
+        value 26;
+        description "A power supply unit has a fault";
+      }
+      enum ORAN_POWER_AMPLIFIER_FAULTY {
+        value 27;
+        description "A power amplifier unit has a fault";
+      }
+      enum ORAN_C_U_PLANE_LOGICAL_CONNECTION_FAULTY {
+        value 28;
+        description "A C/U-plane logical connection has a fault";
+      }
+      enum ORAN_TRANSCEIVER_FAULT {
+        value 29;
+        description "A transceiver unit has a fault";
+      }
+      enum ORAN_INTERFACE_FAULT {
+        value 30;
+        description "An interface unit has a fault";
+      }
+      enum ORAN_UNEXPECTED_C_U_PLANE_MESSAGE_CONTENT_FAULT {
+        value 31;
+        description "C/U-plane message content was faulty for undetermined reason.";
+      }
+    }
+    description
+      "A typedef defining an enumerated list of O-RAN alarms which corresponds to
+      the fault-id in the o-ran management plane specification.";
+  }
+}

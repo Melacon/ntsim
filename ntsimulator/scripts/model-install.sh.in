@@ -1,0 +1,57 @@
+#!/bin/bash
+
+set -eu -o pipefail
+
+shopt -s failglob
+
+: ${SYSREPOCTL:=sysrepoctl}
+: ${SYSREPOCFG:=sysrepocfg}
+: ${SYSREPOCTL_ROOT_PERMS:=-o root:root -p 600}
+: ${YANG_DIR:=@CMAKE_CURRENT_SOURCE_DIR@/yang/manager}
+: ${STARTUP_DIR:=@CMAKE_CURRENT_SOURCE_DIR@/yang/startup}
+
+is_yang_module_installed() {
+    module=$1
+
+    $SYSREPOCTL -l | grep --count "^$module [^|]*|[^|]*| Installed .*$" > /dev/null
+}
+
+install_yang_module() {
+    module=$1
+
+    if ! is_yang_module_installed $module; then
+        echo "- Installing module $module..."
+        $SYSREPOCTL -i -g ${YANG_DIR}/$module.yang $SYSREPOCTL_ROOT_PERMS
+    else
+        echo "- Module $module already installed."
+    fi
+}
+
+uninstall_yang_module() {
+    module=$1
+
+    if is_yang_module_installed $module; then
+        echo "- Uninstalling module $module..."
+        $SYSREPOCTL -u -m $module
+    else
+        echo "- Module $module is not installed."
+    fi
+}
+
+enable_yang_module_feature() {
+    module=$1
+    feature=$2
+
+    if ! $SYSREPOCTL -l | grep --count "^$module [^|]*|[^|]*|[^|]*|[^|]*|[^|]*|[^|]*|.* $feature.*$" > /dev/null; then
+        echo "- Enabling feature $feature in $module..."
+        $SYSREPOCTL -m $module -e $feature
+    else
+        echo "- Feature $feature in $module already enabled."
+    fi
+}
+
+echo "- Installing network-topology-simulator..."
+install_yang_module network-topology-simulator
+
+echo "- Adding startup datastore in network-topology-simulator..."
+$SYSREPOCFG -d startup -i $YANG_DIR/network-topology-simulator.xml -f xml network-topology-simulator

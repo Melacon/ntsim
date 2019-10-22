@@ -1,0 +1,32 @@
+#!/bin/bash
+
+sleep 5
+
+set -eu -o pipefail
+
+shopt -s failglob
+
+: ${SYSREPOCTL:=sysrepoctl}
+: ${SYSREPOCFG:=sysrepocfg}
+: ${SYSREPOCTL_ROOT_PERMS:=-o root:root -p 600}
+: ${YANG_DIR:=@CMAKE_CURRENT_SOURCE_DIR@/yang}
+: ${STARTUP_DIR:=@CMAKE_CURRENT_SOURCE_DIR@/yang/startup}
+
+is_yang_module_installed() {
+    module=$1
+
+    $SYSREPOCTL -l | grep --count "^$module [^|]*|[^|]*| Installed .*$" > /dev/null
+}
+
+uninstall_yang_module() {
+    module=$1
+
+    if ! is_yang_module_installed $module; then
+        echo "- Module $module not installed, skipping..."
+    else
+        $SYSREPOCTL -u -m $$module
+    fi
+}
+
+echo "- Uninstalling code-model and microwave-model..."
+uninstall_yang_module microwave-model,core-model

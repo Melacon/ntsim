@@ -1,0 +1,19 @@
+version: '3'
+services:
+  ntsimulator:
+    image: "ntsim_manager:latest"
+    container_name: NTS_Manager
+    ports:
+     - "172.17.0.1:8300:830"
+    volumes:
+     - "/var/run/docker.sock:/var/run/docker.sock"
+     - "/home/parallels/workspace/highstreet/ntsimulator-o-ran/ntsimulator/scripts:/opt/dev/scripts"
+     - "/usr/bin/docker:/usr/bin/docker"
+    labels:
+      "NTS-manager": ""
+    environment:
+      NTS_IP: "172.17.0.1"
+      NETCONF_BASE: 50000
+      DOCKER_ENGINE_VERSION: "1.40"
+      MODELS_IMAGE: "ntsim_oran"
+
