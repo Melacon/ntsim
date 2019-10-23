@@ -4,9 +4,9 @@ MAINTAINER alexandru.stancu@highstreet-technologies.com
 
 LABEL maintainer="alexandru.stancu@highstreet-technologies.com"
 
-ARG BUILD_DATE
+#ARG BUILD_DATE
 
-LABEL build-date=$BUILD_DATE
+#LABEL build-date=$BUILD_DATE
 
 RUN \
       apt-get update && apt-get install -y \
@@ -125,6 +125,15 @@ COPY ./pyang /opt/dev/pyang
 RUN \
 	  cd /opt/dev && \
 	  cd pyang && python setup.py build && python setup.py install
+	  
+#NTSimulator Manager - notifications
+COPY ./ntsimulator /opt/dev/ntsimulator
+RUN \
+      cd /opt/dev && \
+      cd ntsimulator && mkdir build  && cd build && \
+      cmake .. && \
+      make -j2&& \
+      make install
 
 COPY ntsimulator/deploy/supervisord.conf /etc/supervisord.conf
 

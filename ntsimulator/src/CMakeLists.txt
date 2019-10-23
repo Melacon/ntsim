@@ -6,6 +6,7 @@ include_directories(
 )
 
 add_subdirectory(ntsimulator-manager)
+add_subdirectory(o-ran-notifications)
 
 # sources
 set (UTILS_SOURCES
