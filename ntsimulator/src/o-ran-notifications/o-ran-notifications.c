@@ -96,6 +96,8 @@ static int send_dummy_notif_file_mgmt(sr_session_ctx_t *sess)
 
 	printf("Successfully sent notification...\n");
 
+	sr_free_values(vnotif, current_num_of_values);
+
 	return SR_ERR_OK;
 }
 
@@ -190,6 +192,8 @@ static int send_dummy_notif(sr_session_ctx_t *sess)
 	}
 
 	printf("Successfully sent notification with timestamp=\"%s\"\n", dateAndTime);
+
+	sr_free_values(vnotif, current_num_of_values);
 
 	return SR_ERR_OK;
 }
