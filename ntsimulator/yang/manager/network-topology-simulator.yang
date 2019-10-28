@@ -19,6 +19,10 @@ module network-topology-simulator {
         description "Modify controller details.";        
     }
 
+    revision 2019-10-25 {
+    	description "Modify notifications. Add VES message configuration options.";        
+    }
+
     typedef operational-state-type {
         description "The operation state of the simulated device.";
         type enumeration {
@@ -37,6 +41,24 @@ module network-topology-simulator {
         }
     }
 
+    typedef authentication-method-type {
+        description "The authentication method for VES messaging.";
+        type enumeration {
+            enum no-auth {
+                description "no security (http)";
+            }
+            enum cert-only {
+                description "auth by certificate (https)";
+            }
+            enum basic-auth {
+                description "auth by basic auth username and password (https)";
+            }
+            enum cert-basic-auth {
+                description "auth by certificate and basic auth username / password (https)";
+            }
+        }
+    }
+
     typedef percent {
          type decimal64 {
             fraction-digits 2;
@@ -46,11 +68,6 @@ module network-topology-simulator {
      }
 
     grouping controller-details-type-g {
-
-        leaf controller-id {
-            type string;
-            description "The ID of the SDN Controller.";
-        }
 
         leaf controller-ip {
             type string;
@@ -118,19 +135,82 @@ module network-topology-simulator {
             default 0;
         }
 
-        leaf notification-delay-period {
-            description "Interval in seconds between two consecutive notifications. If the attribute is set to 0, nofitications are not generated.";
-            type uint32;
-            default 0;
-        }
+        container notification-config {
 
-        list controller-details-list {
+	    	leaf fault-notification-delay-period {
+	            description "Interval in seconds between two consecutive notifications. If the attribute is set to 0, nofitications are not generated.";
+	            type uint32;
+	            default 0;
+	        }
+
+	        leaf ves-heartbeat-period {
+	            description "Interval in seconds between two VES heartbeat messages. If the attribute is set to 0, heartbeat messages are not generated.";
+	            type uint32;
+	            default 0;
+	        }
+
+	        leaf is-netconf-available {
+	        	description "If set to 'true', NETCONF notifications will be generated.";
+	            type boolean;
+	            default true;
+	        }
+
+	        leaf is-ves-available {
+	        	description "If set to 'true', VES messages will be generated.";
+	            type boolean;
+	            default true;
+	        }
+	    }
+
+        container controller-details {
             uses controller-details-type-g;
-            key 'controller-id';
-            min-elements 1;
-            max-elements 1;
+
             description "The connectivity details of the SDN Controller where we want to mount our simulated devices.";
         }
+
+        container ves-endpoint-details {
+
+        	leaf ves-endpoint-ipv4 {
+	            type string;
+	            description "The IPv4 Address of the VES Endpoint.";
+	        }
+
+	        leaf ves-endpoint-ipv6 {
+	            type string;
+	            description "The IPv6 Address of the VES Endpoint.";
+	        }
+
+	        leaf ves-endpoint-port {
+	            type uint32;
+	            description "The Port of the VES Endpoint.";
+	        }
+
+	        leaf ves-endpoint-auth-method {
+	        	type authentication-method-type;
+	        	description "The type of the authentication to be used with the VES Endpoint.";
+	        	default no-auth;
+	        }
+
+	        leaf ves-endpoint-username {
+	            type string;
+	            description "The Username to be used to authenticate to the VES Endpoint.";
+	            when "../ves-endpoint-auth-method = 'basic-auth' or ../ves-endpoint-auth-method = 'cert-basic-auth'";
+	        }
+
+	        leaf ves-endpoint-password {
+	            type string;
+	            description "The Password to be used to authenticate to the VES Endpoint.";
+	            when "../ves-endpoint-auth-method = 'basic-auth' or ../ves-endpoint-auth-method = 'cert-basic-auth'";
+	        }
+
+	        leaf ves-endpoint-certificate {
+	        	type string;
+	            description "The Certificate to be used to authenticate to the VES Endpoint.";
+	            when "../ves-endpoint-auth-method = 'cert-only' or ../ves-endpoint-auth-method = 'cert-basic-auth'";
+	        }
+
+	        description "none";
+	    }
     }
 
     container simulator-status {

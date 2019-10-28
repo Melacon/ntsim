@@ -7,6 +7,7 @@ include_directories(
 
 add_subdirectory(ntsimulator-manager)
 add_subdirectory(o-ran-notifications)
+add_subdirectory(ves-messages)
 
 # sources
 set (UTILS_SOURCES
@@ -16,3 +17,4 @@ set (UTILS_SOURCES
 add_library(utils STATIC ${UTILS_SOURCES})
 set_property(TARGET utils PROPERTY COMPILE_FLAGS "-fPIC")
 target_link_libraries(utils m)
+target_link_libraries(utils cjson)

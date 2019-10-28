@@ -235,31 +235,7 @@ main(int argc, char **argv)
 
 
     while (!exit_application) {
-        FILE * fp;
-		char * line = NULL;
-		size_t len = 0;
-		ssize_t read;
-
-        char script[200];
-		sprintf(script, "%s/gen.notif", getenv("SCRIPTS_DIR"));
-
-        fp = fopen(script, "r");
-        if (fp == NULL)
-        {
-        	printf("Could not read the notification-delay-period from path=%s\n", script);
-            exit(EXIT_FAILURE);
-        }
-
-		while ((read = getline(&line, &len, fp)) != -1) {
-			sscanf(line, "%d", &notification_delay_period);
-			break;
-		}
-
-		fclose(fp);
-		if (line)
-		{
-			free(line);
-		}
+        notification_delay_period = getFaultNotificationDelayPeriodFromConfigJson();
 
         if (notification_delay_period > 0)
         {
