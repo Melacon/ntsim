@@ -34,6 +34,40 @@ void getCurrentDateAndTime(char *date_and_time)
 	return;
 }
 
+void	generateRandomMacAddress(char *mac_address)
+{
+	long rand1, rand2, rand3, rand4, rand5, rand6;
+	rand1 = random_at_most(255);
+	rand2 = random_at_most(255);
+	rand3 = random_at_most(255);
+	rand4 = random_at_most(255);
+	rand5 = random_at_most(255);
+	rand6 = random_at_most(255);
+
+	sprintf(mac_address, "%02X:%02X:%02X:%02X:%02X:%02X", rand1, rand2, rand3, rand4, rand5, rand6);
+
+	return;
+}
+
+long random_at_most(long max) {
+  unsigned long
+    // max <= RAND_MAX < ULONG_MAX, so this is okay.
+    num_bins = (unsigned long) max + 1,
+    num_rand = (unsigned long) RAND_MAX + 1,
+    bin_size = num_rand / num_bins,
+    defect   = num_rand % num_bins;
+
+  long x;
+  do {
+   x = random();
+  }
+  // This is carefully written not to overflow
+  while (num_rand - defect <= (unsigned long)x);
+
+  // Truncated division is intentional
+  return x/bin_size;
+}
+
 int getSecondsFromLastQuarterInterval(void)
 {
 	time_t t = time(NULL);
@@ -119,7 +153,7 @@ long int getMicrosecondsSinceEpoch(void)
 	return useconds;
 }
 
-cJSON*	vesCreateCommonEventHeader(void)
+cJSON*	vesCreateCommonEventHeader(char *domain, char *event_type, char *source_name)
 {
 	static int sequence_number = 0;
 	char dateAndTime[50];
@@ -137,7 +171,7 @@ cJSON*	vesCreateCommonEventHeader(void)
 		return NULL;
 	}
 
-	if (cJSON_AddStringToObject(commonEventHeader, "domain", "heartbeat") == NULL)
+	if (cJSON_AddStringToObject(commonEventHeader, "domain", domain) == NULL)
 	{
 		printf("Could not create JSON object: domain\n");
 		return NULL;
@@ -152,13 +186,16 @@ cJSON*	vesCreateCommonEventHeader(void)
 		return NULL;
 	}
 
-	if (cJSON_AddStringToObject(commonEventHeader, "eventName", "heartbeat_Controller") == NULL)
+	char event_name[200];
+	sprintf(event_name, "%s_%s", domain, event_type);
+
+	if (cJSON_AddStringToObject(commonEventHeader, "eventName", event_name) == NULL)
 	{
 		printf("Could not create JSON object: eventName\n");
 		return NULL;
 	}
 
-	if (cJSON_AddStringToObject(commonEventHeader, "eventType", "Controller") == NULL)
+	if (cJSON_AddStringToObject(commonEventHeader, "eventType", event_type) == NULL)
 	{
 		printf("Could not create JSON object: eventType\n");
 		return NULL;
@@ -194,7 +231,7 @@ cJSON*	vesCreateCommonEventHeader(void)
 		return NULL;
 	}
 
-	if (cJSON_AddStringToObject(commonEventHeader, "sourceName", hostname) == NULL)
+	if (cJSON_AddStringToObject(commonEventHeader, "sourceName", source_name) == NULL)
 	{
 		printf("Could not create JSON object: sourceName\n");
 		return NULL;
@@ -489,7 +526,7 @@ char* 	getVesAuthMethodFromConfigJson(void)
  * Caller needs to free the memory after it uses the value.
  *
 */
-char* 	getVesIpv4FromConfigJson(void)
+char* 	getVesIpFromConfigJson(void)
 {
 	char *stringConfig = readConfigFileInString();
 
@@ -521,19 +558,19 @@ char* 	getVesIpv4FromConfigJson(void)
 		return SR_ERR_OPERATION_FAILED;
 	}
 
-	cJSON *vesIpv4 = cJSON_GetObjectItemCaseSensitive(vesDetails, "ves-endpoint-ipv4");
-	if (!cJSON_IsString(vesIpv4))
+	cJSON *vesIp = cJSON_GetObjectItemCaseSensitive(vesDetails, "ves-endpoint-ip");
+	if (!cJSON_IsString(vesIp))
 	{
-		printf("Configuration JSON is not as expected: ves-endpoint-ipv4 is not an object");
+		printf("Configuration JSON is not as expected: ves-endpoint-ip is not an object");
 		free(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
-	char *ves_ipv4 = strdup(cJSON_GetStringValue(vesIpv4));
+	char *ves_ip = strdup(cJSON_GetStringValue(vesIp));
 
 	free(jsonConfig);
 
-	return ves_ipv4;
+	return ves_ip;
 }
 
 int 	getVesPortFromConfigJson(void)
@@ -581,4 +618,251 @@ int 	getVesPortFromConfigJson(void)
 	free(jsonConfig);
 
 	return port;
+}
+
+int 	getVesRegistrationFromConfigJson(void)
+{
+	char *stringConfig = readConfigFileInString();
+
+	if (stringConfig == NULL)
+	{
+		printf("Could not read JSON configuration file in string.");
+		return 0;
+	}
+
+	cJSON *jsonConfig = cJSON_Parse(stringConfig);
+	if (jsonConfig == NULL)
+	{
+		free(stringConfig);
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL)
+		{
+			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+		}
+		return SR_ERR_OPERATION_FAILED;
+	}
+	//we don't need the string anymore
+	free(stringConfig);
+
+	cJSON *vesDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "ves-endpoint-details");
+	if (!cJSON_IsObject(vesDetails))
+	{
+		printf("Configuration JSON is not as expected: ves-endpoint-details is not an object");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *vesReg = cJSON_GetObjectItemCaseSensitive(vesDetails, "ves-registration");
+	if (!cJSON_IsBool(vesReg))
+	{
+		printf("Configuration JSON is not as expected: ves-registration is not an object");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	int is_ves_reg = (cJSON_IsTrue(vesReg)) ? TRUE : FALSE;
+
+	free(jsonConfig);
+
+	return is_ves_reg;
+}
+
+cJSON*	vesCreatePnfRegistrationFields(int port, bool is_tls)
+{
+	cJSON *pnfRegistrationFields = cJSON_CreateObject();
+	if (pnfRegistrationFields == NULL)
+	{
+		printf("Could not create JSON object: pnfRegistrationFields\n");
+		return NULL;
+	}
+
+	if (cJSON_AddStringToObject(pnfRegistrationFields, "pnfRegistrationFieldsVersion", "2.0") == NULL)
+	{
+		printf("Could not create JSON object: pnfRegistrationFieldsVersion\n");
+		return NULL;
+	}
+
+	if (cJSON_AddStringToObject(pnfRegistrationFields, "lastServiceDate", "2019-08-16") == NULL)
+	{
+		printf("Could not create JSON object: lastServiceDate\n");
+		return NULL;
+	}
+
+	char mac_addr[40];
+	generateRandomMacAddress(mac_addr);
+
+	if (cJSON_AddStringToObject(pnfRegistrationFields, "macAddress", mac_addr) == NULL)
+	{
+		printf("Could not create JSON object: macAddress\n");
+		return NULL;
+	}
+
+	if (cJSON_AddStringToObject(pnfRegistrationFields, "manufactureDate", "2019-08-16") == NULL)
+	{
+		printf("Could not create JSON object: manufactureDate\n");
+		return NULL;
+	}
+
+	if (cJSON_AddStringToObject(pnfRegistrationFields, "modelNumber", "Simulated Device Melacon") == NULL)
+	{
+		printf("Could not create JSON object: manufactureDate\n");
+		return NULL;
+	}
+
+	if (cJSON_AddStringToObject(pnfRegistrationFields, "oamV4IpAddress", getenv("NTS_IP")) == NULL)
+	{
+		printf("Could not create JSON object: oamV4IpAddress\n");
+		return NULL;
+	}
+
+	if (cJSON_AddStringToObject(pnfRegistrationFields, "oamV6IpAddress", "0:0:0:0:0:ffff:a0a:011") == NULL)
+	{
+		printf("Could not create JSON object: oamV6IpAddress\n");
+		return NULL;
+	}
+
+	char serial_number[100];
+	sprintf(serial_number, "%s-%s-%d-Simulated Device Melacon", getenv("HOSTNAME"), getenv("NTS_IP"), port);
+
+	if (cJSON_AddStringToObject(pnfRegistrationFields, "serialNumber", serial_number) == NULL)
+	{
+		printf("Could not create JSON object: serialNumber\n");
+		return NULL;
+	}
+
+	if (cJSON_AddStringToObject(pnfRegistrationFields, "softwareVersion", "2.3.5") == NULL)
+	{
+		printf("Could not create JSON object: softwareVersion\n");
+		return NULL;
+	}
+
+	if (cJSON_AddStringToObject(pnfRegistrationFields, "unitFamily", "Simulated Device") == NULL)
+	{
+		printf("Could not create JSON object: unitFamily\n");
+		return NULL;
+	}
+
+	if (cJSON_AddStringToObject(pnfRegistrationFields, "unitType", "O-RAN-sim") == NULL)
+	{
+		printf("Could not create JSON object: unitType\n");
+		return NULL;
+	}
+
+	if (cJSON_AddStringToObject(pnfRegistrationFields, "vendorName", "Melacon") == NULL)
+	{
+		printf("Could not create JSON object: vendorName\n");
+		return NULL;
+	}
+
+	cJSON *additionalFields = cJSON_CreateObject();
+	if (additionalFields == NULL)
+	{
+		printf("Could not create JSON object: additionalFields\n");
+		return NULL;
+	}
+	cJSON_AddItemToObject(pnfRegistrationFields, "additionalFields", additionalFields);
+
+	if (cJSON_AddNumberToObject(additionalFields, "oamPort", port) == NULL)
+	{
+		printf("Could not create JSON object: oamPort\n");
+		return NULL;
+	}
+
+	if (is_tls)
+	{
+		//TLS specific configuration
+		if (cJSON_AddStringToObject(additionalFields, "protocol", "TLS") == NULL)
+		{
+			printf("Could not create JSON object: protocol\n");
+			return NULL;
+		}
+
+		cJSON *keyBased = cJSON_CreateObject();
+		if (keyBased == NULL)
+		{
+			printf("Could not create JSON object: keyBased\n");
+			return NULL;
+		}
+		cJSON_AddItemToObject(additionalFields, "keyBased", keyBased);
+
+		//TODO here we have the username from the docker container hardcoded: netconf
+		if (cJSON_AddStringToObject(keyBased, "username", "netconf") == NULL)
+		{
+			printf("Could not create JSON object: username\n");
+			return NULL;
+		}
+
+		if (cJSON_AddStringToObject(keyBased, "keyId", "device-key") == NULL)
+		{
+			printf("Could not create JSON object: keyId\n");
+			return NULL;
+		}
+	}
+	else
+	{
+		//SSH specific configuration
+		if (cJSON_AddStringToObject(additionalFields, "protocol", "SSH") == NULL)
+		{
+			printf("Could not create JSON object: protocol\n");
+			return NULL;
+		}
+
+		//TODO here we have the username from the docker container hardcoded: netconf
+		if (cJSON_AddStringToObject(additionalFields, "username", "netconf") == NULL)
+		{
+			printf("Could not create JSON object: username\n");
+			return NULL;
+		}
+
+		//TODO here we have the password from the docker container hardcoded: netconf
+		if (cJSON_AddStringToObject(additionalFields, "password", "netconf") == NULL)
+		{
+			printf("Could not create JSON object: password\n");
+			return NULL;
+		}
+	}
+
+	if (cJSON_AddBoolToObject(additionalFields, "reconnectOnChangedSchema", FALSE) == NULL)
+	{
+		printf("Could not create JSON object: reconnectOnChangedSchema\n");
+		return NULL;
+	}
+
+	if (cJSON_AddNumberToObject(additionalFields, "sleep-factor", 1.5) == NULL)
+	{
+		printf("Could not create JSON object: sleep-factor\n");
+		return NULL;
+	}
+
+	if (cJSON_AddBoolToObject(additionalFields, "tcpOnly", FALSE) == NULL)
+	{
+		printf("Could not create JSON object: tcpOnly\n");
+		return NULL;
+	}
+
+	if (cJSON_AddNumberToObject(additionalFields, "connectionTimeout", 20000) == NULL)
+	{
+		printf("Could not create JSON object: connectionTimeout\n");
+		return NULL;
+	}
+
+	if (cJSON_AddNumberToObject(additionalFields, "maxConnectionAttempts", 100) == NULL)
+	{
+		printf("Could not create JSON object: maxConnectionAttempts\n");
+		return NULL;
+	}
+
+	if (cJSON_AddNumberToObject(additionalFields, "betweenAttemptsTimeout", 2000) == NULL)
+	{
+		printf("Could not create JSON object: betweenAttemptsTimeout\n");
+		return NULL;
+	}
+
+	if (cJSON_AddNumberToObject(additionalFields, "keepaliveDelay", 120) == NULL)
+	{
+		printf("Could not create JSON object: keepaliveDelay\n");
+		return NULL;
+	}
+
+	return pnfRegistrationFields;
 }

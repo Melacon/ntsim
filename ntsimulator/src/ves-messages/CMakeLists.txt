@@ -13,5 +13,6 @@ target_link_libraries(ves-heartbeat utils)
 target_link_libraries(ves-heartbeat sysrepo)
 target_link_libraries(ves-heartbeat curl)
 target_link_libraries(ves-heartbeat cjson)
+target_link_libraries(ves-heartbeat pthread)
 
 install(TARGETS ves-heartbeat DESTINATION ${CMAKE_INSTALL_BINDIR})

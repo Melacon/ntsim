@@ -14,8 +14,9 @@
 		<controller-password>admin</controller-password>
 	</controller-details>
 	<ves-endpoint-details>
-		<ves-endpoint-ipv4>172.17.0.1</ves-endpoint-ipv4>
+		<ves-endpoint-ip>172.17.0.1</ves-endpoint-ip>
 		<ves-endpoint-port>30007</ves-endpoint-port>
 		<ves-endpoint-auth-method>no-auth</ves-endpoint-auth-method>
+		<ves-registration>false</ves-registration>
 	</ves-endpoint-details>
 </simulator-config>

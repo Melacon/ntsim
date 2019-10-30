@@ -1,17 +1,17 @@
 {
 	"notification-config":	{
 		"fault-notification-delay-period":	0,
-		"ves-heartbeat-period":	10,
+		"ves-heartbeat-period":	0,
 		"is-netconf-available":	true,
 		"is-ves-available":	true
 	},
 	"ves-endpoint-details":	{
-		"ves-endpoint-ipv4":	"172.17.0.1",
-		"ves-endpoint-ipv6":	"",
+		"ves-endpoint-ip":	"172.17.0.1",
 		"ves-endpoint-port":	30007,
 		"ves-endpoint-auth-method":	"no-auth",
 		"ves-endpoint-username":	"",
 		"ves-endpoint-password":	"",
-		"ves-endpoint-certificate":	""
+		"ves-endpoint-certificate":	"",
+		"ves-registration":	false
 	}
 }

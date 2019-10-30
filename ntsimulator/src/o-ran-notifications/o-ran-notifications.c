@@ -47,25 +47,6 @@ struct faultAlarms oran_fault_alarms[ORAN_FAULT_ALARMS_NUMBER] = {
 		{.faultId = 10, .faultSource = "fweiunvfrem32", .affectedObjects = {"sfkm23klsdf2343"}, .cleared = 1, .faultSeverity = "MAJOR", .faultText = "dfskjnl4j dsfknl2 fodn54 65k"}
 };
 
-static long random_at_most(long max) {
-  unsigned long
-    // max <= RAND_MAX < ULONG_MAX, so this is okay.
-    num_bins = (unsigned long) max + 1,
-    num_rand = (unsigned long) RAND_MAX + 1,
-    bin_size = num_rand / num_bins,
-    defect   = num_rand % num_bins;
-
-  long x;
-  do {
-   x = random();
-  }
-  // This is carefully written not to overflow
-  while (num_rand - defect <= (unsigned long)x);
-
-  // Truncated division is intentional
-  return x/bin_size;
-}
-
 static int send_dummy_notif_file_mgmt(sr_session_ctx_t *sess)
 {
 	int rc;

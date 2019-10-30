@@ -239,12 +239,12 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
 	sr_free_val(val);
 
 	/* get the value from sysrepo, we do not care if the value did not change in our case */
-	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-ipv4", &val);
+	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-ip", &val);
 	if (rc != SR_ERR_OK) {
 		goto sr_error;
 	}
 
-	rc = ves_ipv4_changed(val->data.string_val);
+	rc = ves_ip_changed(val->data.string_val);
 	if (rc != SR_ERR_OK) {
 		goto sr_error;
 	}
@@ -257,7 +257,20 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
 		goto sr_error;
 	}
 
-	rc = ves_port_changed(val->data.uint32_val);
+	rc = ves_port_changed(val->data.uint16_val);
+	if (rc != SR_ERR_OK) {
+		goto sr_error;
+	}
+
+	sr_free_val(val);
+
+	/* get the value from sysrepo, we do not care if the value did not change in our case */
+	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-registration", &val);
+	if (rc != SR_ERR_OK) {
+		goto sr_error;
+	}
+
+	rc = ves_registration_changed(val->data.bool_val);
 	if (rc != SR_ERR_OK) {
 		goto sr_error;
 	}

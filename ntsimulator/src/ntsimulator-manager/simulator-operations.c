@@ -253,7 +253,7 @@ static char* create_docker_container_curl(int base_netconf_port, cJSON* managerB
     cJSON_AddItemToObject(postDataJson, "Env", env_variables_array);
 
     char environment_var[50];
-    sprintf(environment_var, "NTS_IP=\"%s\"", getenv("NTS_IP"));
+    sprintf(environment_var, "NTS_IP=%s", getenv("NTS_IP"));
 
     cJSON *env_var_obj = cJSON_CreateString(environment_var);
     if (env_var_obj == NULL)
@@ -263,7 +263,7 @@ static char* create_docker_container_curl(int base_netconf_port, cJSON* managerB
 	}
     cJSON_AddItemToArray(env_variables_array, env_var_obj);
 
-    sprintf(environment_var, "NETCONF_BASE=%s", getenv("NETCONF_BASE"));
+    sprintf(environment_var, "NETCONF_BASE=%d", base_netconf_port);
     cJSON *env_var_obj_2 = cJSON_CreateString(environment_var);
     if (env_var_obj_2 == NULL)
 	{
@@ -1347,7 +1347,7 @@ int add_key_pair_to_odl(controller_t *controller_list, int controller_list_size)
 	return SR_ERR_OK;
 }
 
-int ves_ipv4_changed(char *new_ipv4)
+int ves_ip_changed(char *new_ip)
 {
 	char *stringConfiguration = readConfigFileInString();
 
@@ -1380,16 +1380,16 @@ int ves_ipv4_changed(char *new_ipv4)
 		return SR_ERR_OPERATION_FAILED;
 	}
 
-	cJSON *vesIpv4 = cJSON_GetObjectItemCaseSensitive(vesDetails, "ves-endpoint-ipv4");
-	if (!cJSON_IsString(vesIpv4))
+	cJSON *vesIp = cJSON_GetObjectItemCaseSensitive(vesDetails, "ves-endpoint-ip");
+	if (!cJSON_IsString(vesIp))
 	{
-		printf("Configuration JSON is not as expected: vesIpv4 is not a string");
+		printf("Configuration JSON is not as expected: ves-endpoint-ip is not a string");
 		free(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
 	//we set the value of the fault-notification-delay-period object
-	cJSON_ReplaceItemInObject(vesDetails, "ves-endpoint-ipv4", cJSON_CreateString(new_ipv4));
+	cJSON_ReplaceItemInObject(vesDetails, "ves-endpoint-ip", cJSON_CreateString(new_ip));
 
 	//writing the new JSON to the configuration file
 	stringConfiguration = cJSON_Print(jsonConfig);
@@ -1443,6 +1443,59 @@ int ves_port_changed(int new_port)
 
 	//we set the value of the fault-notification-delay-period object
 	cJSON_SetNumberValue(vesPort, new_port);
+
+	//writing the new JSON to the configuration file
+	stringConfiguration = cJSON_Print(jsonConfig);
+	writeConfigFile(stringConfiguration);
+
+	free(jsonConfig);
+
+	return SR_ERR_OK;
+}
+
+int ves_registration_changed(cJSON_bool new_bool)
+{
+	char *stringConfiguration = readConfigFileInString();
+
+	if (stringConfiguration == NULL)
+	{
+		printf("Could not read configuration file!\n");
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *jsonConfig = cJSON_Parse(stringConfiguration);
+	if (jsonConfig == NULL)
+	{
+		free(stringConfiguration);
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL)
+		{
+			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+		}
+		return SR_ERR_OPERATION_FAILED;
+	}
+	//we don't need the string anymore
+	free(stringConfiguration);
+	stringConfiguration = NULL;
+
+	cJSON *vesDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "ves-endpoint-details");
+	if (!cJSON_IsObject(vesDetails))
+	{
+		printf("Configuration JSON is not as expected: ves-endpoint-details is not an object");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *vesRegistration = cJSON_GetObjectItemCaseSensitive(vesDetails, "ves-registration");
+	if (!cJSON_IsBool(vesRegistration))
+	{
+		printf("Configuration JSON is not as expected: ves-registration is not a bool.");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	//we set the value of the ves-registration object
+	cJSON_ReplaceItemInObject(vesDetails, "ves-registration", cJSON_CreateBool(new_bool));
 
 	//writing the new JSON to the configuration file
 	stringConfiguration = cJSON_Print(jsonConfig);

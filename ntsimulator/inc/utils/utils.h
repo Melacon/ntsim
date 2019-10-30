@@ -21,6 +21,8 @@
 #define TRUE 1
 #define FALSE 0
 
+#define NETCONF_CONNECTIONS_PER_DEVICE 10
+
 #define PREPARE_ADD_NEW_VALUE(v, num) 	{\
 										num++;\
 										}
@@ -33,6 +35,7 @@
 										num++;\
 										}
 
+long 	random_at_most(long max);
 void 	getCurrentDateAndTime(char *date_and_time);
 int 	getSecondsFromLastQuarterInterval(void);
 int 	getSecondsFromLastDayInterval(void);
@@ -40,8 +43,9 @@ void 	getPreviousQuarterInterval(int number_of_intervals, char *date_and_time);
 void 	getPreviousDayPmTimestamp(int number_of_intervals, char *date_and_time);
 long int getMicrosecondsSinceEpoch(void);
 
-cJSON*	vesCreateCommonEventHeader(void);
+cJSON*	vesCreateCommonEventHeader(char *domain, char *event_type, char *source_name);
 cJSON*	vesCreateHeartbeatFields(int heartbeat_interval);
+cJSON*	vesCreatePnfRegistrationFields(int port, bool is_tls);
 
 char* 	readConfigFileInString(void);
 void 	writeConfigFile(char *config);
@@ -49,8 +53,10 @@ void 	writeConfigFile(char *config);
 int 	getFaultNotificationDelayPeriodFromConfigJson(void);
 int 	getVesHeartbeatPeriodFromConfigJson(void);
 char* 	getVesAuthMethodFromConfigJson(void);
-char* 	getVesIpv4FromConfigJson(void);
+char* 	getVesIpFromConfigJson(void);
 int 	getVesPortFromConfigJson(void);
+int 	getVesRegistrationFromConfigJson(void);
 
+void	generateRandomMacAddress(char *mac_address);
 
 #endif /* EXAMPLES_NTSIMULATOR_UTILS_H_ */
