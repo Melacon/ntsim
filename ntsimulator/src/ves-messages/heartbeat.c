@@ -33,20 +33,6 @@ pthread_mutex_t lock;
 
 static 	CURL *curl;
 
-static void set_curl_common_info()
-{
-	struct curl_slist *chunk = NULL;
-	chunk = curl_slist_append(chunk, "Content-Type: application/json");
-	chunk = curl_slist_append(chunk, "Accept: application/json");
-
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-
-    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 2L); // seconds timeout for a connection
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5L); //seconds timeout for an operation
-
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-}
-
 int _init_curl()
 {
 	curl = curl_easy_init();
@@ -69,24 +55,24 @@ int cleanup_curl()
 	return SR_ERR_OK;
 }
 
-static void prepare_ves_message_curl(void)
-{
-	curl_easy_reset(curl);
-	set_curl_common_info();
-
-	char *ves_ip = getVesIpFromConfigJson();
-	int ves_port = getVesPortFromConfigJson();
-
-	char url[100];
-	sprintf(url, "http://%s:%d/eventListener/v7", ves_ip, ves_port);
-	curl_easy_setopt(curl, CURLOPT_URL, url);
-
-	free(ves_ip);
-
-//	curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-
-	return;
-}
+//static void prepare_ves_message_curl(void)
+//{
+//	curl_easy_reset(curl);
+//	set_curl_common_info();
+//
+//	char *ves_ip = getVesIpFromConfigJson();
+//	int ves_port = getVesPortFromConfigJson();
+//
+//	char url[100];
+//	sprintf(url, "http://%s:%d/eventListener/v7", ves_ip, ves_port);
+//	curl_easy_setopt(curl, CURLOPT_URL, url);
+//
+//	free(ves_ip);
+//
+////	curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+//
+//	return;
+//}
 /*
  * Heartbeat payload example
  *
@@ -126,8 +112,9 @@ static void prepare_ves_message_curl(void)
 static int send_heartbeat(int heartbeat_interval)
 {
 	CURLcode res;
+	static int sequence_number = 0;
 
-	prepare_ves_message_curl();
+	prepare_ves_message_curl(curl);
 
 	cJSON *postDataJson = cJSON_CreateObject();
 
@@ -142,7 +129,7 @@ static int send_heartbeat(int heartbeat_interval)
 	char hostname[100];
 	sprintf(hostname, "%s", getenv("HOSTNAME"));
 
-	cJSON *commonEventHeader = vesCreateCommonEventHeader("heartbeat", "Controller", hostname);
+	cJSON *commonEventHeader = vesCreateCommonEventHeader("heartbeat", "Controller", hostname, sequence_number++);
 	if (commonEventHeader == NULL)
 	{
 		printf("Could not create JSON object: commonEventHeader\n");
@@ -191,8 +178,9 @@ sigint_handler(int signum)
 static int send_pnf_registration_instance(char *hostname, int port, bool is_tls)
 {
 	CURLcode res;
+	static int sequence_number = 0;
 
-	prepare_ves_message_curl();
+	prepare_ves_message_curl(curl);
 
 	cJSON *postDataJson = cJSON_CreateObject();
 
@@ -207,7 +195,7 @@ static int send_pnf_registration_instance(char *hostname, int port, bool is_tls)
 	char source_name[100];
 	sprintf(source_name, "%s_%d", hostname, port);
 
-	cJSON *commonEventHeader = vesCreateCommonEventHeader("pnfRegistration", "EventType5G", source_name);
+	cJSON *commonEventHeader = vesCreateCommonEventHeader("pnfRegistration", "EventType5G", source_name, sequence_number++);
 	if (commonEventHeader == NULL)
 	{
 		printf("Could not create JSON object: commonEventHeader\n");

@@ -1505,3 +1505,109 @@ int ves_registration_changed(cJSON_bool new_bool)
 
 	return SR_ERR_OK;
 }
+
+int is_netconf_available_changed(cJSON_bool new_bool)
+{
+	char *stringConfiguration = readConfigFileInString();
+
+	if (stringConfiguration == NULL)
+	{
+		printf("Could not read configuration file!\n");
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *jsonConfig = cJSON_Parse(stringConfiguration);
+	if (jsonConfig == NULL)
+	{
+		free(stringConfiguration);
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL)
+		{
+			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+		}
+		return SR_ERR_OPERATION_FAILED;
+	}
+	//we don't need the string anymore
+	free(stringConfiguration);
+	stringConfiguration = NULL;
+
+	cJSON *notifConfig = cJSON_GetObjectItemCaseSensitive(jsonConfig, "notification-config");
+	if (!cJSON_IsObject(notifConfig))
+	{
+		printf("Configuration JSON is not as expected: notification-config is not an object");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *isNetconfAvailable = cJSON_GetObjectItemCaseSensitive(notifConfig, "is-netconf-available");
+	if (!cJSON_IsBool(isNetconfAvailable))
+	{
+		printf("Configuration JSON is not as expected: is-netconf-available is not a bool.");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	//we set the value of the ves-registration object
+	cJSON_ReplaceItemInObject(notifConfig, "is-netconf-available", cJSON_CreateBool(new_bool));
+
+	//writing the new JSON to the configuration file
+	stringConfiguration = cJSON_Print(jsonConfig);
+	writeConfigFile(stringConfiguration);
+
+	free(jsonConfig);
+
+	return SR_ERR_OK;
+}
+
+int is_ves_available_changed(cJSON_bool new_bool)
+{
+	char *stringConfiguration = readConfigFileInString();
+
+	if (stringConfiguration == NULL)
+	{
+		printf("Could not read configuration file!\n");
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *jsonConfig = cJSON_Parse(stringConfiguration);
+	if (jsonConfig == NULL)
+	{
+		free(stringConfiguration);
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL)
+		{
+			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+		}
+		return SR_ERR_OPERATION_FAILED;
+	}
+	//we don't need the string anymore
+	free(stringConfiguration);
+	stringConfiguration = NULL;
+
+	cJSON *notifConfig = cJSON_GetObjectItemCaseSensitive(jsonConfig, "notification-config");
+	if (!cJSON_IsObject(notifConfig))
+	{
+		printf("Configuration JSON is not as expected: notification-config is not an object");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *isVesAvailable = cJSON_GetObjectItemCaseSensitive(notifConfig, "is-ves-available");
+	if (!cJSON_IsBool(isVesAvailable))
+	{
+		printf("Configuration JSON is not as expected: is-ves-available is not a bool.");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	//we set the value of the ves-registration object
+	cJSON_ReplaceItemInObject(notifConfig, "is-ves-available", cJSON_CreateBool(new_bool));
+
+	//writing the new JSON to the configuration file
+	stringConfiguration = cJSON_Print(jsonConfig);
+	writeConfigFile(stringConfiguration);
+
+	free(jsonConfig);
+
+	return SR_ERR_OK;
+}

@@ -91,6 +91,8 @@ int ves_heartbeat_period_changed(int period);
 int ves_ip_changed(char *new_ip);
 int ves_port_changed(int new_port);
 int ves_registration_changed(cJSON_bool new_bool);
+int is_netconf_available_changed(cJSON_bool new_bool);
+int is_ves_available_changed(cJSON_bool new_bool);
 
 
 

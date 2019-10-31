@@ -12,6 +12,20 @@
 #include <sys/time.h>
 #include <stdio.h>
 
+void set_curl_common_info_ves(CURL *curl)
+{
+	struct curl_slist *chunk = NULL;
+	chunk = curl_slist_append(chunk, "Content-Type: application/json");
+	chunk = curl_slist_append(chunk, "Accept: application/json");
+
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 2L); // seconds timeout for a connection
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5L); //seconds timeout for an operation
+
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+}
+
 void getCurrentDateAndTime(char *date_and_time)
 {
 	time_t t = time(NULL);
@@ -153,9 +167,28 @@ long int getMicrosecondsSinceEpoch(void)
 	return useconds;
 }
 
-cJSON*	vesCreateCommonEventHeader(char *domain, char *event_type, char *source_name)
+//TODO need to implement other authentication methods as well, not only no-auth
+void prepare_ves_message_curl(CURL *curl)
 {
-	static int sequence_number = 0;
+	curl_easy_reset(curl);
+	set_curl_common_info_ves(curl);
+
+	char *ves_ip = getVesIpFromConfigJson();
+	int ves_port = getVesPortFromConfigJson();
+
+	char url[100];
+	sprintf(url, "http://%s:%d/eventListener/v7", ves_ip, ves_port);
+	curl_easy_setopt(curl, CURLOPT_URL, url);
+
+	free(ves_ip);
+
+//	curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+
+	return;
+}
+
+cJSON*	vesCreateCommonEventHeader(char *domain, char *event_type, char *source_name, int seq_id)
+{
 	char dateAndTime[50];
 	getCurrentDateAndTime(dateAndTime);
 
@@ -201,7 +234,7 @@ cJSON*	vesCreateCommonEventHeader(char *domain, char *event_type, char *source_n
 		return NULL;
 	}
 
-	if (cJSON_AddNumberToObject(commonEventHeader, "sequence", (double)(sequence_number++)) == NULL)
+	if (cJSON_AddNumberToObject(commonEventHeader, "sequence", (double)(seq_id)) == NULL)
 	{
 		printf("Could not create JSON object: sequence\n");
 		return NULL;
@@ -762,7 +795,10 @@ cJSON*	vesCreatePnfRegistrationFields(int port, bool is_tls)
 	}
 	cJSON_AddItemToObject(pnfRegistrationFields, "additionalFields", additionalFields);
 
-	if (cJSON_AddNumberToObject(additionalFields, "oamPort", port) == NULL)
+	char portString[10];
+	sprintf(portString, "%d", port);
+
+	if (cJSON_AddStringToObject(additionalFields, "oamPort", portString) == NULL)
 	{
 		printf("Could not create JSON object: oamPort\n");
 		return NULL;
@@ -777,22 +813,14 @@ cJSON*	vesCreatePnfRegistrationFields(int port, bool is_tls)
 			return NULL;
 		}
 
-		cJSON *keyBased = cJSON_CreateObject();
-		if (keyBased == NULL)
-		{
-			printf("Could not create JSON object: keyBased\n");
-			return NULL;
-		}
-		cJSON_AddItemToObject(additionalFields, "keyBased", keyBased);
-
 		//TODO here we have the username from the docker container hardcoded: netconf
-		if (cJSON_AddStringToObject(keyBased, "username", "netconf") == NULL)
+		if (cJSON_AddStringToObject(additionalFields, "username", "netconf") == NULL)
 		{
 			printf("Could not create JSON object: username\n");
 			return NULL;
 		}
 
-		if (cJSON_AddStringToObject(keyBased, "keyId", "device-key") == NULL)
+		if (cJSON_AddStringToObject(additionalFields, "keyId", "device-key") == NULL)
 		{
 			printf("Could not create JSON object: keyId\n");
 			return NULL;
@@ -822,47 +850,227 @@ cJSON*	vesCreatePnfRegistrationFields(int port, bool is_tls)
 		}
 	}
 
-	if (cJSON_AddBoolToObject(additionalFields, "reconnectOnChangedSchema", FALSE) == NULL)
+	if (cJSON_AddStringToObject(additionalFields, "reconnectOnChangedSchema", "false") == NULL)
 	{
 		printf("Could not create JSON object: reconnectOnChangedSchema\n");
 		return NULL;
 	}
 
-	if (cJSON_AddNumberToObject(additionalFields, "sleep-factor", 1.5) == NULL)
+	if (cJSON_AddStringToObject(additionalFields, "sleep-factor", "1.5") == NULL)
 	{
 		printf("Could not create JSON object: sleep-factor\n");
 		return NULL;
 	}
 
-	if (cJSON_AddBoolToObject(additionalFields, "tcpOnly", FALSE) == NULL)
+	if (cJSON_AddStringToObject(additionalFields, "tcpOnly", "false") == NULL)
 	{
 		printf("Could not create JSON object: tcpOnly\n");
 		return NULL;
 	}
 
-	if (cJSON_AddNumberToObject(additionalFields, "connectionTimeout", 20000) == NULL)
+	if (cJSON_AddStringToObject(additionalFields, "connectionTimeout", "20000") == NULL)
 	{
 		printf("Could not create JSON object: connectionTimeout\n");
 		return NULL;
 	}
 
-	if (cJSON_AddNumberToObject(additionalFields, "maxConnectionAttempts", 100) == NULL)
+	if (cJSON_AddStringToObject(additionalFields, "maxConnectionAttempts", "100") == NULL)
 	{
 		printf("Could not create JSON object: maxConnectionAttempts\n");
 		return NULL;
 	}
 
-	if (cJSON_AddNumberToObject(additionalFields, "betweenAttemptsTimeout", 2000) == NULL)
+	if (cJSON_AddStringToObject(additionalFields, "betweenAttemptsTimeout", "2000") == NULL)
 	{
 		printf("Could not create JSON object: betweenAttemptsTimeout\n");
 		return NULL;
 	}
 
-	if (cJSON_AddNumberToObject(additionalFields, "keepaliveDelay", 120) == NULL)
+	if (cJSON_AddStringToObject(additionalFields, "keepaliveDelay", "120") == NULL)
 	{
 		printf("Could not create JSON object: keepaliveDelay\n");
 		return NULL;
 	}
 
 	return pnfRegistrationFields;
+}
+
+int 	getNetconfAvailableFromConfigJson(void)
+{
+	char *stringConfig = readConfigFileInString();
+
+	if (stringConfig == NULL)
+	{
+		printf("Could not read JSON configuration file in string.");
+		return 0;
+	}
+
+	cJSON *jsonConfig = cJSON_Parse(stringConfig);
+	if (jsonConfig == NULL)
+	{
+		free(stringConfig);
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL)
+		{
+			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+		}
+		return SR_ERR_OPERATION_FAILED;
+	}
+	//we don't need the string anymore
+	free(stringConfig);
+
+	cJSON *notifDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "notification-config");
+	if (!cJSON_IsObject(notifDetails))
+	{
+		printf("Configuration JSON is not as expected: notification-config is not an object");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *isNetconfAvailable = cJSON_GetObjectItemCaseSensitive(notifDetails, "is-netconf-available");
+	if (!cJSON_IsBool(isNetconfAvailable))
+	{
+		printf("Configuration JSON is not as expected: is-netconf-available is not an object");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	int is_netconf_available = (cJSON_IsTrue(isNetconfAvailable)) ? TRUE : FALSE;
+
+	free(jsonConfig);
+
+	return is_netconf_available;
+}
+
+int 	getVesAvailableFromConfigJson(void)
+{
+	char *stringConfig = readConfigFileInString();
+
+	if (stringConfig == NULL)
+	{
+		printf("Could not read JSON configuration file in string.");
+		return 0;
+	}
+
+	cJSON *jsonConfig = cJSON_Parse(stringConfig);
+	if (jsonConfig == NULL)
+	{
+		free(stringConfig);
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL)
+		{
+			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+		}
+		return SR_ERR_OPERATION_FAILED;
+	}
+	//we don't need the string anymore
+	free(stringConfig);
+
+	cJSON *notifDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "notification-config");
+	if (!cJSON_IsObject(notifDetails))
+	{
+		printf("Configuration JSON is not as expected: notification-config is not an object");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *isVesAvailable = cJSON_GetObjectItemCaseSensitive(notifDetails, "is-ves-available");
+	if (!cJSON_IsBool(isVesAvailable))
+	{
+		printf("Configuration JSON is not as expected: is-ves-available is not an object");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	int is_netconf_available = (cJSON_IsTrue(isVesAvailable)) ? TRUE : FALSE;
+
+	free(jsonConfig);
+
+	return is_netconf_available;
+}
+
+cJSON*	vesCreateFaultFields(char *alarm_condition, char *alarm_object, char *severity, char *date_time, char *specific_problem)
+{
+	cJSON *faultFields = cJSON_CreateObject();
+	if (faultFields == NULL)
+	{
+		printf("Could not create JSON object: faultFields\n");
+		return NULL;
+	}
+
+	if (cJSON_AddStringToObject(faultFields, "faultFieldsVersion", "4.0") == NULL)
+	{
+		printf("Could not create JSON object: faultFieldsVersion\n");
+		return NULL;
+	}
+
+	if (cJSON_AddStringToObject(faultFields, "alarmCondition", alarm_condition) == NULL)
+	{
+		printf("Could not create JSON object: alarmCondition\n");
+		return NULL;
+	}
+
+	if (cJSON_AddStringToObject(faultFields, "alarmInterfaceA", alarm_object) == NULL)
+	{
+		printf("Could not create JSON object: alarmInterfaceA\n");
+		return NULL;
+	}
+
+	if (cJSON_AddStringToObject(faultFields, "eventSourceType", "O_RAN_COMPONENT") == NULL)
+	{
+		printf("Could not create JSON object: eventSourceType\n");
+		return NULL;
+	}
+
+	if (cJSON_AddStringToObject(faultFields, "specificProblem", specific_problem) == NULL)
+	{
+		printf("Could not create JSON object: specificProblem\n");
+		return NULL;
+	}
+
+	if (cJSON_AddStringToObject(faultFields, "eventSeverity", severity) == NULL)
+	{
+		printf("Could not create JSON object: eventSeverity\n");
+		return NULL;
+	}
+
+	if (cJSON_AddStringToObject(faultFields, "vfStatus", "Active") == NULL)
+	{
+		printf("Could not create JSON object: vfStatus\n");
+		return NULL;
+	}
+
+	cJSON *alarmAdditionalInformation = cJSON_CreateObject();
+	if (alarmAdditionalInformation == NULL)
+	{
+		printf("Could not create JSON object: alarmAdditionalInformation\n");
+		return NULL;
+	}
+	cJSON_AddItemToObject(faultFields, "alarmAdditionalInformation", alarmAdditionalInformation);
+
+	if (cJSON_AddStringToObject(alarmAdditionalInformation, "eventTime", date_time) == NULL)
+	{
+		printf("Could not create JSON object: eventTime\n");
+		return NULL;
+	}
+
+	if (cJSON_AddStringToObject(alarmAdditionalInformation, "equipType", "O-RAN-sim") == NULL)
+	{
+		printf("Could not create JSON object: equipType\n");
+		return NULL;
+	}
+
+	if (cJSON_AddStringToObject(alarmAdditionalInformation, "vendor", "Melacon") == NULL)
+	{
+		printf("Could not create JSON object: vendor\n");
+		return NULL;
+	}
+
+	if (cJSON_AddStringToObject(alarmAdditionalInformation, "model", "Simulated Device") == NULL)
+	{
+		printf("Could not create JSON object: model\n");
+		return NULL;
+	}
+
+	return faultFields;
 }

@@ -47,6 +47,89 @@ struct faultAlarms oran_fault_alarms[ORAN_FAULT_ALARMS_NUMBER] = {
 		{.faultId = 10, .faultSource = "fweiunvfrem32", .affectedObjects = {"sfkm23klsdf2343"}, .cleared = 1, .faultSeverity = "MAJOR", .faultText = "dfskjnl4j dsfknl2 fodn54 65k"}
 };
 
+static 	CURL *curl;
+
+static int _init_curl()
+{
+	curl = curl_easy_init();
+
+	if (curl == NULL) {
+		printf("cURL initialization error! Aborting call!\n");
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	return SR_ERR_OK;
+}
+
+static int cleanup_curl()
+{
+	if (curl != NULL)
+	{
+		curl_easy_cleanup(curl);
+	}
+
+	return SR_ERR_OK;
+}
+
+static int send_fault_ves_message(char *alarm_condition, char *alarm_object, char *severity, char *date_time, char *specific_problem)
+{
+	CURLcode res;
+	static sequence_id = 0;
+
+	prepare_ves_message_curl(curl);
+
+	cJSON *postDataJson = cJSON_CreateObject();
+
+	cJSON *event = cJSON_CreateObject();
+	if (event == NULL)
+	{
+		printf("Could not create JSON object: event\n");
+		return 1;
+	}
+	cJSON_AddItemToObject(postDataJson, "event", event);
+
+	char *hostname = getenv("HOSTNAME");
+
+	cJSON *commonEventHeader = vesCreateCommonEventHeader("fault", "O_RAN_COMPONENT_Alarms", hostname, sequence_id++);
+	if (commonEventHeader == NULL)
+	{
+		printf("Could not create JSON object: commonEventHeader\n");
+		return 1;
+	}
+	cJSON_AddItemToObject(event, "commonEventHeader", commonEventHeader);
+
+	cJSON *faultFields = vesCreateFaultFields(alarm_condition, alarm_object, severity, date_time, specific_problem);
+	if (faultFields == NULL)
+	{
+		printf("Could not create JSON object: faultFields\n");
+		return 1;
+	}
+	cJSON_AddItemToObject(event, "faultFields", faultFields);
+
+    char *post_data_string = NULL;
+
+	post_data_string = cJSON_PrintUnformatted(postDataJson);
+
+	printf("Post data JSON:\n%s\n", post_data_string);
+
+	if (postDataJson != NULL)
+	{
+		cJSON_Delete(postDataJson);
+	}
+
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data_string);
+
+	res = curl_easy_perform(curl);
+
+	if (res != CURLE_OK)
+	{
+		printf("Failed to send cURL...\n");
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	return SR_ERR_OK;
+}
+
 static int send_dummy_notif_file_mgmt(sr_session_ctx_t *sess)
 {
 	int rc;
@@ -129,22 +212,6 @@ static int send_dummy_notif(sr_session_ctx_t *sess)
 	sr_val_build_xpath(&vnotif[current_num_of_values - 1], "%s", "/o-ran-fm:alarm-notif/fault-source");
 	sr_val_set_str_data(&vnotif[current_num_of_values - 1], SR_STRING_T, oran_fault_alarms[ran].faultSource);
 
-	for (int  i = 0; i < AFFECTED_OBJECTS_MAX_NUMBER; ++i)
-	{
-		char path[400];
-		if (oran_fault_alarms[ran].affectedObjects[i] == NULL)
-		{
-			break;
-		}
-
-		sprintf(path, "/o-ran-fm:alarm-notif/affected-objects[name='%s']", oran_fault_alarms[ran].affectedObjects[i]);
-
-		CREATE_NEW_VALUE(rc, vnotif, current_num_of_values);
-
-		sr_val_build_xpath(&vnotif[current_num_of_values - 1], "%s", path);
-		vnotif[current_num_of_values - 1].type = SR_LIST_T;
-	}
-
 	CREATE_NEW_VALUE(rc, vnotif, current_num_of_values);
 
 	sr_val_build_xpath(&vnotif[current_num_of_values - 1], "%s", "/o-ran-fm:alarm-notif/fault-severity");
@@ -166,13 +233,46 @@ static int send_dummy_notif(sr_session_ctx_t *sess)
 	sr_val_build_xpath(&vnotif[current_num_of_values - 1], "%s", "/o-ran-fm:alarm-notif/event-time");
 	sr_val_build_str_data(&vnotif[current_num_of_values - 1], SR_STRING_T, "%s", dateAndTime);
 
-	rc = sr_event_notif_send(sess, "/o-ran-fm:alarm-notif", vnotif, current_num_of_values, SR_EV_NOTIF_DEFAULT);
-	if (rc != SR_ERR_OK) {
-		printf("Failed to send notification send_dummy_notif\n");
-		return SR_ERR_OPERATION_FAILED;
+	for (int  i = 0; i < AFFECTED_OBJECTS_MAX_NUMBER; ++i)
+	{
+		char path[400];
+		if (oran_fault_alarms[ran].affectedObjects[i] == NULL)
+		{
+			break;
+		}
+
+		sprintf(path, "/o-ran-fm:alarm-notif/affected-objects[name='%s']", oran_fault_alarms[ran].affectedObjects[i]);
+
+		CREATE_NEW_VALUE(rc, vnotif, current_num_of_values);
+
+		sr_val_build_xpath(&vnotif[current_num_of_values - 1], "%s", path);
+		vnotif[current_num_of_values - 1].type = SR_LIST_T;
 	}
 
-	printf("Successfully sent notification with timestamp=\"%s\"\n", dateAndTime);
+	int isNetconfAvailable = getNetconfAvailableFromConfigJson();
+	int isVesAvailable = getVesAvailableFromConfigJson();
+
+	if (isNetconfAvailable)
+	{
+		rc = sr_event_notif_send(sess, "/o-ran-fm:alarm-notif", vnotif, current_num_of_values, SR_EV_NOTIF_DEFAULT);
+		if (rc != SR_ERR_OK)
+		{
+			printf("Failed to send notification send_dummy_notif\n");
+			return SR_ERR_OPERATION_FAILED;
+		}
+		printf("Successfully sent notification with timestamp=\"%s\"\n", dateAndTime);
+	}
+	if (isVesAvailable)
+	{
+		char faultId[10];
+		sprintf(faultId, "%d", oran_fault_alarms[ran].faultId);
+		rc = send_fault_ves_message(faultId, oran_fault_alarms[ran].faultSource,
+				(oran_fault_alarms[ran].cleared) ? "NORMAL" : oran_fault_alarms[ran].faultSeverity, dateAndTime, oran_fault_alarms[ran].faultText);
+		if (rc != SR_ERR_OK)
+		{
+			printf("Could not send Fault VES message\n");
+		}
+	}
 
 	sr_free_values(vnotif, current_num_of_values);
 
@@ -210,6 +310,13 @@ main(int argc, char **argv)
         goto cleanup;
     }
 
+    rc = _init_curl();
+    if (rc != SR_ERR_OK)
+    {
+        fprintf(stderr, "Could not initialize cURL: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
     /* loop until ctrl-c is pressed / SIGINT is received */
     signal(SIGINT, sigint_handler);
     signal(SIGPIPE, SIG_IGN);
@@ -244,6 +351,7 @@ cleanup:
     if (NULL != connection) {
         sr_disconnect(connection);
     }
+    cleanup_curl();
     printf("Error encountered. Exiting...");
     return rc;
 }

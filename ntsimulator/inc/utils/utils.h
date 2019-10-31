@@ -35,17 +35,21 @@
 										num++;\
 										}
 
-long 	random_at_most(long max);
-void 	getCurrentDateAndTime(char *date_and_time);
-int 	getSecondsFromLastQuarterInterval(void);
-int 	getSecondsFromLastDayInterval(void);
-void 	getPreviousQuarterInterval(int number_of_intervals, char *date_and_time);
-void 	getPreviousDayPmTimestamp(int number_of_intervals, char *date_and_time);
-long int getMicrosecondsSinceEpoch(void);
+void 		set_curl_common_info_ves(CURL *curl);
 
-cJSON*	vesCreateCommonEventHeader(char *domain, char *event_type, char *source_name);
+long 		random_at_most(long max);
+void 		getCurrentDateAndTime(char *date_and_time);
+int 		getSecondsFromLastQuarterInterval(void);
+int 		getSecondsFromLastDayInterval(void);
+void 		getPreviousQuarterInterval(int number_of_intervals, char *date_and_time);
+void 		getPreviousDayPmTimestamp(int number_of_intervals, char *date_and_time);
+long int 	getMicrosecondsSinceEpoch(void);
+void 		prepare_ves_message_curl(CURL *curl);
+
+cJSON*	vesCreateCommonEventHeader(char *domain, char *event_type, char *source_name, int seq_id);
 cJSON*	vesCreateHeartbeatFields(int heartbeat_interval);
 cJSON*	vesCreatePnfRegistrationFields(int port, bool is_tls);
+cJSON*	vesCreateFaultFields(char *alarm_condition, char *alarm_object, char *severity, char *date_time, char *specific_problem);
 
 char* 	readConfigFileInString(void);
 void 	writeConfigFile(char *config);
@@ -56,6 +60,8 @@ char* 	getVesAuthMethodFromConfigJson(void);
 char* 	getVesIpFromConfigJson(void);
 int 	getVesPortFromConfigJson(void);
 int 	getVesRegistrationFromConfigJson(void);
+int 	getNetconfAvailableFromConfigJson(void);
+int 	getVesAvailableFromConfigJson(void);
 
 void	generateRandomMacAddress(char *mac_address);
 
