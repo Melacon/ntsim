@@ -1,6 +1,6 @@
 #! /bin/bash
 
-sleep 5
+sleep 10
 
 openssl genrsa -out melacon.server.key 2048
 

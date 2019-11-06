@@ -418,7 +418,7 @@ static int send_mount_device_instance_ssh(char *url, char *credentials, char *de
 
 	curl_easy_setopt(curl_odl, CURLOPT_URL, url_for_curl);
 
-	char post_data_xml[1000];
+	char post_data_xml[1500];
 
 	sprintf(post_data_xml,
 			"<node xmlns=\"urn:TBD:params:xml:ns:yang:network-topology\">"
@@ -429,6 +429,11 @@ static int send_mount_device_instance_ssh(char *url, char *credentials, char *de
 			"<password xmlns=\"urn:opendaylight:netconf-node-topology\">%s</password>"
 			"<tcp-only xmlns=\"urn:opendaylight:netconf-node-topology\">false</tcp-only>"
 			"<keepalive-delay xmlns=\"urn:opendaylight:netconf-node-topology\">120</keepalive-delay>"
+			"<reconnect-on-changed-schema xmlns=\"urn:opendaylight:netconf-node-topology\">false</reconnect-on-changed-schema>"
+			"<sleep-factor xmlns=\"urn:opendaylight:netconf-node-topology\">1.5</sleep-factor>"
+			"<connection-timeout-millis xmlns=\"urn:opendaylight:netconf-node-topology\">20000</connection-timeout-millis>"
+			"<max-connection-attempts xmlns=\"urn:opendaylight:netconf-node-topology\">100</max-connection-attempts>"
+			"<between-attempts-timeout-millis xmlns=\"urn:opendaylight:netconf-node-topology\">2000</between-attempts-timeout-millis>"
 			"</node>",
 			device_name, device_port, getenv("NTS_IP"), device_port, "netconf", "netconf");
 
@@ -471,7 +476,7 @@ static int send_mount_device_instance_tls(char *url, char *credentials, char *de
 
 	curl_easy_setopt(curl_odl, CURLOPT_URL, url_for_curl);
 
-	char post_data_xml[1000];
+	char post_data_xml[1500];
 
 	sprintf(post_data_xml,
 			"<node xmlns=\"urn:TBD:params:xml:ns:yang:network-topology\">"
@@ -487,6 +492,11 @@ static int send_mount_device_instance_tls(char *url, char *credentials, char *de
 			"<port xmlns=\"urn:opendaylight:netconf-node-topology\">%d</port>"
 			"<tcp-only xmlns=\"urn:opendaylight:netconf-node-topology\">false</tcp-only>"
 			"<keepalive-delay xmlns=\"urn:opendaylight:netconf-node-topology\">120</keepalive-delay>"
+			"<reconnect-on-changed-schema xmlns=\"urn:opendaylight:netconf-node-topology\">false</reconnect-on-changed-schema>"
+			"<sleep-factor xmlns=\"urn:opendaylight:netconf-node-topology\">1.5</sleep-factor>"
+			"<connection-timeout-millis xmlns=\"urn:opendaylight:netconf-node-topology\">20000</connection-timeout-millis>"
+			"<max-connection-attempts xmlns=\"urn:opendaylight:netconf-node-topology\">100</max-connection-attempts>"
+			"<between-attempts-timeout-millis xmlns=\"urn:opendaylight:netconf-node-topology\">2000</between-attempts-timeout-millis>"
 			"</node>",
 			device_name, device_port, getenv("NTS_IP"), "netconf", device_port);
 
