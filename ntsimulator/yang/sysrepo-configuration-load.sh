@@ -17,7 +17,7 @@ echo "Loading data into sysrepo..."
 pyang -f sample-xml-skeleton --sample-xml-list-entries 3 *.yang
 
 result=$(netopeer2-cli <<-END
-	connect --login netconf
+	connect --host 127.0.0.1 --login netconf
 	user-rpc --content=/opt/dev/yang/edit_config_operation.xml
 	disconnect
 END
@@ -28,7 +28,7 @@ do
   pyang -f sample-xml-skeleton --sample-xml-list-entries 2 *.yang
   
   result=$(netopeer2-cli <<-END
-	connect --login netconf
+	connect --host 127.0.0.1 --login netconf
 	user-rpc --content=edit_config_operation.xml
 	disconnect
 END

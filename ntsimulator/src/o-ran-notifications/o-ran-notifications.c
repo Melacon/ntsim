@@ -29,22 +29,22 @@ struct faultAlarms
 {
 	int 		faultId;
 	char* 		faultSource;
-	int 		cleared;
+	int 		cleared[10];
 	char*		faultSeverity;
 	char*		faultText;
 	char* 		affectedObjects[AFFECTED_OBJECTS_MAX_NUMBER];
 };
 struct faultAlarms oran_fault_alarms[ORAN_FAULT_ALARMS_NUMBER] = {
-		{.faultId = 1, .faultSource = "jknsdfnui", .affectedObjects = {"akddconoj", "asodmnjvf", "roiemfkmods"}, .cleared = 1, .faultSeverity = "MAJOR", .faultText = "sdnjosopnojnsd"},
-		{.faultId = 2, .faultSource = "onascokjnasc", .affectedObjects = {"sdouvncsjdfv13", "asjdn13ejlncd4"}, .cleared = 1, .faultSeverity = "WARNING", .faultText = "4pionfcsofn42on"},
-		{.faultId = 3, .faultSource = "asonxpkn", .affectedObjects = {"0j4fiwef320fd", "sdlvkmsdv-9023"}, .cleared = 1, .faultSeverity = "CRITICAL", .faultText = "sdjnonj32onjsa23"},
-		{.faultId = 4, .faultSource = "asnjcpkd", .affectedObjects = {"0j4fiwef320fd", "sdlvkmsdv-9023", "laksmdklmdas21"}, .cleared = 1, .faultSeverity = "MINOR", .faultText = "asdjln12osa453"},
-		{.faultId = 5, .faultSource = "dskmfl", .affectedObjects = {"sdkm31wdlk"}, .cleared = 1, .faultSeverity = "MAJOR", .faultText = "dknovrf34ekl"},
-		{.faultId = 6, .faultSource = "dsllkje232kl", .affectedObjects = {"sFKOM24KLMerw"}, .cleared = 1, .faultSeverity = "MAJOR", .faultText = "frpkm24k lsd	kmewfpm"},
-		{.faultId = 7, .faultSource = "fvkdlsfjnwej23kloe", .affectedObjects = {"fvkm24km", "sdfk23d", "kmdfkmo32", "wekl2332"}, .cleared = 1, .faultSeverity = "WARNING", .faultText = "dsm 2d 32j sdfmr32"},
-		{.faultId = 8, .faultSource = "dkom32", .affectedObjects = {"kmsdfkpm23ds", "sdmkp32"}, .cleared = 1, .faultSeverity = "CRITICAL", .faultText = "dsonj32 don32 mdson32pk654"},
-		{.faultId = 9, .faultSource = "weflm3", .affectedObjects = {"klklm32kl3", "dsfln234poewj23-", "spmd32k"}, .cleared = 1, .faultSeverity = "MINOR", .faultText = "dsflknjwej32"},
-		{.faultId = 10, .faultSource = "fweiunvfrem32", .affectedObjects = {"sfkm23klsdf2343"}, .cleared = 1, .faultSeverity = "MAJOR", .faultText = "dfskjnl4j dsfknl2 fodn54 65k"}
+		{.faultId = 1, .faultSource = "jknsdfnui", .affectedObjects = {"akddconoj", "asodmnjvf", "roiemfkmods"}, .cleared = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, .faultSeverity = "MAJOR", .faultText = "sdnjosopnojnsd"},
+		{.faultId = 2, .faultSource = "onascokjnasc", .affectedObjects = {"sdouvncsjdfv13", "asjdn13ejlncd4"}, .cleared = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, .faultSeverity = "WARNING", .faultText = "4pionfcsofn42on"},
+		{.faultId = 3, .faultSource = "asonxpkn", .affectedObjects = {"0j4fiwef320fd", "sdlvkmsdv-9023"}, .cleared = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, .faultSeverity = "CRITICAL", .faultText = "sdjnonj32onjsa23"},
+		{.faultId = 4, .faultSource = "asnjcpkd", .affectedObjects = {"0j4fiwef320fd", "sdlvkmsdv-9023", "laksmdklmdas21"}, .cleared = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, .faultSeverity = "MINOR", .faultText = "asdjln12osa453"},
+		{.faultId = 5, .faultSource = "dskmfl", .affectedObjects = {"sdkm31wdlk"}, .cleared = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, .faultSeverity = "MAJOR", .faultText = "dknovrf34ekl"},
+		{.faultId = 6, .faultSource = "dsllkje232kl", .affectedObjects = {"sFKOM24KLMerw"}, .cleared = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, .faultSeverity = "MAJOR", .faultText = "frpkm24k lsd	kmewfpm"},
+		{.faultId = 7, .faultSource = "fvkdlsfjnwej23kloe", .affectedObjects = {"fvkm24km", "sdfk23d", "kmdfkmo32", "wekl2332"}, .cleared = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, .faultSeverity = "WARNING", .faultText = "dsm 2d 32j sdfmr32"},
+		{.faultId = 8, .faultSource = "dkom32", .affectedObjects = {"kmsdfkpm23ds", "sdmkp32"}, .cleared = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, .faultSeverity = "CRITICAL", .faultText = "dsonj32 don32 mdson32pk654"},
+		{.faultId = 9, .faultSource = "weflm3", .affectedObjects = {"klklm32kl3", "dsfln234poewj23-", "spmd32k"}, .cleared = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, .faultSeverity = "MINOR", .faultText = "dsflknjwej32"},
+		{.faultId = 10, .faultSource = "fweiunvfrem32", .affectedObjects = {"sfkm23klsdf2343"}, .cleared = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, .faultSeverity = "MAJOR", .faultText = "dfskjnl4j dsfknl2 fodn54 65k"}
 };
 
 static 	CURL *curl;
@@ -71,10 +71,12 @@ static int cleanup_curl()
 	return SR_ERR_OK;
 }
 
-static int send_fault_ves_message(char *alarm_condition, char *alarm_object, char *severity, char *date_time, char *specific_problem)
+static int send_fault_ves_message(char *alarm_condition, char *alarm_object, char *severity, char *date_time, char *specific_problem, int port)
 {
+	int rc = SR_ERR_OK;
 	CURLcode res;
 	static sequence_id = 0;
+	int netconf_port_base = 0;
 
 	prepare_ves_message_curl(curl);
 
@@ -89,8 +91,23 @@ static int send_fault_ves_message(char *alarm_condition, char *alarm_object, cha
 	cJSON_AddItemToObject(postDataJson, "event", event);
 
 	char *hostname = getenv("HOSTNAME");
+	char *netconf_base_string = getenv("NETCONF_BASE");
 
-	cJSON *commonEventHeader = vesCreateCommonEventHeader("fault", "O_RAN_COMPONENT_Alarms", hostname, sequence_id++);
+	if (netconf_base_string != NULL)
+	{
+		rc = sscanf(netconf_base_string, "%d", &netconf_port_base);
+		if (rc != 1)
+		{
+			printf("Could not find the NETCONF base port, aborting the PNF registration...\n");
+			return 1;
+		}
+		netconf_port_base += port;
+	}
+
+	char source_name[100];
+	sprintf(source_name, "%s_%d", hostname, netconf_port_base);
+
+	cJSON *commonEventHeader = vesCreateCommonEventHeader("fault", "O_RAN_COMPONENT_Alarms", source_name, sequence_id++);
 	if (commonEventHeader == NULL)
 	{
 		printf("Could not create JSON object: commonEventHeader\n");
@@ -189,13 +206,16 @@ static int send_dummy_notif(sr_session_ctx_t *sess)
 
     int ran = (int) random_at_most(ORAN_FAULT_ALARMS_NUMBER - 1);
 
-    if (oran_fault_alarms[ran].cleared == 1)
+    //TODO we hardcode here the number of ports for each device, 10
+    int random_port = (int) random_at_most(9);
+
+    if (oran_fault_alarms[ran].cleared[random_port] == 1)
     {
-    	oran_fault_alarms[ran].cleared = 0;
+    	oran_fault_alarms[ran].cleared[random_port] = 0;
     }
     else
     {
-    	oran_fault_alarms[ran].cleared = 1;
+    	oran_fault_alarms[ran].cleared[random_port] = 1;
     }
 
 	sr_val_t *vnotif;
@@ -221,7 +241,7 @@ static int send_dummy_notif(sr_session_ctx_t *sess)
 
 	sr_val_build_xpath(&vnotif[current_num_of_values - 1], "%s", "/o-ran-fm:alarm-notif/is-cleared");
 	vnotif[current_num_of_values - 1].type = SR_BOOL_T;
-	vnotif[current_num_of_values - 1].data.bool_val = oran_fault_alarms[ran].cleared;
+	vnotif[current_num_of_values - 1].data.bool_val = oran_fault_alarms[ran].cleared[random_port];
 
 	CREATE_NEW_VALUE(rc, vnotif, current_num_of_values);
 
@@ -267,7 +287,7 @@ static int send_dummy_notif(sr_session_ctx_t *sess)
 		char faultId[10];
 		sprintf(faultId, "%d", oran_fault_alarms[ran].faultId);
 		rc = send_fault_ves_message(faultId, oran_fault_alarms[ran].faultSource,
-				(oran_fault_alarms[ran].cleared) ? "NORMAL" : oran_fault_alarms[ran].faultSeverity, dateAndTime, oran_fault_alarms[ran].faultText);
+				(oran_fault_alarms[ran].cleared[random_port]) ? "NORMAL" : oran_fault_alarms[ran].faultSeverity, dateAndTime, oran_fault_alarms[ran].faultText, random_port);
 		if (rc != SR_ERR_OK)
 		{
 			printf("Could not send Fault VES message\n");

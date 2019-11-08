@@ -10,7 +10,7 @@ echo '<key-data>'"$SSH_PUB_KEY"'</key-data></authorized-key></user></authenticat
 sysrepocfg --merge=load_auth_pubkey.xml --format=xml ietf-system
 rm load_auth_pubkey.xml
 
-ssh-keyscan -p 830 localhost >> ~/.ssh/known_hosts
+ssh-keyscan -p 830 127.0.0.1 >> ~/.ssh/known_hosts
 
 echo 'Done'
 exit 0

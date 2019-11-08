@@ -192,9 +192,6 @@ cJSON*	vesCreateCommonEventHeader(char *domain, char *event_type, char *source_n
 	char dateAndTime[50];
 	getCurrentDateAndTime(dateAndTime);
 
-    char hostname[100];
-    sprintf(hostname, "%s", getenv("HOSTNAME"));
-
 	long int useconds = getMicrosecondsSinceEpoch;
 
 	cJSON *commonEventHeader = cJSON_CreateObject();
@@ -211,7 +208,7 @@ cJSON*	vesCreateCommonEventHeader(char *domain, char *event_type, char *source_n
 	}
 
 	char eventId[200];
-	sprintf(eventId, "%s_%s", hostname, dateAndTime);
+	sprintf(eventId, "%s_%s", source_name, dateAndTime);
 
 	if (cJSON_AddStringToObject(commonEventHeader, "eventId", eventId) == NULL)
 	{
@@ -252,7 +249,7 @@ cJSON*	vesCreateCommonEventHeader(char *domain, char *event_type, char *source_n
 		return NULL;
 	}
 
-	if (cJSON_AddStringToObject(commonEventHeader, "reportingEntityName", hostname) == NULL)
+	if (cJSON_AddStringToObject(commonEventHeader, "reportingEntityName", source_name) == NULL)
 	{
 		printf("Could not create JSON object: reportingEntityName\n");
 		return NULL;
