@@ -6,7 +6,7 @@ The Network Topology Simulator is a framework that allows simulating devices tha
 
 ### Overview
 
-The NTECONF/YANG management interface is simulated, and any YANG models can be loaded by the framework to be exposed. Random data is generated based on the specific models, such that each simulated device presents different data on its management interface.
+The NETCONF/YANG management interface is simulated, and any YANG models can be loaded by the framework to be exposed. Random data is generated based on the specific models, such that each simulated device presents different data on its management interface.
 
 The NTS Manager can be used to specify the simulation details and to manage the simulation environment at runtime.
 
