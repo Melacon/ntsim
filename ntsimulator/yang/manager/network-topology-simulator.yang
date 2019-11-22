@@ -16,23 +16,23 @@ module network-topology-simulator {
   description
     "This module contains a collection of YANG definitions for managing the Network Topology Simulator.";
 
-  revision 2019-10-25 {
+  revision 2019-11-18 {
     description
-      "Modify notifications. Add VES message configuration options.";
+      "Modify notification configuration.";
     reference
-      "O-RAN SC SIM project";
+      "Telefonica TSP project";
   }
   revision 2019-06-07 {
     description
       "Modify controller details.";
     reference
-      "O-RAN SC SIM project";
+      "Telefonica TSP project";
   }
   revision 2019-03-07 {
     description
       "Initial version";
     reference
-      "O-RAN SC SIM project";
+      "Telefonica TSP project";
   }
 
   typedef operational-state-type {
@@ -56,29 +56,6 @@ module network-topology-simulator {
     }
     description
       "The operation state of the simulated device.";
-  }
-
-  typedef authentication-method-type {
-    type enumeration {
-      enum no-auth {
-        description
-          "no security (http)";
-      }
-      enum cert-only {
-        description
-          "auth by certificate (https)";
-      }
-      enum basic-auth {
-        description
-          "auth by basic auth username and password (https)";
-      }
-      enum cert-basic-auth {
-        description
-          "auth by certificate and basic auth username / password (https)";
-      }
-    }
-    description
-      "The authentication method for VES messaging.";
   }
 
   typedef percent {
@@ -167,23 +144,11 @@ module network-topology-simulator {
         description
           "Interval in seconds between two consecutive notifications. If the attribute is set to 0, nofitications are not generated.";
       }
-      leaf ves-heartbeat-period {
-        type uint32;
-        default "0";
-        description
-          "Interval in seconds between two VES heartbeat messages. If the attribute is set to 0, heartbeat messages are not generated.";
-      }
       leaf is-netconf-available {
         type boolean;
         default "true";
         description
           "If set to 'true', NETCONF notifications will be generated.";
-      }
-      leaf is-ves-available {
-        type boolean;
-        default "true";
-        description
-          "If set to 'true', VES messages will be generated.";
       }
       description
         "none";
@@ -192,53 +157,6 @@ module network-topology-simulator {
       uses controller-details-type-g;
       description
         "The connectivity details of the SDN Controller where we want to mount our simulated devices.";
-    }
-    container ves-endpoint-details {
-      must 'ves-registration = "false" or ../mounted-devices = 0' {
-        error-message "VES registration cannot be active while devices are still mounted to ODL not via VES.";
-      }
-      leaf ves-endpoint-ip {
-        type inet:ip-address;
-        description
-          "The IP Address of the VES Endpoint.";
-      }
-      leaf ves-endpoint-port {
-        type inet:port-number;
-        description
-          "The Port of the VES Endpoint.";
-      }
-      leaf ves-endpoint-auth-method {
-        type authentication-method-type;
-        default "no-auth";
-        description
-          "The type of the authentication to be used with the VES Endpoint.";
-      }
-      leaf ves-endpoint-username {
-        when "../ves-endpoint-auth-method = 'basic-auth' or ../ves-endpoint-auth-method = 'cert-basic-auth'";
-        type string;
-        description
-          "The Username to be used to authenticate to the VES Endpoint.";
-      }
-      leaf ves-endpoint-password {
-        when "../ves-endpoint-auth-method = 'basic-auth' or ../ves-endpoint-auth-method = 'cert-basic-auth'";
-        type string;
-        description
-          "The Password to be used to authenticate to the VES Endpoint.";
-      }
-      leaf ves-endpoint-certificate {
-        when "../ves-endpoint-auth-method = 'cert-only' or ../ves-endpoint-auth-method = 'cert-basic-auth'";
-        type string;
-        description
-          "The Certificate to be used to authenticate to the VES Endpoint.";
-      }
-      leaf ves-registration {
-        type boolean;
-        default "false";
-        description
-          "If this is set to 'True', the simulated devices will automatically send a pnfRegistration VES message when they start. This cannot be set to 'True' if we already have 'mounted-devices' greater that 0, because we already mounted the devices directly to ODL.";
-      }
-      description
-        "none";
     }
   }
   container simulator-status {
@@ -283,11 +201,6 @@ module network-topology-simulator {
     }
     description
       "State data container of the simulator.";
-  }
-
-  rpc restart-simulation {
-    description
-      "Operation to restart all the simulated devices with the new configuration of the simulator.";
   }
 
   rpc add-key-pair-to-odl {

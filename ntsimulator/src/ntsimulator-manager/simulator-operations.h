@@ -87,14 +87,7 @@ int get_docker_containers_operational_state_curl(device_stack_t *theStack);
 char* get_docker_container_resource_stats();
 
 int notification_delay_period_changed(int period);
-int ves_heartbeat_period_changed(int period);
-int ves_ip_changed(char *new_ip);
-int ves_port_changed(int new_port);
-int ves_registration_changed(cJSON_bool new_bool);
 int is_netconf_available_changed(cJSON_bool new_bool);
-int is_ves_available_changed(cJSON_bool new_bool);
-
-
 
 int add_key_pair_to_odl(controller_t *controller_list, int controller_list_size);
 

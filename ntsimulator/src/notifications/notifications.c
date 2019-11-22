@@ -1,5 +1,5 @@
 /*
- * o-ran-notifications.c
+ * notifications.c
  *
  *  Created on: Oct 23, 2019
  *      Author: parallels
@@ -317,7 +317,7 @@ main(int argc, char **argv)
     setbuf(stdout, NULL);
 
     /* connect to sysrepo */
-    rc = sr_connect("oran_notifications", SR_CONN_DEFAULT, &connection);
+    rc = sr_connect("notifications", SR_CONN_DEFAULT, &connection);
     if (SR_ERR_OK != rc) {
         fprintf(stderr, "Error by sr_connect: %s\n", sr_strerror(rc));
         goto cleanup;

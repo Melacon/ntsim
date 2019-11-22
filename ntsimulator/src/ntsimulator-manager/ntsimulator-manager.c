@@ -225,58 +225,6 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
 
     sr_free_val(val);
 
-    /* get the value from sysrepo, we do not care if the value did not change in our case */
-	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/notification-config/ves-heartbeat-period", &val);
-	if (rc != SR_ERR_OK) {
-		goto sr_error;
-	}
-
-	rc = ves_heartbeat_period_changed(val->data.uint32_val);
-	if (rc != SR_ERR_OK) {
-		goto sr_error;
-	}
-
-	sr_free_val(val);
-
-	/* get the value from sysrepo, we do not care if the value did not change in our case */
-	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-ip", &val);
-	if (rc != SR_ERR_OK) {
-		goto sr_error;
-	}
-
-	rc = ves_ip_changed(val->data.string_val);
-	if (rc != SR_ERR_OK) {
-		goto sr_error;
-	}
-
-	sr_free_val(val);
-
-	/* get the value from sysrepo, we do not care if the value did not change in our case */
-	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-port", &val);
-	if (rc != SR_ERR_OK) {
-		goto sr_error;
-	}
-
-	rc = ves_port_changed(val->data.uint16_val);
-	if (rc != SR_ERR_OK) {
-		goto sr_error;
-	}
-
-	sr_free_val(val);
-
-	/* get the value from sysrepo, we do not care if the value did not change in our case */
-	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-registration", &val);
-	if (rc != SR_ERR_OK) {
-		goto sr_error;
-	}
-
-	rc = ves_registration_changed(val->data.bool_val);
-	if (rc != SR_ERR_OK) {
-		goto sr_error;
-	}
-
-	sr_free_val(val);
-
 	/* get the value from sysrepo, we do not care if the value did not change in our case */
 	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/notification-config/is-netconf-available", &val);
 	if (rc != SR_ERR_OK) {
@@ -284,19 +232,6 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
 	}
 
 	rc = is_netconf_available_changed(val->data.bool_val);
-	if (rc != SR_ERR_OK) {
-		goto sr_error;
-	}
-
-	sr_free_val(val);
-
-	/* get the value from sysrepo, we do not care if the value did not change in our case */
-	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/notification-config/is-ves-available", &val);
-	if (rc != SR_ERR_OK) {
-		goto sr_error;
-	}
-
-	rc = is_ves_available_changed(val->data.bool_val);
 	if (rc != SR_ERR_OK) {
 		goto sr_error;
 	}

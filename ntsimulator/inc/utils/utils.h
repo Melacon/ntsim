@@ -55,13 +55,7 @@ char* 	readConfigFileInString(void);
 void 	writeConfigFile(char *config);
 
 int 	getFaultNotificationDelayPeriodFromConfigJson(void);
-int 	getVesHeartbeatPeriodFromConfigJson(void);
-char* 	getVesAuthMethodFromConfigJson(void);
-char* 	getVesIpFromConfigJson(void);
-int 	getVesPortFromConfigJson(void);
-int 	getVesRegistrationFromConfigJson(void);
 int 	getNetconfAvailableFromConfigJson(void);
-int 	getVesAvailableFromConfigJson(void);
 
 void	generateRandomMacAddress(char *mac_address);
 
