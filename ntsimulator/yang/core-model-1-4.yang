@@ -1,11 +1,10 @@
 module core-model-1-4 {
   yang-version 1.1;
   namespace "urn:onf:yang:core-model-1-4";
-  prefix core-model-1-4;
+  prefix core-model;
 
   import ietf-yang-types {
-       prefix "yang";
-       revision-date 2013-07-15;
+    prefix yang;
   }
 
   organization
@@ -32,6 +31,13 @@ module core-model-1-4 {
      See the License for the specific language governing permissions and
      limitations under the License.";
 
+  revision 2019-11-22 {
+    description
+      "Module name and name space changed to core-model-1-4
+       ";
+    reference
+      "ONF-TR-512, RFC 6020 and RFC 6087";
+  }
   revision 2019-07-09 {
     description
       "Corrected version derived from ONF-TR-512 v1.4
@@ -67,6 +73,10 @@ module core-model-1-4 {
     reference
       "ONF-TR-512, RFC 6020 and RFC 6087";
   }
+
+  /****************************************
+   * typedef statements
+   **************************************/ 
 
   typedef port-role {
     type string;
@@ -115,14 +125,6 @@ module core-model-1-4 {
       "A controlled list of LayerProtocol names.";
   }
 
-  typedef profile-name-type {
-    type identityref {
-      base PROFILE_NAME_TYPE;
-    }
-    description
-      "A controlled list of LayerProtocol names.";
-  }
-
   typedef bit-string {
     type string;
     description
@@ -138,10 +140,7 @@ module core-model-1-4 {
   }
 
   typedef universal-id {
-    type union {
-      type yang:uuid;
-      type string;
-    }
+    type string;
     description
       "The universal ID value where the mechanism for generation is defined by some authority not directly referenced in the structure.
        An example structure is [IETF RFC4122].";
@@ -224,6 +223,18 @@ module core-model-1-4 {
     description
       "none";
   }
+
+  typedef profile-name-type {
+    type identityref {
+      base PROFILE_NAME_TYPE;
+    }
+    description
+      "A controlled list of Profile names.";
+  }
+
+  /*********************************************
+   * grouping statements-g for complex data types
+   *******************************************/ 
 
   identity PORT_DIRECTION {
     description
@@ -420,6 +431,12 @@ module core-model-1-4 {
       "none";
   }
 
+  identity ROUTE_SELECTION_REASON_NONE {
+    base ROUTE_SELECTION_REASON;
+    description
+      "No reason";
+  }
+
   identity SWITCH_CONTROL {
     description
       "none";
@@ -560,17 +577,6 @@ module core-model-1-4 {
     base LAYER_PROTOCOL_NAME_TYPE;
     description
       "The characteristic information is that of a channel able to carry Ethernet protocol and of the Ethernet protocol source/sink.";
-  }
-
-  identity PROFILE_NAME_TYPE {
-    description
-      "none";
-  }
-
-  identity PROFILE_NAME_TYPE_USER_PROFILE {
-    base PROFILE_NAME_TYPE;
-    description
-      "none";
   }
 
   identity OPERATIONAL_STATE {
@@ -796,6 +802,17 @@ module core-model-1-4 {
       "none";
   }
 
+  identity PROFILE_NAME_TYPE {
+    description
+      "none";
+  }
+
+  identity PROFILE_NAME_TYPE_USER_PROFILE {
+    base PROFILE_NAME_TYPE;
+    description
+      "none";
+  }
+
   identity CONNECTOR_AND_PIN_ORIENTATION {
     description
       "none";
@@ -874,6 +891,10 @@ module core-model-1-4 {
        The guided holder is designed to take a particular form of CIRCUIT_PACK or SMALL_FORMFACTOR_PLUGGABLE";
   }
 
+  /****************************************
+   * package resilience
+   **************************************/ 
+
   typedef protection-reason {
     type identityref {
       base PROTECTION_REASON;
@@ -936,6 +957,10 @@ module core-model-1-4 {
       "none";
   }
 
+  /****************************************
+   * package timing
+   **************************************/ 
+
   typedef run-mode {
     type identityref {
       base RUN_MODE;
@@ -985,7 +1010,7 @@ module core-model-1-4 {
       "A scoped name-value pair.";
   }
 
-  grouping local-id-and-class {
+  grouping local-id-and-class-g {
     leaf class-of-instance {
       type string;
       description
@@ -1000,22 +1025,7 @@ module core-model-1-4 {
       "The localId and the class of entity that it identifies.";
   }
 
-  grouping external-managed-universal-id-g {
-    leaf manager-identifier {
-      type string;
-      description
-        "none";
-    }
-    leaf external-managed-uuid {
-      type string;
-      description
-        "none";
-    }
-    description
-      "none";
-  }
-
-  grouping port-role-rule {
+  grouping port-role-rule-g {
     leaf-list port-role {
       type port-role;
       description
@@ -1030,7 +1040,7 @@ module core-model-1-4 {
       "Constrains which ports the rule applies to.";
   }
 
-  grouping signal-property-rule {
+  grouping signal-property-rule-g {
     leaf signal-property-name {
       type string;
       description
@@ -1045,7 +1055,7 @@ module core-model-1-4 {
       "none";
   }
 
-  grouping metaclass-class {
+  grouping metaclass-class-g {
     leaf name {
       type metaclass-class-name;
       description
@@ -1063,6 +1073,31 @@ module core-model-1-4 {
        (4) replace attributes that were present in the class of the referencing instance by a new definition (same name).;
       ";
   }
+
+  grouping external-managed-universal-id-g {
+    leaf manager-identifier {
+      type string;
+      description
+        "none";
+    }
+    leaf external-managed-uuid {
+      type string;
+      description
+        "none";
+    }
+    description
+      "none";
+  }
+
+  /****************************************
+   * package core-network-model
+   **************************************/ 
+  /****************************************
+   * grouping statements-g for object classes
+   **************************************/ 
+  /****************************************
+   * package resilience
+   **************************************/ 
 
   grouping control-parameters-pac-g {
     leaf reversion-mode {
@@ -1180,7 +1215,7 @@ module core-model-1-4 {
        This ability allows multiple alternate routes to be present that otherwise would be in conflict.";
   }
 
-  grouping casc-port {
+  grouping casc-port-g {
     leaf port-role {
       type string;
       description
@@ -1194,7 +1229,7 @@ module core-model-1-4 {
       description
         "A link to properties associated with the port role as defined by the CascSpec.";
     }
-    list ltp {
+    list logical-termination-point {
       key "uuid";
       uses logical-termination-point-g;
       description
@@ -1204,7 +1239,7 @@ module core-model-1-4 {
     }
     leaf encapsulating-casc-port {
       type leafref {
-        path "/core-model-1-4:casc-port/core-model-1-4:uuid";
+        path "/core-model:casc-port/core-model:uuid";
       }
       description
         "In a case where there is nested C&SC the ports are also nested and this references the superior port.";
@@ -1267,6 +1302,10 @@ module core-model-1-4 {
       " Container for properties associated with the port role as defined by the CascSpec.";
   }
 
+  /****************************************
+   * package timing
+   **************************************/ 
+
   grouping clock-g {
     leaf run-mode {
       type run-mode;
@@ -1276,7 +1315,7 @@ module core-model-1-4 {
     }
     leaf-list encompassed-clock {
       type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:logical-termination-point/core-model-1-4:embedded-clock/core-model-1-4:local-id";
+        path "/core-model:control-construct/core-model:logical-termination-point/core-model:embedded-clock/core-model:local-id";
       }
       description
         "A clock may be emergent from and may effectively encompass several clocks in a resilient solution.";
@@ -1289,7 +1328,7 @@ module core-model-1-4 {
     }
     leaf-list sync-ltp {
       type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:logical-termination-point/core-model-1-4:uuid";
+        path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
       }
       description
         "A clock may feed one or more LTPs with timing information to propagate across the network (it may feed no LTPs).";
@@ -1302,7 +1341,7 @@ module core-model-1-4 {
     }
     leaf-list phase-aligned-clock {
       type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:logical-termination-point/core-model-1-4:embedded-clock/core-model-1-4:local-id";
+        path "/core-model:control-construct/core-model:logical-termination-point/core-model:embedded-clock/core-model:local-id";
       }
       description
         "One or more clocks can be actively phase aligned (this is especially relevant in a hitless resilience scheme).";
@@ -1315,16 +1354,15 @@ module core-model-1-4 {
   }
 
   grouping forwarding-domain-g {
-    list layer-protocol-name {
-      key "layer-protocol-name";
+    leaf-list layer-protocol-name {
+      type layer-protocol-name-type;
       min-elements 1;
-      uses layer-protocol-name-and-qualifier-g;
       description
         "One or more protocol layers at which the FD represents the opportunity to enable forwarding between LTP that bound it.";
     }
     leaf-list lower-level-fd {
       type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:forwarding-domain/core-model-1-4:uuid";
+        path "/core-model:control-construct/core-model:forwarding-domain/core-model:uuid";
       }
       description
         "The FD class supports a recursive aggregation relationship (HigherLevelFdEncompassesLowerLevelFds) such that the internal construction of an FD can be exposed as multiple lower level FDs and associated Links (partitioning).
@@ -1338,9 +1376,9 @@ module core-model-1-4 {
       description
         "An FD aggregates one or more FCs. An aggregated FC connects LTPs that bound the FD.";
     }
-    leaf-list ltp {
+    leaf-list logical-termination-point {
       type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:logical-termination-point/core-model-1-4:uuid";
+        path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
       }
       description
         "An instance of FD is associated with zero or more LTP objects.
@@ -1359,7 +1397,7 @@ module core-model-1-4 {
        The FD object provides the context for and constrains the formation, adjustment and removal of FCs and hence offers the potential to enable forwarding.
        The FCs may be formed between LTPs at the boundary of the FD or between AccessPorts at the boundary of the FD (for the most basic media layers cases - most media cases use LTPs).
        A number of FDs (related by Links) may be grouped and abstracted to form an FD where that FD represents the effect of the underlying FDs but where the detailed structure is not apparent.
-       This grouping and abstraction is potentially recursive.
+       This grouping and-g abstraction is potentially recursive.
        This aspect is essentially equivalent to ITU-T partitioning but this is an aggregation not a composition, so it allows an FD to be in multiple higher level FDs.
        The notion of abstraction/grouping assumes that small things are brought together into larger things as opposed to ITU-T partitioning that assumes large things are broken down into smaller things.
        An FD represents an abstraction of some combination of software behavior, electronic behavior and physical structure that provides a forwarding capability.
@@ -1372,22 +1410,14 @@ module core-model-1-4 {
   }
 
   grouping forwarding-construct-g {
-    container layer-protocol-name {
-      uses layer-protocol-name-and-qualifier-g;
+    leaf layer-protocol-name {
+      type layer-protocol-name-type;
       description
         "The layerProtocol at which the FC enables the potential for forwarding.";
     }
-    leaf forwarding-direction {
-      type forwarding-direction;
-      description
-        "The directionality of the ForwardingConstruct.
-         Is applicable to simple ForwardingConstructs where all FcPorts are BIDIRECTIONAL (the ForwardingConstruct will be BIDIRECTIONAL) or UNIDIRECTIONAL (the ForwardingConstruct will be UNIDIRECTIONAL).
-         Is not present in more complex cases.
-         In the case of media the FcPorts and FC may also be omni-directional.";
-    }
     leaf-list lower-level-fc {
       type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:forwarding-domain/core-model-1-4:fc/core-model-1-4:uuid";
+        path "/core-model:control-construct/core-model:forwarding-domain/core-model:fc/core-model:uuid";
       }
       description
         "An FC object supports a recursive aggregation relationship such that the internal construction of an FC can be exposed as multiple lower level FC objects (partitioning).
@@ -1403,7 +1433,6 @@ module core-model-1-4 {
     }
     list fc-port {
       key "local-id";
-      min-elements 2;
       uses fc-port-g;
       description
         "The FcPorts define the boundary of the FC.
@@ -1422,6 +1451,14 @@ module core-model-1-4 {
       description
         "Reference to a ConfigurationAndSwitchController that coordinates switches encapsulated in the FC.
          The controller coordinates multiple switches in the same FC.";
+    }
+    leaf forwarding-direction {
+      type forwarding-direction;
+      description
+        "The directionality of the ForwardingConstruct.
+         Is applicable to simple ForwardingConstructs where all FcPorts are BIDIRECTIONAL (the ForwardingConstruct will be BIDIRECTIONAL) or UNIDIRECTIONAL (the ForwardingConstruct will be UNIDIRECTIONAL).
+         Is not present in more complex cases.
+         In the case of media the FcPorts and FC may also be omni-directional.";
     }
     leaf is-protection-lock-out {
       if-feature "forwardingconstructisprotectionlockout";
@@ -1467,9 +1504,9 @@ module core-model-1-4 {
   }
 
   grouping fc-port-g {
-    leaf-list ltp {
+    leaf-list logical-termination-point {
       type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:logical-termination-point/core-model-1-4:uuid";
+        path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
       }
       max-elements 2;
       description
@@ -1532,7 +1569,7 @@ module core-model-1-4 {
     }
     leaf-list fc-port {
       type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:forwarding-domain/core-model-1-4:fc/core-model-1-4:fc-port/core-model-1-4:local-id";
+        path "/core-model:control-construct/core-model:forwarding-domain/core-model:fc/core-model:fc-port/core-model:local-id";
       }
       max-elements 2;
       description
@@ -1540,7 +1577,7 @@ module core-model-1-4 {
     }
     leaf-list port-of-internal-fc {
       type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:forwarding-domain/core-model-1-4:fc/core-model-1-4:fc-port/core-model-1-4:local-id";
+        path "/core-model:control-construct/core-model:forwarding-domain/core-model:fc/core-model:fc-port/core-model:local-id";
       }
       description
         "none";
@@ -1609,12 +1646,58 @@ module core-model-1-4 {
   }
 
   grouping logical-termination-point-g {
+    leaf-list server-ltp {
+      type leafref {
+        path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+      }
+      description
+        "References contained LTPs representing servers of this LTP in an inverse multiplexing configuration (e.g. VCAT).";
+    }
+    leaf-list client-ltp {
+      type leafref {
+        path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+      }
+      description
+        "References contained LTPs representing client traffic of this LTP for normal cases of multiplexing.";
+    }
     list layer-protocol {
       key "local-id";
       min-elements 1;
       uses layer-protocol-g;
       description
         "Ordered list of LayerProtocols that this LTP is comprised of where the first entry in the list is the lowest server layer (e.g. physical).";
+    }
+    leaf connected-ltp {
+      type leafref {
+        path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+      }
+      description
+        "Applicable in a simple context where two LTPs are associated via a non-adjustable enabled forwarding.
+         Reduces clutter removing the need for two additional LTPs and an FC with a pair of FcPorts.";
+    }
+    leaf peer-ltp {
+      type leafref {
+        path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+      }
+      description
+        "References contained LTPs representing the reversal of orientation of flow where two LTPs are associated via a non-adjustable enabled forwarding and where the referenced LTP is fully dependent on this LTP.";
+    }
+    leaf-list physical-port-reference {
+      type leafref {
+        require-instance true;
+        path "/core-model:control-construct/core-model:equipment/core-model:uuid";
+      }
+      description
+        "One or more text labels for the unmodeled physical port associated with the LTP.
+         In many cases there is no associated physical port.";
+    }
+    leaf-list ltp-in-other-view {
+      type leafref {
+        path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+      }
+      description
+        "References one or more LTPs in other views that represent this LTP.
+         The referencing LTP is the provider of capability.";
     }
     leaf ltp-direction {
       type termination-direction;
@@ -1624,75 +1707,32 @@ module core-model-1-4 {
          - A SINK LTP can only contain SINK LPs
          - A SOURCE LTP can only contain SOURCE LPs";
     }
-    leaf-list physical-port-reference {
-      type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:equipment/core-model-1-4:uuid";
-      }
-      description
-        "none";
-    }
-    leaf-list server-ltp {
-      type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:logical-termination-point/core-model-1-4:uuid";
-      }
-      description
-        "References contained LTPs representing servers of this LTP in an inverse multiplexing configuration (e.g. VCAT).";
-    }
-    leaf-list client-ltp {
-      type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:logical-termination-point/core-model-1-4:uuid";
-      }
-      description
-        "References contained LTPs representing client traffic of this LTP for normal cases of multiplexing.";
-    }
-    leaf connected-ltp {
-      type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:logical-termination-point/core-model-1-4:uuid";
-      }
-      description
-        "Applicable in a simple context where two LTPs are associated via a non-adjustable enabled forwarding.
-         Reduces clutter removing the need for two additional LTPs and an FC with a pair of FcPorts.";
-    }
-    leaf peer-ltp {
-      type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:logical-termination-point/core-model-1-4:uuid";
-      }
-      description
-        "References contained LTPs representing the reversal of orientation of flow where two LTPs are associated via a non-adjustable enabled forwarding and where the referenced LTP is fully dependent on this LTP.";
-    }
-    leaf-list ltp-in-other-view {
-      type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:logical-termination-point/core-model-1-4:uuid";
-      }
-      description
-        "References one or more LTPs in other views that represent this LTP.
-         The referencing LTP is the provider of capability.";
-    }
     leaf transfer-capacity-pac {
       type string;
       description
         "The LTP has as an inherent capacity derived from underlying capability.
          The capacity of a particular LTP may be dependent upon other uses of resource in the device and hence it may vary over time.
+-g
          The capacity of a Link is dependent upon the capacity of the LTPs at its ends.
          An LTP may be an abstraction and virtualization of a subset of the underlying capability offered in a view or may be directly reflecting the underlying realization.";
     }
     leaf-list fd-rule-group {
       type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:forwarding-domain/core-model-1-4:uuid";
+        path "/core-model:control-construct/core-model:forwarding-domain/core-model:uuid";
       }
       description
         "An LTP can reference FD rules that the FD that aggregates it also references so that the rules can then apply to the LTP.";
-    }
-    leaf supporting-pc {
-      type string;
-      description
-        "The functionality supporting this entity.";
     }
     list embedded-clock {
       key "local-id";
       uses clock-g;
       description
         "none";
+    }
+    leaf supporting-pc {
+      type string;
+      description
+        "The functionality supporting this entity.";
     }
     uses global-class-g;
     description
@@ -1702,9 +1742,9 @@ module core-model-1-4 {
   }
 
   grouping fd-port-g {
-    leaf-list ltp {
+    leaf-list logical-termination-point {
       type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:logical-termination-point/core-model-1-4:uuid";
+        path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
       }
       max-elements 2;
       description
@@ -1724,14 +1764,14 @@ module core-model-1-4 {
     }
     leaf-list fc-port {
       type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:forwarding-domain/core-model-1-4:fc/core-model-1-4:fc-port/core-model-1-4:local-id";
+        path "/core-model:control-construct/core-model:forwarding-domain/core-model:fc/core-model:fc-port/core-model:local-id";
       }
       description
         "Where an FD is asymmetric and hence has FdPorts and where that FD and supports FCs, appropriate FdPorts of that FD support the corresponding FcPorts.";
     }
     leaf-list fd-port {
       type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:forwarding-domain/core-model-1-4:fd-port/core-model-1-4:local-id";
+        path "/core-model:control-construct/core-model:forwarding-domain/core-model:fd-port/core-model:local-id";
       }
       max-elements 2;
       description
@@ -1745,28 +1785,6 @@ module core-model-1-4 {
        The FD can be considered as a component and the FdPort as a Port on that component.";
   }
 
-  grouping profile-collection-g {
-    list profile {
-      key "uuid";
-      uses profile-g;
-      description
-        "none";
-    }
-    description
-      "none";
-  }
-
-  grouping profile-g {
-    leaf profile-name {
-      type profile-name-type;
-      description
-        "none";
-    }
-    uses global-class-g;
-    description
-      "none";
-  }
-
   feature forwardingconstructisprotectionlockout {
     description
       "none";
@@ -1777,10 +1795,22 @@ module core-model-1-4 {
       "none";
   }
 
+  /****************************************
+   * package associations
+   **************************************/ 
+  /****************************************
+   * package core-foundation-model
+   **************************************/ 
+  /****************************************
+   * package super-classes-and-common-packages
+   **************************************/ 
+  /****************************************
+   * grouping statements-g for object classes
+   **************************************/ 
+
   grouping name-g {
     list name {
       key "value-name";
-      min-elements 1;
       uses name-and-value-g;
       description
         "List of names.";
@@ -1790,23 +1820,23 @@ module core-model-1-4 {
   }
 
   grouping global-class-g {
+    container external-managed-id {
+      uses external-managed-universal-id-g;
+      description
+        "A list of external managed universal identifiers, set by an external tool. There must not be any function implemented on the ControlConstruct itself next to updating the list on request and storing it persitenly. ";
+    }
+    leaf local-id {
+      type string;
+      description
+        "An identifier that is unique in the context of some scope that is less than the global scope.
+         (This should be considered in the context of Identifier: A property of an entity/role with a value that is unique within an identifier space, where the identifier space is itself unique, and immutable. The identifier therefore represents the identity of the entity/role. An identifier carries no semantics with respect to the purpose of the entity.)";
+    }
     leaf uuid {
       type universal-id;
       description
         "UUID: An identifier that is universally unique
          (This should be considered in the context of Identifier: A property of an entity/role with a value that is unique within an identifier space, where the identifier space is itself globally unique, and immutable. An identifier carries no semantics with respect to the purpose or state of the entity)
          The uuid should be treated as opaque by the user.";
-    }
-    leaf-list local-id {
-      type string;
-      description
-        "An identifier that is unique in the context of some scope that is less than the global scope.
-         (This should be considered in the context of Identifier: A property of an entity/role with a value that is unique within an identifier space, where the identifier space is itself unique, and immutable. The identifier therefore represents the identity of the entity/role. An identifier carries no semantics with respect to the purpose of the entity.)";
-    }
-    container external-managed-id {
-      uses external-managed-universal-id-g;
-      description
-        "A list of external managed universal identifiers, set by an external tool. There must not be any function implemented on the ControlConstruct itself next to updating the list on request and storing it persitenly. ";
     }
     uses name-g;
     uses label-g;
@@ -1861,17 +1891,18 @@ module core-model-1-4 {
       "Extension provides an opportunity to define properties not declared in the class that extend the class enabling a realization with simple ad-hoc extension of standard classes to be conformant.";
   }
 
-  grouping universal-id-authority {
+  grouping universal-id-authority-g {
     leaf uuid {
       type universal-id;
       description
         "The UUID for the UUID authority.";
     }
+
     description
       "Represents the authority that controls the allocation of UUIDs.";
   }
 
-  grouping name-and-value-authority {
+  grouping name-and-value-authority-g {
     leaf uuid {
       type universal-id;
       description
@@ -1881,7 +1912,7 @@ module core-model-1-4 {
       "Represents the authority that controls the legal values for the names and values of a name/value attribute.";
   }
 
-  grouping conditional-package {
+  grouping conditional-package-g {
     uses extension-g;
     uses label-g;
     description
@@ -1897,6 +1928,16 @@ module core-model-1-4 {
     description
       "Provides an opportunity to state the location of the entity via one or more hierarchies of narrowing contexts.";
   }
+
+  /****************************************
+   * package assocations
+   **************************************/ 
+  /****************************************
+   * package state-model
+   **************************************/ 
+  /****************************************
+   * grouping statements-g for object classes
+   **************************************/ 
 
   grouping state-pac-g {
     leaf operational-state {
@@ -1927,7 +1968,23 @@ module core-model-1-4 {
       "Provides general state attributes.";
   }
 
-  grouping field-replaceable {
+  /****************************************
+   * package state-machines
+   **************************************/ 
+  /****************************************
+   * package core-physical-model
+   **************************************/ 
+  /****************************************
+   * package rule-models
+   **************************************/ 
+  /****************************************
+   * package fru-non-fru-rules
+   **************************************/ 
+  /****************************************
+   * grouping statements-g for object classes
+   **************************************/ 
+
+  grouping field-replaceable-g {
     list equipment-non-fru {
       key "uuid";
       uses non-field-replaceable-g;
@@ -1962,7 +2019,14 @@ module core-model-1-4 {
       ";
   }
 
-  grouping connector-on-equipment-for-holder {
+  /****************************************
+   * package connector-rules
+   **************************************/ 
+  /****************************************
+   * grouping statements-g for object classes
+   **************************************/ 
+
+  grouping connector-on-equipment-for-holder-g {
     leaf connector-in-holder {
       type string;
       description
@@ -1972,6 +2036,16 @@ module core-model-1-4 {
     description
       "A rule class (an abstract specialization of Connector) that represents a connector on an equipment that is intended to mate with a connector in a holder.";
   }
+
+  /****************************************
+   * package equipment-detail
+   **************************************/ 
+  /****************************************
+   * grouping statements-g for object classes
+   **************************************/ 
+  /****************************************
+   * package dynamic-details
+   **************************************/ 
 
   grouping function-enablers-g {
     leaf power-state {
@@ -2020,6 +2094,10 @@ module core-model-1-4 {
       "Represents where the equipment is.";
   }
 
+  /****************************************
+   * package invariant-details
+   **************************************/ 
+
   grouping equipment-structure-g {
     leaf category {
       type equipment-category;
@@ -2032,7 +2110,7 @@ module core-model-1-4 {
 
   grouping equipment-instance-g {
     leaf manufacture-date {
-      type string;
+      type yang:date-and-time;
       description
         "This attribute represents the date on which this instance is manufactured.";
     }
@@ -2258,7 +2336,11 @@ module core-model-1-4 {
       "Represents the invariant properties of the equipment asset allocated by the operator that define and characterize the type.";
   }
 
-  grouping cable-details {
+  /****************************************
+   * package pattern-classes
+   **************************************/ 
+
+  grouping cable-details-g {
     container spatial-properties-of-type {
       uses spatial-properties-of-type-g;
       description
@@ -2278,7 +2360,7 @@ module core-model-1-4 {
       "none";
   }
 
-  grouping connector-details {
+  grouping connector-details-g {
     container position {
       uses position-g;
       description
@@ -2385,6 +2467,10 @@ module core-model-1-4 {
       "none";
   }
 
+  /****************************************
+   * package data-types
+   **************************************/ 
+
   grouping thermal-rating-g {
     leaf thermal-rating-name {
       type string;
@@ -2424,6 +2510,13 @@ module core-model-1-4 {
       "none";
   }
 
+  /****************************************
+   * package equipment-pattern-structure
+   **************************************/ 
+  /****************************************
+   * grouping statements-g for object classes
+   **************************************/ 
+
   grouping connector-g {
     leaf connector {
       type string;
@@ -2458,17 +2551,6 @@ module core-model-1-4 {
   }
 
   grouping equipment-g {
-    list expected-equipment {
-      key "local-id";
-      uses expected-equipment-g;
-      description
-        "none";
-    }
-    container actual-equipment {
-      uses actual-equipment-g;
-      description
-        "none";
-    }
     list connector {
       key "local-id";
       uses connector-g;
@@ -2496,6 +2578,17 @@ module core-model-1-4 {
       description
         "none";
     }
+    list expected-equipment {
+      key "local-id";
+      uses expected-equipment-g;
+      description
+        "none";
+    }
+    container actual-equipment {
+      uses actual-equipment-g;
+      description
+        "none";
+    }
     leaf equipment-functional-boundary {
       type string;
       description
@@ -2511,7 +2604,7 @@ module core-model-1-4 {
   grouping holder-g {
     leaf occupying-fru {
       type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:equipment/core-model-1-4:uuid";
+        path "/core-model:control-construct/core-model:equipment/core-model:uuid";
       }
       description
         "The FRU that is occupying the holder.
@@ -2522,12 +2615,6 @@ module core-model-1-4 {
       type dt-address;
       description
         "The relative position of the holder in the context of its containing equipment along with the position of that containing Equipment (and further recursion).";
-    }
-    leaf-list supported-equipment-type {
-      type string;
-      min-elements 1;
-      description
-        "An Equipment type that the Holder can accommodate (is compatible with).";
     }
     container expected-holder {
       uses expected-holder-g;
@@ -2543,6 +2630,10 @@ module core-model-1-4 {
     description
       "Represents a space in an equipment in which another equipment can be fitted in the field.";
   }
+
+  /****************************************
+   * package data-types
+   **************************************/ 
 
   typedef connector-and-pin-orientation {
     type identityref {
@@ -2568,6 +2659,43 @@ module core-model-1-4 {
     description
       "The form of holder.";
   }
+
+  /****************************************
+   * package equipment-specification
+   **************************************/ 
+  /****************************************
+   * grouping statements-g for object classes
+   **************************************/ 
+
+  grouping non-fru-support-position-g {
+    description
+      "Equivalent to the holder for the FRU, represents in the specification a place where one or more types of non-FRU could be present.
+       Unlike the FRU in a Holder, the non-FRU present is fixed in place whilst the equipment is in the field (as it is not Field-replaceable).";
+  }
+
+  grouping supported-equipment-type-g {
+    container fru-details {
+      uses equipment-g;
+      description
+        "none";
+    }
+    list holder {
+      key "local-id";
+      min-elements 1;
+      uses holder-g;
+      description
+        "none";
+    }
+    description
+      "The FRU equipment types supported by the holder.";
+  }
+
+  /****************************************
+   * package expected-and-actual
+   **************************************/ 
+  /****************************************
+   * grouping statements-g for object classes
+   **************************************/ 
 
   grouping actual-holder-g {
     uses holder-details-g;
@@ -2596,8 +2724,15 @@ module core-model-1-4 {
        It may also provide desired ranges for dynamic properties.";
   }
 
-  grouping signal-ref-pt {
-    container ltp {
+  /****************************************
+   * package connector-and-pin
+   **************************************/ 
+  /****************************************
+   * grouping statements-g for object classes
+   **************************************/ 
+
+  grouping signal-ref-pt-g {
+    container logical-termination-point {
       uses logical-termination-point-g;
       description
         "none";
@@ -2612,7 +2747,7 @@ module core-model-1-4 {
       "A single coherent signal as processed by a single LTP.";
   }
 
-  grouping signal-ref-pt-group {
+  grouping signal-ref-pt-group-g {
     description
       "A conceptual access for a group of signals (where that group of signals cannot be separated).
        A physical indivisible group of signals.";
@@ -2622,6 +2757,16 @@ module core-model-1-4 {
     description
       "The elemental (sub-atomic) parts of an 'indivisible' signal where processing in the LTP is required to extract the elemental signals.";
   }
+
+  /****************************************
+   * package general-controller-model
+   **************************************/ 
+  /****************************************
+   * package associations
+   **************************************/ 
+  /****************************************
+   * grouping statements-g for object classes
+   **************************************/ 
 
   container control-construct {
     presence "Enables SDN";
@@ -2633,7 +2778,7 @@ module core-model-1-4 {
   grouping control-construct-g {
     leaf-list top-level-equipment {
       type leafref {
-        path "/core-model-1-4:control-construct/core-model-1-4:equipment/core-model-1-4:uuid";
+        path "/core-model:control-construct/core-model:equipment/core-model:uuid";
       }
       description
         "none";
@@ -2674,8 +2819,30 @@ module core-model-1-4 {
        Root element for controller southbound APIs.";
   }
 
-  grouping control-port {
-    container ltp {
+  grouping profile-collection-g {
+    list profile {
+      key "uuid";
+      uses profile-g;
+      description
+        "none";
+    }
+    description
+      "none";
+  }
+
+  grouping profile-g {
+    leaf profile-name {
+      type profile-name-type;
+      description
+        "none";
+    }
+    uses global-class-g;
+    description
+      "none";
+  }
+
+  grouping control-port-g {
+    container logical-termination-point {
       uses logical-termination-point-g;
       description
         "The LTP through which the control messaging/signaling flows.";
@@ -2695,6 +2862,10 @@ module core-model-1-4 {
       "The access to the ControlConstruct following the normal Component-Port pattern (i.e., the functions of a component are accessed via ports).
        Is assumed to usually be bidirectional.";
   }
+
+  /****************************************
+   * package interfaces
+   **************************************/ 
 
   rpc apply-system-structure-state-defined-by-constraint {
     description
@@ -2734,6 +2905,16 @@ module core-model-1-4 {
     }
   }
 
+  /****************************************
+   * package core-software-model
+   **************************************/ 
+  /****************************************
+   * grouping statements-g for object classes
+   **************************************/ 
+  /****************************************
+   * package file-system
+   **************************************/ 
+
   grouping file-g {
     leaf size {
       type string;
@@ -2741,7 +2922,7 @@ module core-model-1-4 {
         "The size of the File, in bytes.";
     }
     leaf last-modify-time {
-      type string;
+      type yang:date-and-time;
       description
         "The date time that the File was last modified.";
     }
@@ -2755,7 +2936,7 @@ module core-model-1-4 {
       "A File is a data structure used to store information (user data, commands, software etc.) in a computer system. Note that in this CIM class, we are only storing the metadata associated with the File, not the actual contents of the File.";
   }
 
-  grouping file-system {
+  grouping file-system-g {
     list file-system-entry {
       uses file-system-entry-g;
       description
@@ -2787,7 +2968,7 @@ module core-model-1-4 {
         "The name of the entry in its Directory.";
     }
     leaf create-date {
-      type string;
+      type yang:date-and-time;
       description
         "The date that the entry was created.";
     }
@@ -2795,7 +2976,7 @@ module core-model-1-4 {
       "FileSystemEntry is an abstraction of File and Directory, useful when there is a need to reference both classes. It also allows for an easy representation of a hierarchical filesystem.";
   }
 
-  grouping symbolic-link {
+  grouping symbolic-link-g {
     container file-system-entry {
       uses file-system-entry-g;
       description
@@ -2806,7 +2987,7 @@ module core-model-1-4 {
       "A SymbolicLink is a File that contains a path reference to a File or a Directory.";
   }
 
-  grouping directory {
+  grouping directory-g {
     list file-system-entry {
       uses file-system-entry-g;
       description
@@ -2817,7 +2998,11 @@ module core-model-1-4 {
       "A Directory is a collection of Files and other Directories. Because a Directory can contain other Directories, this allows a hierarchical file system to be represented.";
   }
 
-  grouping installed-software-component {
+  /****************************************
+   * package running-software
+   **************************************/ 
+
+  grouping installed-software-component-g {
     leaf name {
       type string;
       description
@@ -2840,7 +3025,7 @@ module core-model-1-4 {
     }
     leaf-list child-installed-software-component {
       type leafref {
-        path "/core-model-1-4:installed-software-component/core-model-1-4:child-installed-software-component/core-model-1-4:serial-number";
+        path "/core-model:installed-software-component/core-model:child-installed-software-component/core-model:serial-number";
       }
       description
         "References to any child installations.";
@@ -2876,7 +3061,7 @@ module core-model-1-4 {
         "The command string that invoked the process.";
     }
     leaf time-invoked {
-      type string;
+      type yang:date-and-time;
       description
         "The date time when the process was invoked.";
     }
@@ -2914,7 +3099,7 @@ module core-model-1-4 {
       "This is the unit of software execution. It could be a running application or a thread (the smallest level of software execution).";
   }
 
-  grouping running-operating-system {
+  grouping running-operating-system-g {
     list running-software-process {
       uses running-software-process-g;
       description
@@ -2935,11 +3120,15 @@ module core-model-1-4 {
       "An operating system is a running software process that enables software applications to utilize the computer’s hardware.";
   }
 
-  grouping running-software-application {
+  grouping running-software-application-g {
     uses running-software-process-g;
     description
       "This covers generic software processes that don’t have a special subclass (operating system, virtual machine and container special cases have their own specific subclasses).";
   }
+
+  /****************************************
+   * package software-container
+   **************************************/ 
 
   grouping running-container-g {
     leaf container-boundary {
@@ -2962,4 +3151,8 @@ module core-model-1-4 {
     description
       "A software process that abstracts running applications from the operating system. It provides some level of isolation, but not as much as a hypervisor.";
   }
+
+  /****************************************
+   * package associations
+   **************************************/ 
 }

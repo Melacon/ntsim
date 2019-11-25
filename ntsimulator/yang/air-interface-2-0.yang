@@ -30,7 +30,7 @@ module air-interface-2-0 {
      See the License for the specific language governing permissions and
      limitations under the License.";
 
-  revision 2019-11-14 {
+  revision 2019-11-22 {
     description
       "Model for the Transport SDN Pilot at Telefonica Germany.
        Please view https://github.com/openBackhaul/airInterface/issues for changes.";
@@ -54,7 +54,7 @@ module air-interface-2-0 {
   }
 
   augment "/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol" {
-    when "derived-from-or-self(core-model:layer-protocol-name, 'air-interface:LAYER_PROTOCOL_NAME_TYPE_AIR_LAYER')";
+    when "derived-from-or-self(./core-model:layer-protocol-name, 'air-interface:LAYER_PROTOCOL_NAME_TYPE_AIR_LAYER')";
     uses air-interface-lp-spec;
     description
       "none";
@@ -86,10 +86,10 @@ module air-interface-2-0 {
         "none";
     }
     leaf object-id-ref {
-      type yang:uuid;
+      type leafref {
+        path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+      }
       config false;
-      description
-        "ID of the affected MW_AirInterface_Pac";
     }
     leaf object-type {
       type string;
@@ -124,10 +124,11 @@ module air-interface-2-0 {
         "none";
     }
     leaf object-id-ref {
-      type yang:uuid;
+      type leafref {
+        require-instance false;
+        path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+      }
       config false;
-      description
-        "ID of the affected MW_AirInterface_Pac";
     }
     description
       "To be sent when a new MW_AirInterface_Pac, MW_AirInterfaceDiversity_Pac, MW_Structure_Pac, MW_PureEthernetStructure_Pac, MW_HybridMwStructure_Pac, MW_Container_Pac, MW_EthernetContainer_Pac or MW_TdmContainer_Pac instance has to be deleted in the controller.";
@@ -155,10 +156,10 @@ module air-interface-2-0 {
         "none";
     }
     leaf object-id-ref {
-      type yang:uuid;
+      type leafref {
+        path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+      }
       config false;
-      description
-        "ID of the affected MW_AirInterface_Pac";
     }
     leaf attribute-name {
       type string;
@@ -200,10 +201,10 @@ module air-interface-2-0 {
         "none";
     }
     leaf object-id-ref {
-      type yang:uuid;
+      type leafref {
+        path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+      }
       config false;
-      description
-        "ID of the affected MW_AirInterface_Pac";
     }
     leaf problem {
       type string;
@@ -289,7 +290,7 @@ module air-interface-2-0 {
         "none";
     }
     leaf operational-state {
-      type core-model:operational-state;
+      type operational-state-type;
       config false;
       description
         "none";
@@ -301,7 +302,7 @@ module air-interface-2-0 {
         "Time period between reset of the underlying counter.";
     }
     leaf administrative-state {
-      type core-model:administrative-state;
+      type administrative-state-type;
       config false;
       description
         "none";
@@ -765,7 +766,7 @@ module air-interface-2-0 {
         "List of G826 related threshold cross alarms to be configured.";
     }
     list xlts-threshold-cross-alarm-list {
-      key "level-threshold-second-kind xlts-level granularity-period";
+      key "level-threshold-second-kind granularity-period xlts-level";
       uses xlts-threshold-cross-alarm-type;
       description
         "List of RLTS or TLTS (ETSI ETSI EN 301 129) related threshold cross alarms to be configured.";
@@ -969,7 +970,7 @@ module air-interface-2-0 {
 
   grouping air-interface-historical-performances {
     list historical-performance-data-list {
-      key "period-end-time";
+      key "granularity-period period-end-time";
       config false;
       uses air-interface-historical-performance-type;
       description
@@ -1365,6 +1366,58 @@ module air-interface-2-0 {
       "none";
   }
 
+  identity OPERATIONAL_STATE_TYPE {
+    description
+      "none";
+  }
+
+  identity OPERATIONAL_STATE_TYPE_ENABLED {
+    base OPERATIONAL_STATE_TYPE;
+    description
+      "none";
+  }
+
+  identity OPERATIONAL_STATE_TYPE_DISABLED {
+    base OPERATIONAL_STATE_TYPE;
+    description
+      "none";
+  }
+
+  identity OPERATIONAL_STATE_TYPE_NOT_YET_DEFINED {
+    base OPERATIONAL_STATE_TYPE;
+    description
+      "none";
+  }
+
+  identity ADMINISTRATIVE_STATE_TYPE {
+    description
+      "none";
+  }
+
+  identity ADMINISTRATIVE_STATE_TYPE_UNLOCKED {
+    base ADMINISTRATIVE_STATE_TYPE;
+    description
+      "none";
+  }
+
+  identity ADMINISTRATIVE_STATE_TYPE_LOCKED {
+    base ADMINISTRATIVE_STATE_TYPE;
+    description
+      "none";
+  }
+
+  identity ADMINISTRATIVE_STATE_TYPE_SHUTTING_DOWN {
+    base ADMINISTRATIVE_STATE_TYPE;
+    description
+      "none";
+  }
+
+  identity ADMINISTRATIVE_STATE_TYPE_NOT_YET_DEFINED {
+    base ADMINISTRATIVE_STATE_TYPE;
+    description
+      "none";
+  }
+
   /****************************************
    * package super-types
    **************************************/ 
@@ -1391,6 +1444,22 @@ module air-interface-2-0 {
     }
     description
       "Current Interface Status";
+  }
+
+  typedef operational-state-type {
+    type identityref {
+      base OPERATIONAL_STATE_TYPE;
+    }
+    description
+      "The list of valid operational states for the connection.";
+  }
+
+  typedef administrative-state-type {
+    type identityref {
+      base ADMINISTRATIVE_STATE_TYPE;
+    }
+    description
+      "For more information on Administrative State, See ITU-T Recs. X.731 and M.3100.";
   }
 
   grouping problem-kind-severity-type {
