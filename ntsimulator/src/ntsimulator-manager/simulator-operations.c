@@ -82,8 +82,8 @@ static cJSON* get_docker_container_bindings(void)
 	curl_easy_reset(curl);
 	set_curl_common_info();
 
-	char url[100];
-	sprintf(url, "http:/v%s/containers/NTS_Manager/json", getenv("DOCKER_ENGINE_VERSION"));
+	char url[200];
+	sprintf(url, "http:/v%s/containers/%s/json", getenv("DOCKER_ENGINE_VERSION"), getenv("HOSTNAME"));
 
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 
