@@ -131,6 +131,11 @@ RUN \
       make install
 
 COPY ntsimulator/deploy/manager/supervisord.conf.manager /etc/supervisord.conf
+
+# Fix for the NETCONF notifications
+RUN \
+      echo "Fixing the NETCONF notifications..." && \
+      mkdir -p /var/run/sysrepo-subscriptions/ietf-crypto-types
 	  
 ENV EDITOR vim
 EXPOSE 830
