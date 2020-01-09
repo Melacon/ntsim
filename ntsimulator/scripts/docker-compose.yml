@@ -1,10 +1,10 @@
 version: '3'
 services:
   ntsimulator:
-    image: "ntsim_manager:latest"
+    image: "telefonica/ntsim_manager:0.1.2-SNAPSHOT-latest"
     container_name: NTS_Manager
     ports:
-     - "172.17.0.1:8300:830"
+     - "8300:830"
     volumes:
      - "/var/run/docker.sock:/var/run/docker.sock"
      - "/home/parallels/workspace/highstreet/ntsimulator-o-ran/ntsimulator/scripts:/opt/dev/scripts"
@@ -15,5 +15,5 @@ services:
       NTS_IP: "172.17.0.1"
       NETCONF_BASE: 50000
       DOCKER_ENGINE_VERSION: "1.40"
-      MODELS_IMAGE: "ntsim_wt_device"
+      MODELS_IMAGE: "telefonica/ntsim_wt_device:0.1.2-SNAPSHOT-latest"
 
