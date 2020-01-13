@@ -27,8 +27,6 @@ do
   sed -i '/config false;/d' $model
   echo "Removing mandatory true from $model..."
   sed -i '/mandatory true;/d' $model
-  echo "Fixing grouping issues from $model..."
-  sed -i -e 's| grouping [^ {]*|&-g|g' -e 's| uses [^;]*|&-g|g' $model
 done
 
 if [ ${#modelList[@]} -eq 0 ]; then

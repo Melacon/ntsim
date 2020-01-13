@@ -15,5 +15,5 @@ services:
       NTS_IP: "172.17.0.1"
       NETCONF_BASE: 50000
       DOCKER_ENGINE_VERSION: "1.40"
-      MODELS_IMAGE: "ntsim_wt_device:latest"
+      MODELS_IMAGE: "ntsim_openroadm_device:latest"
 
