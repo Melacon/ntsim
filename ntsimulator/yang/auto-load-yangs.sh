@@ -10,7 +10,7 @@ shopt -s failglob
 : ${SYSREPOCFG:=sysrepocfg}
 : ${SYSREPOAPPSTART:=/opt/dev/sysrepo/build/examples/application_example}
 
-declare -a excludedModules=()
+declare -a excludedModules=("openconfig-telemetry")
 
 # Uninstall the NTS Manager YANG model
  $SYSREPOCTL -u -m network-topology-simulator

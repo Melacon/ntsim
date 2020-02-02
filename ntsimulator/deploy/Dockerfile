@@ -80,7 +80,7 @@ COPY ./sysrepo /opt/dev/sysrepo
 RUN \
       sed -i 's/#define MAX_BLOCKS_AVAIL_FOR_ALLOC    3/#define MAX_BLOCKS_AVAIL_FOR_ALLOC    6/g' ./sysrepo/src/common/sr_mem_mgmt.h && \
       cd sysrepo && mkdir build && cd build && \
-      cmake -DCMAKE_BUILD_TYPE:String="Release" -DENABLE_TESTS=OFF -DREPOSITORY_LOC:PATH=/etc/sysrepo -DREQUEST_TIMEOUT=60 -DOPER_DATA_PROVIDE_TIMEOUT=60 .. && \
+      cmake -DCMAKE_BUILD_TYPE:String="Release" -DENABLE_TESTS=OFF -DREPOSITORY_LOC:PATH=/etc/sysrepo -DREQUEST_TIMEOUT=240 -DOPER_DATA_PROVIDE_TIMEOUT=200 -DCOMMIT_VERIFY_TIMEOUT=240 .. && \
       make -j2 && \
       make install && \
       ldconfig

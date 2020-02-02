@@ -14,7 +14,7 @@ echo "Loading data into sysrepo..."
 #
 #ssh-keyscan -p 830 localhost >> ~/.ssh/known_hosts
 
-pyang -f sample-xml-skeleton --sample-xml-list-entries 3 *.yang
+pyang -f sample-xml-skeleton --sample-xml-list-entries 1 *.yang
 
 result=$(netopeer2-cli <<-END
 	connect --host 127.0.0.1 --login netconf
@@ -25,7 +25,7 @@ END
 
 while [[ "$result" != "OK" ]]
 do
-  pyang -f sample-xml-skeleton --sample-xml-list-entries 2 *.yang
+  pyang -f sample-xml-skeleton --sample-xml-list-entries 1 *.yang
   
   result=$(netopeer2-cli <<-END
 	connect --host 127.0.0.1 --login netconf

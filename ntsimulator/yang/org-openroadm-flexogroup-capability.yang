@@ -181,7 +181,7 @@ module org-openroadm-flexogroup-capability {
         }
         leaf if-cap-type {
           type identityref {
-            base org-openroadm-port-types:if-OTUCn-ODUCn;
+            base org-openroadm-port-types:supported-if-capability;
           }
           description
             "Interface type/hierarchy/rate supported on this Flexo port";
