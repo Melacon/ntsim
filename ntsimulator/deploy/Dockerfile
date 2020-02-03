@@ -70,7 +70,7 @@ RUN \
 COPY ./libyang /opt/dev/libyang
 RUN \
       cd libyang && mkdir build && cd build && \
-      cmake -DCMAKE_BUILD_TYPE:String="Release" -DENABLE_BUILD_TESTS=OFF .. && \
+      cmake -DCMAKE_BUILD_TYPE:String="Debug" -DENABLE_BUILD_TESTS=OFF .. && \
       make -j2 && \
       make install && \
       ldconfig
@@ -80,7 +80,7 @@ COPY ./sysrepo /opt/dev/sysrepo
 RUN \
       sed -i 's/#define MAX_BLOCKS_AVAIL_FOR_ALLOC    3/#define MAX_BLOCKS_AVAIL_FOR_ALLOC    6/g' ./sysrepo/src/common/sr_mem_mgmt.h && \
       cd sysrepo && mkdir build && cd build && \
-      cmake -DCMAKE_BUILD_TYPE:String="Release" -DENABLE_TESTS=OFF -DREPOSITORY_LOC:PATH=/etc/sysrepo -DREQUEST_TIMEOUT=240 -DOPER_DATA_PROVIDE_TIMEOUT=200 -DCOMMIT_VERIFY_TIMEOUT=240 .. && \
+      cmake -DCMAKE_BUILD_TYPE:String="Debug" -DENABLE_TESTS=OFF -DREPOSITORY_LOC:PATH=/etc/sysrepo -DREQUEST_TIMEOUT=240 -DOPER_DATA_PROVIDE_TIMEOUT=200 -DCOMMIT_VERIFY_TIMEOUT=240 .. && \
       make -j2 && \
       make install && \
       ldconfig
@@ -89,7 +89,7 @@ RUN \
 COPY ./libnetconf2 /opt/dev/libnetconf2
 RUN \
       cd libnetconf2 && mkdir build && cd build && \
-      cmake -DCMAKE_BUILD_TYPE:String="Release" -DENABLE_BUILD_TESTS=OFF .. && \
+      cmake -DCMAKE_BUILD_TYPE:String="Debug" -DENABLE_BUILD_TESTS=OFF -DREAD_INACTIVE_TIMEOUT:String="120" -D READ_ACTIVE_TIMEOUT:String="600" .. && \
       make -j2 && \
       make install && \
       ldconfig
@@ -100,7 +100,7 @@ RUN \
       cd /opt/dev && \
       cd Netopeer2 && \
       cd keystored && mkdir build && cd build && \
-      cmake -DCMAKE_BUILD_TYPE:String="Release" .. && \
+      cmake -DCMAKE_BUILD_TYPE:String="Debug" .. && \
       make -j2 && \
       make install && \
       ldconfig
@@ -111,11 +111,11 @@ COPY ./ntsimulator/scripts/stock_config.xml /opt/dev/Netopeer2/server/stock_conf
 RUN \
       cd /opt/dev && \
       cd Netopeer2/server && mkdir build && cd build && \
-      cmake -DCMAKE_BUILD_TYPE:String="Release" .. && \
+      cmake -DCMAKE_BUILD_TYPE:String="Debug" .. && \
       make -j2 && \
       make install && \
       cd ../../cli && mkdir build && cd build && \
-      cmake -DCMAKE_BUILD_TYPE:String="Release" .. && \
+      cmake -DCMAKE_BUILD_TYPE:String="Debug" .. && \
       make -j2 && \
       make install
 

@@ -246,3 +246,14 @@ ntsim_oran       latest           57b065de4458     4 days ago     785MB
 ```
 
 This means that `MODELS_IMAGE: "ntsim_oran:latest"` can be used as an environment variable when starting the NTS Manager.
+
+## Known limitations
+
+There are some known limitations with regards to the OpenROADM information models:
+* YANG modules that are not implemented:
+    * org-openroadm-flexogroup-capability.yang
+    * org-openroadm-ipv4-unicast-routing.yang
+    * org-openroadm-ipv6-unicast-routing.yang
+    * org-openroadm-lldp.yang
+    * org-openroadm-ospf.yang
+    * org-openroadm-routing.yang

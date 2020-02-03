@@ -10,6 +10,8 @@ module ietf-netconf {
     prefix inet;
   }
 
+  import ietf-netconf-acm { prefix nacm; }
+
   organization
     "IETF NETCONF (Network Configuration) Working Group";
 
@@ -31,7 +33,6 @@ module ietf-netconf {
 
      Editor:   Andy Bierman
                <andy.bierman@brocade.com>";
-
   description
     "NETCONF Protocol Data Types and Protocol Operations.
 
@@ -47,9 +48,12 @@ module ietf-netconf {
 
      This version of this YANG module is part of RFC 6241; see
      the RFC itself for full legal notices.";
+
   revision 2011-06-01 {
     description
-      "Initial revision";
+      "Initial revision;
+       2013-09-29: Updated to include NACM attributes,
+       as specified in RFC 6536: sec 3.2.5 and 3.2.8";
     reference
       "RFC 6241: Network Configuration Protocol";
   }
@@ -176,7 +180,6 @@ module ietf-netconf {
     description
       "NETCONF Session Id or Zero to indicate none";
   }
-
   typedef error-tag-type {
     type enumeration {
        enum in-use {
@@ -244,6 +247,7 @@ module ietf-netconf {
            "Request to roll back some configuration change (via
             rollback-on-error or <discard-changes> operations)
             was not completed for some reason.";
+
        }
        enum data-exists {
          description
@@ -619,6 +623,7 @@ module ietf-netconf {
   }
 
   rpc delete-config {
+    nacm:default-deny-all;
     description
       "Delete a configuration datastore.";
 
@@ -763,6 +768,7 @@ module ietf-netconf {
   }
 
   rpc kill-session {
+    nacm:default-deny-all;
     description
       "Force the termination of a NETCONF session.";
 
