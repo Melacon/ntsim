@@ -1,0 +1,167 @@
+module o-ran-sc-ric-gnb-status-v1 {
+    yang-version 1;
+    namespace "urn:o-ran:ric:gnb-status:1.0";
+    prefix rxad;
+
+    organization
+        "O-RAN Software Community";
+    contact
+        "www.o-ran.org";
+    description
+        "This module defines the gNB status and other information visible to operators
+
+        Copyright 2020 the O-RAN Alliance.
+
+        Licensed under the Apache License, Version 2.0 (the 'License');
+        you may not use this file except in compliance with the License.
+        You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+        Unless required by applicable law or agreed to in writing, software
+        distributed under the License is distributed on an 'AS IS' BASIS,
+        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        See the License for the specific language governing permissions and
+        limitations under the License.";
+
+    revision 2020-01-29 {
+        description
+            "initial revision";
+        reference
+            "O-RAN-OAM-Interface-Specification (O1)";
+    }
+
+    typedef e2ap-protocol-type {
+        type enumeration {
+            enum not-specified {
+                description
+                    "None";
+            }
+            enum x2-setup-request {
+                description
+                    "X2 setup request";
+            }
+            enum endc-x2-setup-request {
+                description
+                    "ENDC X2 setup request";
+            }
+        }
+        description
+            "The E2AP protocol setup types";
+    }
+
+    typedef connection-status-type {
+        type enumeration {
+            enum not-specified {
+                description
+                    "None";
+            }
+            enum connected {
+                description
+                    "Connected";
+            }
+            enum connecting {
+                description
+                    "Connecting";
+            }
+            enum disconnected {
+                description
+                    "Disconnected";
+            }
+            enum setup-failed {
+                description
+                    "Setup failed";
+            }
+            enum shutting-down {
+                description
+                    "Shutting down";
+            }
+            enum shutdown {
+                description
+                    "Shutdown";
+            }
+        }
+        description
+            "The connection status of gNB";
+    }
+
+    typedef node-type {
+        type enumeration {
+            enum not-specified {
+                description
+                    "None";
+            }
+            enum enb {
+                description
+                    "eNB";
+            }
+            enum gnb {
+                description
+                    "gNB";
+            }
+        }
+        description
+            "The connection status of gNB";
+    }
+
+    grouping nodeb-info {
+        leaf ran-name {
+            type string;
+            description
+                "The unique RAN name";
+        }
+        leaf ip {
+            type string;
+            description
+                "The IP address of the node";
+        }
+        leaf port {
+            type uint32;
+            description
+                "The port of the node";
+        }
+        leaf e2ap-protocol {
+            type e2ap-protocol-type;
+            description
+                "Specifies the protocol type of the connection";
+        }
+        leaf connection-status {
+            type connection-status-type;
+            description
+                "Specifies the connection type of the node";
+        }
+        leaf plmn-id {
+            type string;
+            description
+                "PLMN id";
+        }
+        leaf nb-id {
+            type string;
+            description
+                "eNB id";
+        }
+        leaf node {
+            type node-type;
+            description
+                "The type of the node: eNB or gNB";
+        }
+        description
+            "Node information";
+    }
+
+    container ric {
+        container nodes {
+            config false;
+            list node {
+                key "ran-name";
+                uses nodeb-info;
+                description
+                    "The list of the gNBs currently discovered by RIC";
+            }
+            description
+                "State data container of the nodes";
+        }
+        description
+            "Root object for gNB status";
+    }
+}

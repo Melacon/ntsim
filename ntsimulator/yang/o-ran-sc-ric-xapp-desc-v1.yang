@@ -1,0 +1,107 @@
+module o-ran-sc-ric-xapp-desc-v1 {
+    yang-version 1.1;
+    namespace "urn:o-ran:ric:xapp-desc:1.0";
+    prefix rxad;
+
+    organization
+        "O-RAN Software Community";
+    contact
+        "www.o-ran.org";
+    description
+        "This module defines a generic xApp descriptor used for xApp lifecycle management
+
+        Copyright 2020 the O-RAN Alliance.
+
+        Licensed under the Apache License, Version 2.0 (the 'License');
+        you may not use this file except in compliance with the License.
+        You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+        Unless required by applicable law or agreed to in writing, software
+        distributed under the License is distributed on an 'AS IS' BASIS,
+        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        See the License for the specific language governing permissions and
+        limitations under the License.";
+
+    revision 2020-01-29 {
+        description
+            "initial revision";
+        reference
+            "O-RAN-OAM-Interface-Specification (O1)";
+    }
+
+    // LCM: Generic xApp descriptor passed to xApp Manager (or OCO) during xApp deployment/undeployment
+    grouping xapp-descriptor {
+        leaf name {
+            type string;
+            mandatory true;
+            description
+                "Name of the xApp in helm chart";
+        }
+        leaf release-name {
+            type string;
+            description
+                "Name of the xapp to be visible in Kubernetes";
+        }
+        leaf version {
+            type string;
+            description
+                "The exact xapp helm chart version to install";
+        }
+        leaf namespace {
+            type string;
+            description
+                "Name of the namespace to which xApp is deployed in Kubernetes";
+        }
+        leaf override-file {
+            type string;
+            description
+                "JSON string of override file for 'helm install' command";
+        }
+        description
+            "xApp descriptor";
+    }
+
+    grouping xapp-status {
+        leaf name {
+            type string;
+            description
+                "Name of the xApp in helm chart";
+        }
+        leaf status {
+            type boolean;
+            description
+                "The status of xApp: true=healthy false=not-healthy";
+        }
+        description
+            "xApp health status";
+    }
+
+    // Top-level (root) managed object
+    container ric {
+        container xapps {
+            list xapp {
+                key "name";
+                uses xapp-descriptor;
+                description
+                    "xApp descriptor";
+            }
+            description
+                "List of xApps to be managed";
+        }
+        container health {
+            config false;
+            list status {
+                key "name";
+                uses xapp-status;
+                description
+                    "The status of xApp";
+            }
+            description
+                "State data of the xApps";
+        }
+        description
+            "Root object for xApp management and status";
+    }
+}
