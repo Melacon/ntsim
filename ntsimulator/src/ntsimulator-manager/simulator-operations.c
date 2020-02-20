@@ -134,7 +134,73 @@ static cJSON* get_docker_container_bindings(void)
 	return NULL;
 }
 
-static char* create_docker_container_curl(int base_netconf_port, cJSON* managerBinds)
+// static char* get_docker_container_name(void)
+// {
+// 	struct MemoryStruct curl_response_mem;
+
+// 	curl_response_mem.memory = malloc(1);  /* will be grown as needed by the realloc above */
+// 	curl_response_mem.size = 0;    /* no data at this point */
+
+// 	CURLcode res;
+
+// 	curl_easy_reset(curl);
+// 	set_curl_common_info();
+
+// 	char url[200];
+// 	sprintf(url, "http:/v%s/containers/%s/json", getenv("DOCKER_ENGINE_VERSION"), getenv("HOSTNAME"));
+
+// 	curl_easy_setopt(curl, CURLOPT_URL, url);
+
+//     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "");
+//     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+
+// 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&curl_response_mem);
+
+// 	res = curl_easy_perform(curl);
+
+// 	if (res != CURLE_OK)
+// 	{
+// 		return NULL;
+// 	}
+// 	else
+// 	{
+// 		cJSON *json_response = cJSON_Parse(curl_response_mem.memory);
+
+// 		printf("%lu bytes retrieved\n", (unsigned long)curl_response_mem.size);
+
+// 		if (json_response == NULL)
+// 		{
+// 			printf("Could not parse JSON response for url=\"%s\"\n", url);
+// 			return NULL;
+// 		}
+
+// 		cJSON *containerObject = cJSON_GetObjectItemCaseSensitive(json_response, "Name");
+
+// 		if (containerObject == NULL)
+// 		{
+// 			printf("Could not get Name object\n");
+// 			cJSON_Delete(json_response);
+// 			return NULL;
+// 		}
+
+// 		if (!cJSON_IsString(containerObject))
+// 		{
+// 			printf("Name object is not string in container bindings!");
+// 			cJSON_Delete(json_response);
+// 			return NULL;
+// 		}
+
+// 		char *containerName = strdup(cJSON_GetStringValue(containerObject));
+
+// 		cJSON_Delete(json_response);
+
+// 		return containerName;
+// 	}
+
+// 	return NULL;
+// }
+
+static char *create_docker_container_curl(int base_netconf_port, cJSON *managerBinds)
 {
 	if (managerBinds == NULL)
 	{
@@ -238,6 +304,12 @@ static char* create_docker_container_curl(int base_netconf_port, cJSON* managerB
     if (cJSON_AddStringToObject(labels, "NTS", "") == NULL)
     {
     	printf("Could not create JSON object: NTS\n");
+    	return NULL;
+    }
+
+	if (cJSON_AddStringToObject(labels, "NTS_Manager", getenv("HOSTNAME")) == NULL)
+    {
+    	printf("Could not create JSON object: NTS Manager\n");
     	return NULL;
     }
 
