@@ -1,8 +1,11 @@
-module qos-profile {
+module qos-profile-1-0 {
   yang-version 1.1;
-  namespace "urn:onf:yang:qos-profile";
+  namespace "urn:onf:yang:qos-profile-1-0";
   prefix qos-profile;
 
+  import ietf-yang-types {
+    prefix yang;
+  }
   import core-model-1-4 {
     prefix core-model;
   }
@@ -27,6 +30,14 @@ module qos-profile {
      See the License for the specific language governing permissions and
      limitations under the License.";
 
+  revision 2020-01-24 {
+    description
+      "Model for the Transport SDN Pilot at Telefonica Germany.
+       Please view https://github.com/openBackhaul/qosProfile/issues for changes.";
+    reference
+      "https://github.com/openBackhaul/qosProfile/tree/tsp: Model definition
+       https://github.com/openBackhaul/onfCoreIm/tree/tsp: ONF TR-512 Core IM incl. Profile and enhanced Equipment definition";
+  }
   revision 2019-07-12 {
     description
       "Model for the Transport SDN Pilot at Telefonica Germany.
@@ -49,6 +60,10 @@ module qos-profile {
       "none";
   }
 
+  /****************************************
+   * package notifications
+   **************************************/ 
+
   notification object-creation-notification {
     uses object-creation-notification;
     description
@@ -63,15 +78,18 @@ module qos-profile {
       description
         "Counts object creation notifications.";
     }
-    leaf time-stamp {
-      type string;
+    leaf timestamp {
+      type yang:date-and-time;
       default "2010-11-20T14:00:00+01:00";
       config false;
       description
         "none";
     }
     leaf object-id-ref {
-      type string;
+      type leafref {
+        path "/core-model:control-construct/core-model:profile-collection/core-model:profile/core-model:uuid";
+        require-instance false;
+      }
       config false;
       description
         "none";
@@ -101,15 +119,18 @@ module qos-profile {
       description
         "Counts object deletion notifications.";
     }
-    leaf time-stamp {
-      type string;
+    leaf timestamp {
+      type yang:date-and-time;
       default "2010-11-20T14:00:00+01:00";
       config false;
       description
         "none";
     }
     leaf object-id-ref {
-      type string;
+      type leafref {
+        path "/core-model:control-construct/core-model:profile-collection/core-model:profile/core-model:uuid";
+        require-instance false;
+      }
       config false;
       description
         "none";
@@ -118,9 +139,12 @@ module qos-profile {
       "none";
   }
 
+  /****************************************
+   * grouping statements for object classes
+   **************************************/ 
+
   grouping qos-profile-spec {
     container qos-profile-pac {
-      config false;
       uses qos-profile-pac;
       description
         "none";
@@ -149,6 +173,7 @@ module qos-profile {
   grouping qos-profile-capability {
     leaf profile-naming-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = There is a free text field available for naming the profile.";
@@ -163,24 +188,28 @@ module qos-profile {
     }
     leaf drop-precedence-at-be-queue-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Configuration of the drop precedence is available at the best effort queue.";
     }
     leaf drop-precedence-at-af-queues-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Configuration of the drop precedence is available at the assured forwarding queues.";
     }
     leaf drop-precedence-at-prio-queues-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Configuration of the drop precedence is available at the priority queues.";
     }
-    leaf available-qo-sprofile-kind-list {
+    leaf available-qos-profile-kind-list {
       type qos-profile-kind-type;
+      default "QOS_PROFILE_KIND_TYPE_NOT_YET_DEFINED";
       config false;
       description
         "List of header information that are supported to be base of the QoS definition.";
@@ -198,6 +227,7 @@ module qos-profile {
     }
     leaf qos-profile-kind {
       type qos-profile-kind-type;
+      default "QOS_PROFILE_KIND_TYPE_NOT_YET_DEFINED";
       description
         "Defines whether the sorting into queues is done based on VLAN, MPLS or IP header information.";
     }
@@ -227,6 +257,7 @@ module qos-profile {
     }
     leaf writing-per-hop-behavior-into-8021p-is-on {
       type boolean;
+      default "false";
       description
         "1 = Original content of 802.1p bits is overwritten with local per hop behavior.";
     }
@@ -239,6 +270,7 @@ module qos-profile {
     }
     leaf writing-per-hop-behavior-into-mpls-exp-is-on {
       type boolean;
+      default "false";
       description
         "1 = Original content of MPLS EXP bits is overwritten with local per hop behavior.";
     }
@@ -251,6 +283,7 @@ module qos-profile {
     }
     leaf writing-per-hop-behavior-into-ip-dscp-is-on {
       type boolean;
+      default "false";
       description
         "1 = Original content of IP DSCP bits is overwritten with local per hop behavior.";
     }
@@ -264,6 +297,10 @@ module qos-profile {
     description
       "Defines the profile that will be used for mapping between header information and queues (next hop behavior).";
   }
+
+  /****************************************
+   * typedef statements
+   **************************************/ 
 
   typedef severity-type {
     type identityref {
@@ -296,6 +333,10 @@ module qos-profile {
     description
       "none";
   }
+
+  /*********************************************
+   * grouping statements for complex data types
+   *******************************************/ 
 
   identity SEVERITY_TYPE {
     description
@@ -369,46 +410,52 @@ module qos-profile {
   identity QUEUE_NAME_TYPE_BEST_EFFORT_QUEUE {
     base QUEUE_NAME_TYPE;
     description
-      "none";
+      "Queue 0.";
   }
 
   identity QUEUE_NAME_TYPE_ASSURED_FORWARDING_QUEUE1 {
     base QUEUE_NAME_TYPE;
     description
-      "none";
+      "Queue 1.";
   }
 
   identity QUEUE_NAME_TYPE_ASSURED_FORWARDING_QUEUE2 {
     base QUEUE_NAME_TYPE;
     description
-      "none";
+      "Queue 2.";
   }
 
   identity QUEUE_NAME_TYPE_ASSURED_FORWARDING_QUEUE3 {
     base QUEUE_NAME_TYPE;
     description
-      "none";
+      "Queue 3.";
   }
 
   identity QUEUE_NAME_TYPE_ASSURED_FORWARDING_QUEUE4 {
     base QUEUE_NAME_TYPE;
     description
-      "none";
+      "Queue 4.";
   }
 
   identity QUEUE_NAME_TYPE_EXPEDITED_FORWARDING_QUEUE {
     base QUEUE_NAME_TYPE;
     description
-      "none";
+      "Queue 5.";
   }
 
   identity QUEUE_NAME_TYPE_CLASS_SELECTOR_QUEUE6 {
     base QUEUE_NAME_TYPE;
     description
-      "none";
+      "Queue 6.";
   }
 
   identity QUEUE_NAME_TYPE_CLASS_SELECTOR_QUEUE7 {
+    base QUEUE_NAME_TYPE;
+    description
+      "Queue 7.";
+  }
+
+  identity QUEUE_NAME_TYPE_NOT_YET_DEFINED {
     base QUEUE_NAME_TYPE;
     description
       "none";
@@ -441,6 +488,12 @@ module qos-profile {
     base DROP_PRECEDENCE_TYPE;
     description
       "Would be equal to RED.";
+  }
+
+  identity DROP_PRECEDENCE_TYPE_NOT_YET_DEFINED {
+    base DROP_PRECEDENCE_TYPE;
+    description
+      "none";
   }
 
   grouping per-hop-behavior-type {

@@ -32,7 +32,15 @@ module co-channel-profile-1-0 {
      See the License for the specific language governing permissions and
      limitations under the License.";
 
-  revision 2019-11-22 {
+  revision 2020-01-27 {
+    description
+      "Model for the Transport SDN Pilot at Telefonica Germany.
+       Please view https://github.com/openBackhaul/coChannelProfile/issues for changes.";
+    reference
+      "https://github.com/openBackhaul/coChannelProfile/tree/tsp: Model definition
+       https://github.com/openBackhaul/onfCoreIm/tree/tsp: ONF TR-512 Core IM incl. Profile and enhanced Equipment definition";
+  }
+  revision 2019-11-02 {
     description
       "Model for the Transport SDN Pilot at Telefonica Germany.
        Please view https://github.com/openBackhaul/coChannelProfile/issues for changes.";
@@ -90,8 +98,11 @@ module co-channel-profile-1-0 {
     leaf object-id-ref {
       type leafref {
         path "/core-model:control-construct/core-model:profile-collection/core-model:profile/core-model:uuid";
+        require-instance false;
       }
       config false;
+      description
+        "none";
     }
     leaf object-type {
       type string;
@@ -100,6 +111,8 @@ module co-channel-profile-1-0 {
       description
         "none";
     }
+    description
+      "none";
   }
 
   notification object-deletion-notification {
@@ -125,11 +138,15 @@ module co-channel-profile-1-0 {
     }
     leaf object-id-ref {
       type leafref {
-        require-instance false;
         path "/core-model:control-construct/core-model:profile-collection/core-model:profile/core-model:uuid";
+        require-instance false;
       }
       config false;
+      description
+        "none";
     }
+    description
+      "none";
   }
 
   /****************************************
@@ -165,12 +182,14 @@ module co-channel-profile-1-0 {
   grouping co-channel-profile-capability {
     leaf xpic-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "In case this device is in general capable of XPIC, this field shall contain a 'true'. This information shall purely relate to capabilities of the equipment type, but not to the operational capability of a specific hardware composition on site. Means for example that this attribute might contain a 'true' statement, even if an additional cable would have been required to actually operate XPIC in a specific case.";
     }
     leaf mimo-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "In case the device is capable of MIMO, this field shall contain a 'true'.";
@@ -185,6 +204,7 @@ module co-channel-profile-1-0 {
     }
     leaf alic-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "In case the device is capable of Adjacent Link Interference Cancelation (canceling of interference cause by transmitters located at the same site), this field shall contain a 'true'.";
@@ -202,12 +222,14 @@ module co-channel-profile-1-0 {
     }
     leaf kind-of-co-channel-group {
       type kind-of-co-channel-group-type;
+      default "KIND_OF_CO_CHANNEL_GROUP_TYPE_NOT_YET_DEFINED";
       description
         "Type of group (XPIC, MIMO, ALIC) of air interfaces with the same transmit and receive frequency.";
     }
     leaf-list logical-termination-point-list {
       type leafref {
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+        require-instance false;
       }
       description
         "List of AirInterfaces, which are part of the co-channel group. Referenced LTP must associate a LayerProtocol class with layerProtocolName attribute having LAYER_PROTOCOL_NAME_TYPE_AIR_LAYER as value.";

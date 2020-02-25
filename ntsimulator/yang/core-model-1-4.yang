@@ -31,6 +31,12 @@ module core-model-1-4 {
      See the License for the specific language governing permissions and
      limitations under the License.";
 
+  revision 2019-11-27 {
+    description
+      "Package equipment-specification has been deleted, 
+       because of wrong key statements and overall grouping never applied.
+       ";
+  }
   revision 2019-11-22 {
     description
       "Module name and name space changed to core-model-1-4
@@ -233,7 +239,7 @@ module core-model-1-4 {
   }
 
   /*********************************************
-   * grouping statements-g for complex data types
+   * grouping statements for complex data types
    *******************************************/ 
 
   identity PORT_DIRECTION {
@@ -969,7 +975,7 @@ module core-model-1-4 {
       "none";
   }
 
-  grouping layer-protocol-name-and-qualifier-g {
+  grouping layer-protocol-name-and-qualifier {
     leaf layer-protocol-qualifier {
       type string;
       description
@@ -995,7 +1001,7 @@ module core-model-1-4 {
       ";
   }
 
-  grouping name-and-value-g {
+  grouping name-and-value {
     leaf value-name {
       type string;
       description
@@ -1010,7 +1016,7 @@ module core-model-1-4 {
       "A scoped name-value pair.";
   }
 
-  grouping local-id-and-class-g {
+  grouping local-id-and-class {
     leaf class-of-instance {
       type string;
       description
@@ -1025,7 +1031,7 @@ module core-model-1-4 {
       "The localId and the class of entity that it identifies.";
   }
 
-  grouping port-role-rule-g {
+  grouping port-role-rule {
     leaf-list port-role {
       type port-role;
       description
@@ -1040,7 +1046,7 @@ module core-model-1-4 {
       "Constrains which ports the rule applies to.";
   }
 
-  grouping signal-property-rule-g {
+  grouping signal-property-rule {
     leaf signal-property-name {
       type string;
       description
@@ -1055,7 +1061,7 @@ module core-model-1-4 {
       "none";
   }
 
-  grouping metaclass-class-g {
+  grouping metaclass-class {
     leaf name {
       type metaclass-class-name;
       description
@@ -1074,7 +1080,7 @@ module core-model-1-4 {
       ";
   }
 
-  grouping external-managed-universal-id-g {
+  grouping external-managed-universal-id {
     leaf manager-identifier {
       type string;
       description
@@ -1093,13 +1099,13 @@ module core-model-1-4 {
    * package core-network-model
    **************************************/ 
   /****************************************
-   * grouping statements-g for object classes
+   * grouping statements for object classes
    **************************************/ 
   /****************************************
    * package resilience
    **************************************/ 
 
-  grouping control-parameters-pac-g {
+  grouping control-parameters-pac {
     leaf reversion-mode {
       type reversion-mode;
       description
@@ -1132,7 +1138,7 @@ module core-model-1-4 {
       "A list of control parameters to apply to a switch.";
   }
 
-  grouping fc-switch-g {
+  grouping fc-switch {
     leaf hold-off-time {
       type int64;
       description
@@ -1150,7 +1156,7 @@ module core-model-1-4 {
     }
     list selected-fc-port {
       key "local-id";
-      uses fc-port-g;
+      uses fc-port;
       description
         "Indicates which points are selected by the switch.
          Depending on the switch spec (via FcSpec)
@@ -1190,7 +1196,7 @@ module core-model-1-4 {
         "The reason for the current switch selection.";
     }
     container control-parameters {
-      uses control-parameters-pac-g;
+      uses control-parameters-pac;
       description
         "none";
     }
@@ -1199,7 +1205,7 @@ module core-model-1-4 {
       description
         "Moved to ControlParameter_Pac and changed to waitToRevert. If the protection system is revertive, this attribute specifies the amount of time, in seconds, to wait after the preferred FcPort returns to an acceptable state of operation (e.g. a fault has cleared) before restoring traffic to that preferred FcPort.";
     }
-    uses local-class-g;
+    uses local-class;
     description
       "The FcSwitch class models the switched forwarding of traffic (traffic flow) between FcPorts and is present where there is protection functionality in the FC.
        If an FC exposes protection (having two or more FcPorts that provide alternative identical inputs/outputs), the FC will have one or more associated FcSwitch objects to represent the alternative flow choices visible at the edge of the FC.
@@ -1215,7 +1221,7 @@ module core-model-1-4 {
        This ability allows multiple alternate routes to be present that otherwise would be in conflict.";
   }
 
-  grouping casc-port-g {
+  grouping casc-port {
     leaf port-role {
       type string;
       description
@@ -1225,13 +1231,13 @@ module core-model-1-4 {
          The role will indicate how the port relates to the associated entity, e.g. is conveying messages.";
     }
     container port-role-properties {
-      uses casc-port-role-properties-g;
+      uses casc-port-role-properties;
       description
         "A link to properties associated with the port role as defined by the CascSpec.";
     }
     list logical-termination-point {
       key "uuid";
-      uses logical-termination-point-g;
+      uses logical-termination-point;
       description
         "The LTP that conveys the messages related to the port and/or is subject to control action and/or provides indications of state etc.
          For direct association, there may be up to 2 LTPs (to account for directionality differences).
@@ -1270,7 +1276,7 @@ module core-model-1-4 {
          If the item is locked out, then it cannot be used under any circumstances.
          This causes isRelatedControlFlowDisabled to become TRUE and isControlledFcPortDisabled to become TRUE.";
     }
-    uses global-class-g;
+    uses global-class;
     description
       "A port of a C&SC that can be used where there is significant asymmetry to be represented.
        This can represent any combination of:
@@ -1279,7 +1285,7 @@ module core-model-1-4 {
        - the providing of indications of state etc.";
   }
 
-  grouping casc-port-role-properties-g {
+  grouping casc-port-role-properties {
     leaf signalling-format {
       type string;
       description
@@ -1306,7 +1312,7 @@ module core-model-1-4 {
    * package timing
    **************************************/ 
 
-  grouping clock-g {
+  grouping clock {
     leaf run-mode {
       type run-mode;
       config false;
@@ -1322,7 +1328,7 @@ module core-model-1-4 {
     }
     list encapsulated-fc {
       key "uuid";
-      uses forwarding-construct-g;
+      uses forwarding-construct;
       description
         "A Clock may encapsulate an FC related to resilience where the clock provides an output that is essentially that of one of several other clocks in the resilience scheme.";
     }
@@ -1346,14 +1352,14 @@ module core-model-1-4 {
       description
         "One or more clocks can be actively phase aligned (this is especially relevant in a hitless resilience scheme).";
     }
-    uses local-class-g;
+    uses local-class;
     description
       "Clock function processes the input sync information (frequency and ssm or time stamp and PTP announce messages) and provides the modified sync information to the sync distribution function.
        If none of the inputs meet the quality defined by the controller the clock may enter a hold-over or free run mode.
        The status of the clock will be reported to the controller.";
   }
 
-  grouping forwarding-domain-g {
+  grouping forwarding-domain {
     leaf-list layer-protocol-name {
       type layer-protocol-name-type;
       min-elements 1;
@@ -1372,7 +1378,7 @@ module core-model-1-4 {
     }
     list fc {
       key "uuid";
-      uses forwarding-construct-g;
+      uses forwarding-construct;
       description
         "An FD aggregates one or more FCs. An aggregated FC connects LTPs that bound the FD.";
     }
@@ -1387,17 +1393,17 @@ module core-model-1-4 {
     }
     list fd-port {
       key "local-id";
-      uses fd-port-g;
+      uses fd-port;
       description
         "The association of the FD to LTPs is either made directly for symmetric FDs or via FdPort for asymmetric FDs.";
     }
-    uses global-class-g;
+    uses global-class;
     description
       "The ForwardingDomain (FD) class models the topological component that represents a forwarding capability that provides the opportunity to enable forwarding (of specific transport characteristic information at one or more protocol layers) between points.
        The FD object provides the context for and constrains the formation, adjustment and removal of FCs and hence offers the potential to enable forwarding.
        The FCs may be formed between LTPs at the boundary of the FD or between AccessPorts at the boundary of the FD (for the most basic media layers cases - most media cases use LTPs).
        A number of FDs (related by Links) may be grouped and abstracted to form an FD where that FD represents the effect of the underlying FDs but where the detailed structure is not apparent.
-       This grouping and-g abstraction is potentially recursive.
+       This grouping and abstraction is potentially recursive.
        This aspect is essentially equivalent to ITU-T partitioning but this is an aggregation not a composition, so it allows an FD to be in multiple higher level FDs.
        The notion of abstraction/grouping assumes that small things are brought together into larger things as opposed to ITU-T partitioning that assumes large things are broken down into smaller things.
        An FD represents an abstraction of some combination of software behavior, electronic behavior and physical structure that provides a forwarding capability.
@@ -1409,7 +1415,7 @@ module core-model-1-4 {
        Note that the ITU-T G.800 subnetwork is a single layer entity.";
   }
 
-  grouping forwarding-construct-g {
+  grouping forwarding-construct {
     leaf layer-protocol-name {
       type layer-protocol-name-type;
       description
@@ -1433,7 +1439,7 @@ module core-model-1-4 {
     }
     list fc-port {
       key "local-id";
-      uses fc-port-g;
+      uses fc-port;
       description
         "The FcPorts define the boundary of the FC.
          The FC is accessed via the FcPorts.
@@ -1441,7 +1447,7 @@ module core-model-1-4 {
     }
     list fc-switch {
       key "local-id";
-      uses fc-switch-g;
+      uses fc-switch;
       description
         "If an FC exposes protection (having two FcPorts that provide alternative identical inputs/outputs), the FC will have one or more associated FcSwitch objects.
          The arrangement of switches for a particular instance is described by a referenced FcSpec.";
@@ -1488,7 +1494,7 @@ module core-model-1-4 {
       description
         "The functionality supporting this entity.";
     }
-    uses global-class-g;
+    uses global-class;
     description
       "The ForwardingConstruct (FC) represents enabled constrained potential for forwarding between two or more FcPorts at a particular specific layerProtocol .
        The constraint is explained by the FcSpec. Even when an FC is in place enabling potential for flow, it is possible that no information is flowing as there is no flow matching the constraint, hence 'potential'.
@@ -1503,7 +1509,7 @@ module core-model-1-4 {
        A flow/wave cannot propagate in the absence of a FC instance.";
   }
 
-  grouping fc-port-g {
+  grouping fc-port {
     leaf-list logical-termination-point {
       type leafref {
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
@@ -1582,7 +1588,7 @@ module core-model-1-4 {
       description
         "none";
     }
-    uses local-class-g;
+    uses local-class;
     description
       "The association of the FC to LTPs is always made via FcPorts.
        In the case of media the association between FCs is made via their FcPorts and the association of an FC to the physical Pin is made via the FcPort.
@@ -1594,7 +1600,7 @@ module core-model-1-4 {
        The ForwardingConstruct can be considered as a component and the FcPort as a Port on that component.";
   }
 
-  grouping layer-protocol-g {
+  grouping layer-protocol {
     leaf layer-protocol-name {
       type layer-protocol-name-type;
       description
@@ -1638,14 +1644,14 @@ module core-model-1-4 {
       description
         "Indicates whether the associated FC is blocking signal to/from the LTP.";
     }
-    uses local-class-g;
+    uses local-class;
     description
       "The projection of an LTP into each transport layer is represented by a LayerProtocol (LP) instance. A LayerProtocol instance can be used for controlling termination and monitoring functionality.
        It can also be used for controlling the adaptation (i.e. aggregation, encapsulation and/or multiplexing of client signal), tandem connection monitoring, traffic conditioning and/or shaping functionality at an intermediate point along a connection.
        Where the client – server relationship is fixed 1:1 and immutable, the layers can be encapsulated in a single LTP instance. Where there is a n:1 relationship between client and server, the layers must be split over two separate instances of LTP. ";
   }
 
-  grouping logical-termination-point-g {
+  grouping logical-termination-point {
     leaf-list server-ltp {
       type leafref {
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
@@ -1663,7 +1669,7 @@ module core-model-1-4 {
     list layer-protocol {
       key "local-id";
       min-elements 1;
-      uses layer-protocol-g;
+      uses layer-protocol;
       description
         "Ordered list of LayerProtocols that this LTP is comprised of where the first entry in the list is the lowest server layer (e.g. physical).";
     }
@@ -1712,7 +1718,6 @@ module core-model-1-4 {
       description
         "The LTP has as an inherent capacity derived from underlying capability.
          The capacity of a particular LTP may be dependent upon other uses of resource in the device and hence it may vary over time.
--g
          The capacity of a Link is dependent upon the capacity of the LTPs at its ends.
          An LTP may be an abstraction and virtualization of a subset of the underlying capability offered in a view or may be directly reflecting the underlying realization.";
     }
@@ -1725,7 +1730,7 @@ module core-model-1-4 {
     }
     list embedded-clock {
       key "local-id";
-      uses clock-g;
+      uses clock;
       description
         "none";
     }
@@ -1734,14 +1739,14 @@ module core-model-1-4 {
       description
         "The functionality supporting this entity.";
     }
-    uses global-class-g;
+    uses global-class;
     description
       "The LogicalTerminationPoint (LTP) class encapsulates the termination and adaptation functions of one or more transport layers represented by instances of LayerProtocol.
        The encapsulated transport layers have a simple fixed 1:1 client-server relationship defined by association end ordering.
        The structure of LTP supports all transport protocols including analogue, circuit and packet forms.";
   }
 
-  grouping fd-port-g {
+  grouping fd-port {
     leaf-list logical-termination-point {
       type leafref {
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
@@ -1777,7 +1782,7 @@ module core-model-1-4 {
       description
         "An FdPort may have a direct association to another FdPort where there is a transition from one domain to another but where there has been no termination.";
     }
-    uses local-class-g;
+    uses local-class;
     description
       "The association of the FD to LTPs may be direct for symmetric FDs and may be via FdPort for asymmetric FDs.
        The FdPort class models the role of the access to the FD function.
@@ -1805,13 +1810,13 @@ module core-model-1-4 {
    * package super-classes-and-common-packages
    **************************************/ 
   /****************************************
-   * grouping statements-g for object classes
+   * grouping statements for object classes
    **************************************/ 
 
-  grouping name-g {
+  grouping name {
     list name {
       key "value-name";
-      uses name-and-value-g;
+      uses name-and-value;
       description
         "List of names.";
     }
@@ -1819,9 +1824,9 @@ module core-model-1-4 {
       "Name: A property of an entity with a value that is unique in some namespace but may change during the life of the entity. A name carries no semantics with respect to the purpose of the entity.";
   }
 
-  grouping global-class-g {
+  grouping global-class {
     container external-managed-id {
-      uses external-managed-universal-id-g;
+      uses external-managed-universal-id;
       description
         "A list of external managed universal identifiers, set by an external tool. There must not be any function implemented on the ControlConstruct itself next to updating the list on request and storing it persitenly. ";
     }
@@ -1838,29 +1843,29 @@ module core-model-1-4 {
          (This should be considered in the context of Identifier: A property of an entity/role with a value that is unique within an identifier space, where the identifier space is itself globally unique, and immutable. An identifier carries no semantics with respect to the purpose or state of the entity)
          The uuid should be treated as opaque by the user.";
     }
-    uses name-g;
-    uses label-g;
-    uses extension-g;
-    uses state-pac-g;
-    uses address-g;
+    uses name;
+    uses label;
+    uses extension;
+    uses state-pac;
+    uses address;
     description
       "Represents a type of thing (an Entity) that has instances which can exist in their own right (independently of any others).
        Entity: Has identity, defined boundary, properties, functionality and lifecycle in a global context.
        (This should be considered in the context of a Class: (usage) The representation of a thing that may be an entity or an inseparable Entity Feature).";
   }
 
-  grouping local-class-g {
+  grouping local-class {
     leaf local-id {
       type string;
       description
         "An identifier that is unique in the context of some scope that is less than the global scope.
          (This should be considered in the context of Identifier: A property of an entity/role with a value that is unique within an identifier space, where the identifier space is itself unique, and immutable. The identifier therefore represents the identity of the entity/role. An identifier carries no semantics with respect to the purpose of the entity.)";
     }
-    uses name-g;
-    uses label-g;
-    uses extension-g;
-    uses state-pac-g;
-    uses address-g;
+    uses name;
+    uses label;
+    uses extension;
+    uses state-pac;
+    uses address;
     description
       "A LocalClass represents a Feature of an Entity. It is inseparable from a GlobalClass but is a distinct feature of that GlobalClass such that the instances of LocalClass are able to have associations to other instances.
        Feature of an Entity: An inseparable, externally distinguishable part of an entity.
@@ -1869,10 +1874,10 @@ module core-model-1-4 {
       ";
   }
 
-  grouping label-g {
+  grouping label {
     list label {
       key "value-name";
-      uses name-and-value-g;
+      uses name-and-value;
       description
         "List of labels.";
     }
@@ -1880,10 +1885,10 @@ module core-model-1-4 {
       "A property of an entity with a value that is not expected to be unique and is allowed to change. A label carries no semantics with respect to the purpose of the entity and has no effect on the entity behavior or state.";
   }
 
-  grouping extension-g {
+  grouping extension {
     list extension {
       key "value-name";
-      uses name-and-value-g;
+      uses name-and-value;
       description
         "List of simple name-value extensions.";
     }
@@ -1891,7 +1896,7 @@ module core-model-1-4 {
       "Extension provides an opportunity to define properties not declared in the class that extend the class enabling a realization with simple ad-hoc extension of standard classes to be conformant.";
   }
 
-  grouping universal-id-authority-g {
+  grouping universal-id-authority {
     leaf uuid {
       type universal-id;
       description
@@ -1902,7 +1907,7 @@ module core-model-1-4 {
       "Represents the authority that controls the allocation of UUIDs.";
   }
 
-  grouping name-and-value-authority-g {
+  grouping name-and-value-authority {
     leaf uuid {
       type universal-id;
       description
@@ -1912,14 +1917,14 @@ module core-model-1-4 {
       "Represents the authority that controls the legal values for the names and values of a name/value attribute.";
   }
 
-  grouping conditional-package-g {
-    uses extension-g;
-    uses label-g;
+  grouping conditional-package {
+    uses extension;
+    uses label;
     description
       "The base class for conditional packages.";
   }
 
-  grouping address-g {
+  grouping address {
     leaf-list address {
       type dt-address;
       description
@@ -1936,10 +1941,10 @@ module core-model-1-4 {
    * package state-model
    **************************************/ 
   /****************************************
-   * grouping statements-g for object classes
+   * grouping statements for object classes
    **************************************/ 
 
-  grouping state-pac-g {
+  grouping state-pac {
     leaf operational-state {
       type operational-state;
       config false;
@@ -1981,36 +1986,36 @@ module core-model-1-4 {
    * package fru-non-fru-rules
    **************************************/ 
   /****************************************
-   * grouping statements-g for object classes
+   * grouping statements for object classes
    **************************************/ 
 
-  grouping field-replaceable-g {
+  grouping field-replaceable {
     list equipment-non-fru {
       key "uuid";
-      uses non-field-replaceable-g;
+      uses non-field-replaceable;
       description
         "none";
     }
     list holder {
       key "local-id";
-      uses holder-g;
+      uses holder;
       description
         "none";
     }
     container holder-address {
-      uses holder-g;
+      uses holder;
       description
         "none";
     }
-    uses equipment-g;
+    uses equipment;
     description
       "A rule class (an abstract specialization of Equipment) that represents an equipment that can be replaced in the field.
        May plug in to a holder in another equipment (if not stand-alone).
        Realization could use an FRU Boolean on Equipment.";
   }
 
-  grouping non-field-replaceable-g {
-    uses equipment-g;
+  grouping non-field-replaceable {
+    uses equipment;
     description
       "A rule class (an abstract specialization of Equipment) that represents an equipment that cannot be replaced in the field.
        Is simply a subordinate part of an FRU (or another NFRU – where there must be an FRU at the top of the hierarchy).
@@ -2023,16 +2028,16 @@ module core-model-1-4 {
    * package connector-rules
    **************************************/ 
   /****************************************
-   * grouping statements-g for object classes
+   * grouping statements for object classes
    **************************************/ 
 
-  grouping connector-on-equipment-for-holder-g {
+  grouping connector-on-equipment-for-holder {
     leaf connector-in-holder {
       type string;
       description
         "The equipment connector is plugged into the referenced holder connector.";
     }
-    uses connector-g;
+    uses connector;
     description
       "A rule class (an abstract specialization of Connector) that represents a connector on an equipment that is intended to mate with a connector in a holder.";
   }
@@ -2041,13 +2046,13 @@ module core-model-1-4 {
    * package equipment-detail
    **************************************/ 
   /****************************************
-   * grouping statements-g for object classes
+   * grouping statements for object classes
    **************************************/ 
   /****************************************
    * package dynamic-details
    **************************************/ 
 
-  grouping function-enablers-g {
+  grouping function-enablers {
     leaf power-state {
       type string;
       description
@@ -2059,7 +2064,7 @@ module core-model-1-4 {
       "Represents the dynamic aspects of the properties that relate to the motive force that directly enable functionality to emerge from the equipment.";
   }
 
-  grouping mechanical-functions-g {
+  grouping mechanical-functions {
     leaf rotation-speed {
       type string;
       description
@@ -2069,7 +2074,7 @@ module core-model-1-4 {
       "Represents the dynamic aspects of the mechanical functions of the equipment.";
   }
 
-  grouping physical-properties-g {
+  grouping physical-properties {
     leaf temperature {
       type string;
       description
@@ -2079,7 +2084,7 @@ module core-model-1-4 {
       "Represents the dynamic aspects of the physical environmental properties of the equipment.";
   }
 
-  grouping location-g {
+  grouping location {
     leaf equipment-location {
       type dt-address;
       description
@@ -2098,7 +2103,7 @@ module core-model-1-4 {
    * package invariant-details
    **************************************/ 
 
-  grouping equipment-structure-g {
+  grouping equipment-structure {
     leaf category {
       type equipment-category;
       description
@@ -2108,7 +2113,7 @@ module core-model-1-4 {
       "Represents the form of the equipment.";
   }
 
-  grouping equipment-instance-g {
+  grouping equipment-instance {
     leaf manufacture-date {
       type yang:date-and-time;
       description
@@ -2128,7 +2133,7 @@ module core-model-1-4 {
       "Represents the per instance invariant properties of the equipment.";
   }
 
-  grouping equipment-type-g {
+  grouping equipment-type {
     leaf description {
       type string;
       description
@@ -2158,7 +2163,7 @@ module core-model-1-4 {
       "Represents the invariant properties of the equipment that define and characterize the type.";
   }
 
-  grouping holder-structure-g {
+  grouping holder-structure {
     leaf holder-category {
       type holder-category;
       description
@@ -2183,29 +2188,29 @@ module core-model-1-4 {
       "Represents the form of the holder.";
   }
 
-  grouping manufactured-thing-g {
+  grouping manufactured-thing {
     container manufacturer-properties {
-      uses manufacturer-properties-g;
+      uses manufacturer-properties;
       description
         "none";
     }
     container equipment-type {
-      uses equipment-type-g;
+      uses equipment-type;
       description
         "none";
     }
     container equipment-instance {
-      uses equipment-instance-g;
+      uses equipment-instance;
       description
         "none";
     }
     container operator-augmented-equipment-type {
-      uses operator-augmented-equipment-type-g;
+      uses operator-augmented-equipment-type;
       description
         "none";
     }
     container operator-augmented-equipment-instance {
-      uses operator-augmented-equipment-instance-g;
+      uses operator-augmented-equipment-instance;
       description
         "none";
     }
@@ -2213,7 +2218,7 @@ module core-model-1-4 {
       "Collects all invariant aspects of a manufactured thing.";
   }
 
-  grouping manufacturer-properties-g {
+  grouping manufacturer-properties {
     leaf manufacturer-identifier {
       type string;
       description
@@ -2228,12 +2233,12 @@ module core-model-1-4 {
       "Represents the properties of the manufacturer.";
   }
 
-  grouping mechanical-features-g {
+  grouping mechanical-features {
     description
       "Represents the invariant characteristics of dynamic mechanical features of a physical thing.";
   }
 
-  grouping operator-augmented-equipment-type-g {
+  grouping operator-augmented-equipment-type {
     leaf asset-type-identifier {
       type string;
       description
@@ -2243,7 +2248,7 @@ module core-model-1-4 {
       "Represents the invariant properties of the equipment asset allocated by the operator that define and characterize the type.";
   }
 
-  grouping physical-characteristics-g {
+  grouping physical-characteristics {
     leaf weight-characeristics {
       type string;
       description
@@ -2263,14 +2268,14 @@ module core-model-1-4 {
       "Represents the invariant physical characteristics (including composition and physical robustness) of the type.";
   }
 
-  grouping environmental-rating-g {
+  grouping environmental-rating {
     container thermal-rating {
-      uses thermal-rating-g;
+      uses thermal-rating;
       description
         "This attribute represents the thermal characteristics (preferred maximum/minimum, absolute maximum/minimum etc) that the entity can tolerate.";
     }
     container power-rating {
-      uses power-rating-g;
+      uses power-rating;
       description
         "This attribute represents the power chracteristics (peak and mean per power source) of the entity.
          For an Equipment this is the power consumption.
@@ -2285,7 +2290,7 @@ module core-model-1-4 {
       "Represents the invariant physical operational boundaries for the equipment/holder type.";
   }
 
-  grouping position-g {
+  grouping position {
     leaf relative-position {
       type string;
       description
@@ -2295,7 +2300,7 @@ module core-model-1-4 {
       "Represents the invariant relative position of the holder (with respect to some frame of reference in an equipment) or connector on an equipment or pin in a connector.";
   }
 
-  grouping spatial-properties-of-type-g {
+  grouping spatial-properties-of-type {
     leaf height {
       type string;
       description
@@ -2315,7 +2320,7 @@ module core-model-1-4 {
       "Represents the basic invariant spatial properties of a physical thing.";
   }
 
-  grouping swappability-g {
+  grouping swappability {
     leaf is-hot-swappable {
       type boolean;
       default "true";
@@ -2326,7 +2331,7 @@ module core-model-1-4 {
       "Represents the degree of field replacement that is possible for the equipment type.";
   }
 
-  grouping operator-augmented-equipment-instance-g {
+  grouping operator-augmented-equipment-instance {
     leaf asset-instance-identifier {
       type string;
       description
@@ -2340,19 +2345,19 @@ module core-model-1-4 {
    * package pattern-classes
    **************************************/ 
 
-  grouping cable-details-g {
+  grouping cable-details {
     container spatial-properties-of-type {
-      uses spatial-properties-of-type-g;
+      uses spatial-properties-of-type;
       description
         "none";
     }
     container physical-characteristics {
-      uses physical-characteristics-g;
+      uses physical-characteristics;
       description
         "none";
     }
     container manufactured-thing {
-      uses manufactured-thing-g;
+      uses manufactured-thing;
       description
         "none";
     }
@@ -2360,19 +2365,19 @@ module core-model-1-4 {
       "none";
   }
 
-  grouping connector-details-g {
+  grouping connector-details {
     container position {
-      uses position-g;
+      uses position;
       description
         "none";
     }
     container mechanical-features {
-      uses mechanical-features-g;
+      uses mechanical-features;
       description
         "none";
     }
     container manufactured-thing {
-      uses manufactured-thing-g;
+      uses manufactured-thing;
       description
         "none";
     }
@@ -2380,89 +2385,89 @@ module core-model-1-4 {
       "none";
   }
 
-  grouping equipment-detail-g {
+  grouping equipment-detail {
     container location {
-      uses location-g;
+      uses location;
       description
         "none";
     }
     container structure {
-      uses equipment-structure-g;
+      uses equipment-structure;
       description
         "none";
     }
     container swappability {
-      uses swappability-g;
+      uses swappability;
       description
         "none";
     }
     container physical-properties {
-      uses physical-properties-g;
+      uses physical-properties;
       description
         "none";
     }
     container function-enablers {
-      uses function-enablers-g;
+      uses function-enablers;
       description
         "none";
     }
     container mechanical-functions {
-      uses mechanical-functions-g;
+      uses mechanical-functions;
       description
         "none";
     }
     container physical-characteristics {
-      uses physical-characteristics-g;
+      uses physical-characteristics;
       description
         "none";
     }
     container mechanical-features {
-      uses mechanical-features-g;
+      uses mechanical-features;
       description
         "none";
     }
     container spatial-properties-of-type {
-      uses spatial-properties-of-type-g;
+      uses spatial-properties-of-type;
       description
         "none";
     }
     container environmental-rating {
-      uses environmental-rating-g;
+      uses environmental-rating;
       description
         "none";
     }
     container manufactured-thing {
-      uses manufactured-thing-g;
+      uses manufactured-thing;
       description
         "none";
     }
-    uses local-class-g;
+    uses local-class;
     description
       "none";
   }
 
-  grouping holder-details-g {
+  grouping holder-details {
     container spatial-properties-of-type {
-      uses spatial-properties-of-type-g;
+      uses spatial-properties-of-type;
       description
         "none";
     }
     container environmental-rating {
-      uses environmental-rating-g;
+      uses environmental-rating;
       description
         "none";
     }
     container position {
-      uses position-g;
+      uses position;
       description
         "none";
     }
     container holder-structure {
-      uses holder-structure-g;
+      uses holder-structure;
       description
         "none";
     }
-    uses local-class-g;
+    uses local-class;
     description
       "none";
   }
@@ -2471,7 +2476,7 @@ module core-model-1-4 {
    * package data-types
    **************************************/ 
 
-  grouping thermal-rating-g {
+  grouping thermal-rating {
     leaf thermal-rating-name {
       type string;
       description
@@ -2495,7 +2500,7 @@ module core-model-1-4 {
       "A thermal rating value range.";
   }
 
-  grouping power-rating-g {
+  grouping power-rating {
     leaf power-rating-name {
       type string;
       description
@@ -2514,10 +2519,10 @@ module core-model-1-4 {
    * package equipment-pattern-structure
    **************************************/ 
   /****************************************
-   * grouping statements-g for object classes
+   * grouping statements for object classes
    **************************************/ 
 
-  grouping connector-g {
+  grouping connector {
     leaf connector {
       type string;
       description
@@ -2544,22 +2549,22 @@ module core-model-1-4 {
       description
         "The purpose of the Connector in the physical space and the functional space.";
     }
-    uses local-class-g;
+    uses local-class;
     description
       "Represents a connector that may be fully exposed (e.g. to plug in a cable or on the end of a cable) or partially exposed (e.g. backplane to plug in another piece of equipment such as a module).
        A physical port on the Equipment. A place where signals produced by the functionality of the Equipment may be accessed.";
   }
 
-  grouping equipment-g {
+  grouping equipment {
     list connector {
       key "local-id";
-      uses connector-g;
+      uses connector;
       description
         "A Connector on the Equipment.";
     }
     list contained-holder {
       key "local-id";
-      uses holder-g;
+      uses holder;
       description
         "References the Holder in an Equipment that is available to take other Equipments.
          For example:
@@ -2580,12 +2585,12 @@ module core-model-1-4 {
     }
     list expected-equipment {
       key "local-id";
-      uses expected-equipment-g;
+      uses expected-equipment;
       description
         "none";
     }
     container actual-equipment {
-      uses actual-equipment-g;
+      uses actual-equipment;
       description
         "none";
     }
@@ -2594,14 +2599,14 @@ module core-model-1-4 {
       description
         "none";
     }
-    uses global-class-g;
+    uses global-class;
     description
       "Represents any relevant physical thing.
        Can be either field replaceable or not field replaceable.
        Note: The model is currently constrained to inside plant.";
   }
 
-  grouping holder-g {
+  grouping holder {
     leaf occupying-fru {
       type leafref {
         path "/core-model:control-construct/core-model:equipment/core-model:uuid";
@@ -2617,16 +2622,16 @@ module core-model-1-4 {
         "The relative position of the holder in the context of its containing equipment along with the position of that containing Equipment (and further recursion).";
     }
     container expected-holder {
-      uses expected-holder-g;
+      uses expected-holder;
       description
         "none";
     }
     container actual-holder {
-      uses actual-holder-g;
+      uses actual-holder;
       description
         "none";
     }
-    uses local-class-g;
+    uses local-class;
     description
       "Represents a space in an equipment in which another equipment can be fitted in the field.";
   }
@@ -2661,63 +2666,33 @@ module core-model-1-4 {
   }
 
   /****************************************
-   * package equipment-specification
-   **************************************/ 
-  /****************************************
-   * grouping statements-g for object classes
-   **************************************/ 
-
-  grouping non-fru-support-position-g {
-    description
-      "Equivalent to the holder for the FRU, represents in the specification a place where one or more types of non-FRU could be present.
-       Unlike the FRU in a Holder, the non-FRU present is fixed in place whilst the equipment is in the field (as it is not Field-replaceable).";
-  }
-
-  grouping supported-equipment-type-g {
-    container fru-details {
-      uses equipment-g;
-      description
-        "none";
-    }
-    list holder {
-      key "local-id";
-      min-elements 1;
-      uses holder-g;
-      description
-        "none";
-    }
-    description
-      "The FRU equipment types supported by the holder.";
-  }
-
-  /****************************************
    * package expected-and-actual
    **************************************/ 
   /****************************************
-   * grouping statements-g for object classes
+   * grouping statements for object classes
    **************************************/ 
 
-  grouping actual-holder-g {
-    uses holder-details-g;
+  grouping actual-holder {
+    uses holder-details;
     description
       "A holder in the ActualEquipment.";
   }
 
-  grouping expected-holder-g {
-    uses holder-details-g;
+  grouping expected-holder {
+    uses holder-details;
     description
       "A definition of a holder expected in the ActualEquipment (i.e. an ActualHolder) as part of the constraints provided by the ExpectedEquipment.";
   }
 
-  grouping actual-equipment-g {
-    uses equipment-detail-g;
+  grouping actual-equipment {
+    uses equipment-detail;
     description
       "The equipment that is actually present in the physical network.
        It will expose all dynamic properties and some critical static properties.";
   }
 
-  grouping expected-equipment-g {
-    uses equipment-detail-g;
+  grouping expected-equipment {
+    uses equipment-detail;
     description
       "A definition of the restrictions on the equipment that is expected to be present in the physical network at a particular 'place'.
        The expected equipment will state the type and may constrain any other invariant properties.
@@ -2728,18 +2703,18 @@ module core-model-1-4 {
    * package connector-and-pin
    **************************************/ 
   /****************************************
-   * grouping statements-g for object classes
+   * grouping statements for object classes
    **************************************/ 
 
-  grouping signal-ref-pt-g {
+  grouping signal-ref-pt {
     container logical-termination-point {
-      uses logical-termination-point-g;
+      uses logical-termination-point;
       description
         "none";
     }
     list elemental-signals {
       min-elements 1;
-      uses elemental-signals-g;
+      uses elemental-signals;
       description
         "none";
     }
@@ -2747,13 +2722,13 @@ module core-model-1-4 {
       "A single coherent signal as processed by a single LTP.";
   }
 
-  grouping signal-ref-pt-group-g {
+  grouping signal-ref-pt-group {
     description
       "A conceptual access for a group of signals (where that group of signals cannot be separated).
        A physical indivisible group of signals.";
   }
 
-  grouping elemental-signals-g {
+  grouping elemental-signals {
     description
       "The elemental (sub-atomic) parts of an 'indivisible' signal where processing in the LTP is required to extract the elemental signals.";
   }
@@ -2765,17 +2740,17 @@ module core-model-1-4 {
    * package associations
    **************************************/ 
   /****************************************
-   * grouping statements-g for object classes
+   * grouping statements for object classes
    **************************************/ 
 
   container control-construct {
     presence "Enables SDN";
-    uses control-construct-g;
+    uses control-construct;
     description
       "none";
   }
 
-  grouping control-construct-g {
+  grouping control-construct {
     leaf-list top-level-equipment {
       type leafref {
         path "/core-model:control-construct/core-model:equipment/core-model:uuid";
@@ -2785,28 +2760,28 @@ module core-model-1-4 {
     }
     list equipment {
       key "uuid";
-      uses equipment-g;
+      uses equipment;
       description
         "none";
     }
     list logical-termination-point {
       key "uuid";
-      uses logical-termination-point-g;
+      uses logical-termination-point;
       description
         "none";
     }
     list forwarding-domain {
       key "uuid";
-      uses forwarding-domain-g;
+      uses forwarding-domain;
       description
         "none";
     }
     container profile-collection {
-      uses profile-collection-g;
+      uses profile-collection;
       description
         "none";
     }
-    uses global-class-g;
+    uses global-class;
     description
       "Represents control capability/functionality.
        ControlConstructs communicate with other ControlConstructs through ControlPorts about things within the related ConstraintDomains.
@@ -2819,10 +2794,10 @@ module core-model-1-4 {
        Root element for controller southbound APIs.";
   }
 
-  grouping profile-collection-g {
+  grouping profile-collection {
     list profile {
       key "uuid";
-      uses profile-g;
+      uses profile;
       description
         "none";
     }
@@ -2830,20 +2805,20 @@ module core-model-1-4 {
       "none";
   }
 
-  grouping profile-g {
+  grouping profile {
     leaf profile-name {
       type profile-name-type;
       description
         "none";
     }
-    uses global-class-g;
+    uses global-class;
     description
       "none";
   }
 
-  grouping control-port-g {
+  grouping control-port {
     container logical-termination-point {
-      uses logical-termination-point-g;
+      uses logical-termination-point;
       description
         "The LTP through which the control messaging/signaling flows.";
     }
@@ -2857,7 +2832,7 @@ module core-model-1-4 {
       description
         "Properties relevant when the ControlPort is exposing the ControlConstruct as a user of capability.";
     }
-    uses global-class-g;
+    uses global-class;
     description
       "The access to the ControlConstruct following the normal Component-Port pattern (i.e., the functions of a component are accessed via ports).
        Is assumed to usually be bidirectional.";
@@ -2909,13 +2884,13 @@ module core-model-1-4 {
    * package core-software-model
    **************************************/ 
   /****************************************
-   * grouping statements-g for object classes
+   * grouping statements for object classes
    **************************************/ 
   /****************************************
    * package file-system
    **************************************/ 
 
-  grouping file-g {
+  grouping file {
     leaf size {
       type string;
       description
@@ -2931,14 +2906,14 @@ module core-model-1-4 {
       description
         "A checksum that can be used to validate the contents of the File (in case of corruption or malicious changes) using a hashing algorithm like MD5 or SHA1.";
     }
-    uses file-system-entry-g;
+    uses file-system-entry;
     description
       "A File is a data structure used to store information (user data, commands, software etc.) in a computer system. Note that in this CIM class, we are only storing the metadata associated with the File, not the actual contents of the File.";
   }
 
-  grouping file-system-g {
+  grouping file-system {
     list file-system-entry {
-      uses file-system-entry-g;
+      uses file-system-entry;
       description
         "The root FileSystem entries, which can be Files or Directories.";
     }
@@ -2946,7 +2921,7 @@ module core-model-1-4 {
       "A FileSystem organizes the data on a storage system so that it can be easily created, updated and accessed. It manages the Directories and also the metadata for the Files.";
   }
 
-  grouping file-system-entry-g {
+  grouping file-system-entry {
     leaf is-read-only {
       type boolean;
       description
@@ -2976,24 +2951,24 @@ module core-model-1-4 {
       "FileSystemEntry is an abstraction of File and Directory, useful when there is a need to reference both classes. It also allows for an easy representation of a hierarchical filesystem.";
   }
 
-  grouping symbolic-link-g {
+  grouping symbolic-link {
     container file-system-entry {
-      uses file-system-entry-g;
+      uses file-system-entry;
       description
         "The FileSystemEntry that this SymbolicLink refers to.";
     }
-    uses file-g;
+    uses file;
     description
       "A SymbolicLink is a File that contains a path reference to a File or a Directory.";
   }
 
-  grouping directory-g {
+  grouping directory {
     list file-system-entry {
-      uses file-system-entry-g;
+      uses file-system-entry;
       description
         "Directory entry, which can be a File or another Directory.";
     }
-    uses file-system-entry-g;
+    uses file-system-entry;
     description
       "A Directory is a collection of Files and other Directories. Because a Directory can contain other Directories, this allows a hierarchical file system to be represented.";
   }
@@ -3002,7 +2977,7 @@ module core-model-1-4 {
    * package running-software
    **************************************/ 
 
-  grouping installed-software-component-g {
+  grouping installed-software-component {
     leaf name {
       type string;
       description
@@ -3019,7 +2994,7 @@ module core-model-1-4 {
         "As part of software licensing, a serial number may be available for the installation.";
     }
     container installation-file {
-      uses file-g;
+      uses file;
       description
         "If available, the File that the installation was from.";
     }
@@ -3031,7 +3006,7 @@ module core-model-1-4 {
         "References to any child installations.";
     }
     list installed-file-system-entry {
-      uses file-system-entry-g;
+      uses file-system-entry;
       description
         "References to any Directories or Files created or used by the installation. Note that installations may share files. So installation 1 may create key.dll in a common area, and installation 2 would create this if it wasn’t present. Because it is already present, installation 2 just references the file. Now if installation 1 is uninstalled, key.dll is not removed as there is still a reference to it.";
     }
@@ -3039,7 +3014,7 @@ module core-model-1-4 {
       "InstalledSoftwareComponent is part of the software inventory. It represents an application or an application suite or an application (feature) option. It is the unit of installation. Note that this is operating system dependent. For example, Microsoft DOS 3.3 didn’t have an installation manager.";
   }
 
-  grouping running-software-process-g {
+  grouping running-software-process {
     leaf process-id {
       type string;
       description
@@ -3081,7 +3056,7 @@ module core-model-1-4 {
         "The description of the process as assigned by the operating system.";
     }
     container executable {
-      uses file-g;
+      uses file;
       description
         "A reference to the executable file (invoked via the invokingCommand). Note that the invoking command may not list the full file path.";
     }
@@ -3091,7 +3066,7 @@ module core-model-1-4 {
         "References to a software process’s subprocesses and threads.";
     }
     list open-file {
-      uses file-g;
+      uses file;
       description
         "References to any files opened and/or locked by the running process.";
     }
@@ -3099,14 +3074,14 @@ module core-model-1-4 {
       "This is the unit of software execution. It could be a running application or a thread (the smallest level of software execution).";
   }
 
-  grouping running-operating-system-g {
+  grouping running-operating-system {
     list running-software-process {
-      uses running-software-process-g;
+      uses running-software-process;
       description
         "The software processes running under this operating system.";
     }
     list running-container-engine {
-      uses running-container-engine-g;
+      uses running-container-engine;
       description
         "The running container engines supported by the running operating system.";
     }
@@ -3115,13 +3090,13 @@ module core-model-1-4 {
       description
         "The host OS VMMs running under this operating system.";
     }
-    uses running-software-process-g;
+    uses running-software-process;
     description
       "An operating system is a running software process that enables software applications to utilize the computer’s hardware.";
   }
 
-  grouping running-software-application-g {
-    uses running-software-process-g;
+  grouping running-software-application {
+    uses running-software-process;
     description
       "This covers generic software processes that don’t have a special subclass (operating system, virtual machine and container special cases have their own specific subclasses).";
   }
@@ -3130,24 +3105,24 @@ module core-model-1-4 {
    * package software-container
    **************************************/ 
 
-  grouping running-container-g {
+  grouping running-container {
     leaf container-boundary {
       type string;
       description
         "The constraints defining the boundary of the Container.";
     }
-    uses running-software-process-g;
+    uses running-software-process;
     description
       "A container that has been activated by its container engine and hence can provide and consume resources.";
   }
 
-  grouping running-container-engine-g {
+  grouping running-container-engine {
     list running-container {
-      uses running-container-g;
+      uses running-container;
       description
         "The containers running in this container engine.";
     }
-    uses running-software-process-g;
+    uses running-software-process;
     description
       "A software process that abstracts running applications from the operating system. It provides some level of isolation, but not as much as a hypervisor.";
   }

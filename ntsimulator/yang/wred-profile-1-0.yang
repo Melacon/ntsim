@@ -1,8 +1,11 @@
-module wred-profile {
+module wred-profile-1-0 {
   yang-version 1.1;
-  namespace "urn:onf:yang:wred-profile";
+  namespace "urn:onf:yang:wred-profile-1-0";
   prefix wred-profile;
 
+  import ietf-yang-types {
+    prefix yang;
+  }
   import core-model-1-4 {
     prefix core-model;
   }
@@ -29,6 +32,14 @@ module wred-profile {
      See the License for the specific language governing permissions and
      limitations under the License.";
 
+  revision 2020-01-24 {
+    description
+      "Model for the Transport SDN Pilot at Telefonica Germany.
+       Please view https://github.com/openBackhaul/wredProfile/issues for changes.";
+    reference
+      "https://github.com/openBackhaul/wredProfile/tree/tsp: Model definition
+       https://github.com/openBackhaul/onfCoreIm/tree/tsp: ONF TR-512 Core IM incl. Profile and enhanced Equipment definition";
+  }
   revision 2019-07-12 {
     description
       "Model for the Transport SDN Pilot at Telefonica Germany.
@@ -51,6 +62,10 @@ module wred-profile {
       "none";
   }
 
+  /****************************************
+   * package notifications
+   **************************************/ 
+
   notification object-creation-notification {
     uses object-creation-notification;
     description
@@ -65,15 +80,18 @@ module wred-profile {
       description
         "Counts object creation notifications.";
     }
-    leaf time-stamp {
-      type string;
+    leaf timestamp {
+      type yang:date-and-time;
       default "2010-11-20T14:00:00+01:00";
       config false;
       description
         "none";
     }
     leaf object-id-ref {
-      type string;
+      type leafref {
+        path "/core-model:control-construct/core-model:profile-collection/core-model:profile/core-model:uuid";
+        require-instance false;
+      }
       config false;
       description
         "none";
@@ -86,7 +104,7 @@ module wred-profile {
         "none";
     }
     description
-      "To be sent when a new MW_AirInterface_Pac, MW_AirInterfaceDiversity_Pac, MW_Structure_Pac, MW_PureEthernetStructure_Pac, MW_HybridMwStructure_Pac, MW_Container_Pac, MW_EthernetContainer_Pac or MW_TdmContainer_Pac has to be instancieted in the controller.";
+      "none";
   }
 
   notification object-deletion-notification {
@@ -103,26 +121,32 @@ module wred-profile {
       description
         "Counts object deletion notifications.";
     }
-    leaf time-stamp {
-      type string;
+    leaf timestamp {
+      type yang:date-and-time;
       default "2010-11-20T14:00:00+01:00";
       config false;
       description
         "none";
     }
     leaf object-id-ref {
-      type string;
+      type leafref {
+        path "/core-model:control-construct/core-model:profile-collection/core-model:profile/core-model:uuid";
+        require-instance false;
+      }
       config false;
       description
         "none";
     }
     description
-      "To be sent when a new MW_AirInterface_Pac, MW_AirInterfaceDiversity_Pac, MW_Structure_Pac, MW_PureEthernetStructure_Pac, MW_HybridMwStructure_Pac, MW_Container_Pac, MW_EthernetContainer_Pac or MW_TdmContainer_Pac instance has to be deleted in the controller.";
+      "none";
   }
+
+  /****************************************
+   * grouping statements for object classes
+   **************************************/ 
 
   grouping wred-profile-spec {
     container wred-profile-pac {
-      config false;
       uses wred-profile-pac;
       description
         "none";
@@ -158,24 +182,28 @@ module wred-profile {
     }
     leaf drop-probability-at-threshold-low-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = It is possible to set a drop probability at the lower threshold.";
     }
     leaf gentle-wred-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = The device allows activating a linear increase of drop probability between dropProbabilityAtThresholdHigh and 100% at thresholdGentle (usually drop probability jumps to 100% at thresholdHigh).";
     }
     leaf sensitivity-setting-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = It is possible to set the sensitivity for the burst size.";
     }
     leaf coloring-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = The device allows marking exceeding packets yellow instead of immediately discarding them.";
@@ -221,6 +249,7 @@ module wred-profile {
     }
     leaf gentle-wred-is-on {
       type boolean;
+      default "false";
       description
         "Only relevant if (gentleWredIsAvail==1). 1 = The drop probability is linear increasing between dropProbabilityAtThresholdHigh and 100% at thresholdGentle (otherwise drop probability jumps to 100% at thresholdHigh).";
     }
@@ -240,6 +269,7 @@ module wred-profile {
     }
     leaf coloring-is-on {
       type boolean;
+      default "false";
       description
         "Only relevant if (colloringIsAvail==1). 1 = Exceeding packets are marked yellow instead of being immediately discarded.";
     }

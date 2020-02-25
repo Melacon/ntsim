@@ -32,12 +32,20 @@ module ethernet-container-2-0 {
      See the License for the specific language governing permissions and
      limitations under the License.";
 
+  revision 2020-01-21 {
+    description
+      "Model for the Transport SDN Pilot at Telefonica Germany
+       Please view https://github.com/openBackhaul/ethernetContainer/issues for changes.";
+    reference
+      "https://github.com/openBackhaul/ethernetContainer/tree/tsp: Model definition
+       https://github.com/openBackhaul/onfCoreIm/tree/tsp: ONF TR-512 Core IM incl. Profile and enhanced Equipment definition";
+  }
   revision 2019-11-23 {
     description
-      "Model for the Transport SDN Pilot at Telefonica Germany.
-       Please view https://github.com/openBackhaul/airInterface/issues for changes.";
+      "Model for the Transport SDN Pilot at Telefonica Germany
+       Please view https://github.com/openBackhaul/ethernetContainer/issues for changes.";
     reference
-      "https://github.com/openBackhaul/airInterface/tree/tsp: Model definition
+      "https://github.com/openBackhaul/ethernetContainer/tree/tsp: Model definition
        https://github.com/openBackhaul/onfCoreIm/tree/tsp: ONF TR-512 Core IM incl. Profile and enhanced Equipment definition";
   }
   revision 2019-06-14 {
@@ -61,6 +69,10 @@ module ethernet-container-2-0 {
     description
       "none";
   }
+
+  /****************************************
+   * package notifications
+   **************************************/ 
 
   notification object-creation-notification {
     uses object-creation-notification;
@@ -86,8 +98,11 @@ module ethernet-container-2-0 {
     leaf object-id-ref {
       type leafref {
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+        require-instance false;
       }
       config false;
+      description
+        "none";
     }
     leaf object-type {
       type string;
@@ -123,10 +138,12 @@ module ethernet-container-2-0 {
     }
     leaf object-id-ref {
       type leafref {
-        require-instance false;
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+        require-instance false;
       }
       config false;
+      description
+        "none";
     }
     description
       "none";
@@ -156,8 +173,11 @@ module ethernet-container-2-0 {
     leaf object-id-ref {
       type leafref {
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+        require-instance false;
       }
       config false;
+      description
+        "none";
     }
     leaf attribute-name {
       type string;
@@ -201,8 +221,11 @@ module ethernet-container-2-0 {
     leaf object-id-ref {
       type leafref {
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+        require-instance false;
       }
       config false;
+      description
+        "none";
     }
     leaf problem {
       type string;
@@ -213,6 +236,7 @@ module ethernet-container-2-0 {
     }
     leaf severity {
       type severity-type;
+      default "SEVERITY_TYPE_WARNING";
       config false;
       description
         "Severity of the problem according to problemKindSeverity";
@@ -220,6 +244,13 @@ module ethernet-container-2-0 {
     description
       "none";
   }
+
+  /****************************************
+   * grouping statements for object classes
+   **************************************/ 
+  /****************************************
+   * package super-classes
+   **************************************/ 
 
   grouping current-problem {
     leaf sequence-number {
@@ -233,10 +264,11 @@ module ethernet-container-2-0 {
       default "2010-11-20T14:00:00+01:00";
       config false;
       description
-        "none";
+        "Time when the alarm was raised.";
     }
     leaf problem-severity {
       type severity-type;
+      default "SEVERITY_TYPE_NOT_YET_DEFINED";
       config false;
       description
         "Severity of the alarm.";
@@ -255,15 +287,16 @@ module ethernet-container-2-0 {
     }
     leaf suspect-interval-flag {
       type boolean;
+      default "false";
       config false;
       description
         "This attribute is used to indicate that the performance data for the current period may not be reliable. Some reasons for this to occur are:
-         – Suspect data were detected by the actual resource doing data collection.
-         – Transition of the administrativeState attribute to/from the 'lock' state.
-         – Transition of the operationalState to/from the 'disabled' state.
-         – Scheduler setting that inhibits the collection function.
-         – The performance counters were reset during the interval.
-         – The currentData (or subclass) object instance was created during the monitoring period.";
+            – Suspect data were detected by the actual resource doing data collection.
+            – Transition of the administrativeState attribute to/from the 'lock' state.
+            – Transition of the operationalState to/from the 'disabled' state.
+            – Scheduler setting that inhibits the collection function.
+            – The performance counters were reset during the interval.
+            – The currentData (or subclass) object instance was created during the monitoring period.";
     }
     leaf elapsed-time {
       type int64;
@@ -280,48 +313,11 @@ module ethernet-container-2-0 {
       description
         "none";
     }
-    leaf operational-state {
-      type operational-state-type;
-      config false;
-      description
-        "none";
-    }
     leaf granularity-period {
       type granularity-period-type;
       config false;
       description
         "Time period between reset of the underlying counter.";
-    }
-    leaf administrative-state {
-      type administrative-state-type;
-      config false;
-      description
-        "none";
-    }
-    leaf object-class {
-      type yang:object-identifier;
-      config false;
-      description
-        "ObjectClass ::= CHOICE{    globalForm    [0] OBJECT IDENTIFIER,
-         localForm    [1] INTEGER}";
-    }
-    leaf name-binding {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
-    }
-    leaf packages {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
-    }
-    leaf allomorphs {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
     }
     description
       "none";
@@ -330,6 +326,7 @@ module ethernet-container-2-0 {
   grouping historical-performance {
     leaf suspect-interval-flag {
       type boolean;
+      default "false";
       config false;
       description
         "This attribute indicates that the data collected during the interval is suspect.";
@@ -341,42 +338,17 @@ module ethernet-container-2-0 {
       description
         "none";
     }
-    leaf period-end-time {
-      type yang:date-and-time;
-      config false;
-      description
-        "Time when the counter values have been recorded and the counter reset.";
-    }
     leaf granularity-period {
       type granularity-period-type;
       config false;
       description
         "Time period between reset of the underlying counter.";
     }
-    leaf object-class {
-      type yang:object-identifier;
+    leaf period-end-time {
+      type yang:date-and-time;
       config false;
       description
-        "ObjectClass ::= CHOICE{    globalForm    [0] OBJECT IDENTIFIER,
-         localForm    [1] INTEGER}";
-    }
-    leaf name-binding {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
-    }
-    leaf packages {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
-    }
-    leaf allomorphs {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
+        "Time when the counter values have been recorded and the counter reset.";
     }
     description
       "none";
@@ -384,7 +356,6 @@ module ethernet-container-2-0 {
 
   grouping ethernet-container-lp-spec {
     container ethernet-container-pac {
-      config false;
       uses ethernet-container-pac;
       description
         "none";
@@ -445,18 +416,21 @@ module ethernet-container-2-0 {
     }
     leaf explicit-congestion-notification-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Explicit Congestion Notification is available at this queue.";
     }
     leaf ingress-policing-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = This interface supports policing.";
     }
     leaf egress-shaping-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = This interface supports shaping.";
@@ -495,6 +469,7 @@ module ethernet-container-2-0 {
     }
     leaf bundling-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "This attribute has to be set on 'true', if the device allows combining resources from several air interfaces for transporting this Ethernet container.";
@@ -508,6 +483,7 @@ module ethernet-container-2-0 {
     }
     leaf support-of-management-frames-without-preamble-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "802.3. 1 = Management frames with suppressed preamble are also accepted.";
@@ -515,12 +491,14 @@ module ethernet-container-2-0 {
     list supported-header-compression-kind-list {
       key "header-compression-name";
       config false;
+      min-elements 1;
       uses header-compression-kind;
       description
         "Lists the kinds of header compression, which are supported by the device.";
     }
     leaf fec-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "802.3 according to 30.5.1.1.15 aFECAbility, 45.2.1.92.1 BASE-R FEC ability and 45.2.3.37 10GBASE-PR and 10/1GBASE-PRX FEC ability register and ITU-T Rec. G.998.3 Appendix II aFECSupported. 1 = Indicates that an optional Forward Error Correction (FEC) is supported.";
@@ -556,12 +534,14 @@ module ethernet-container-2-0 {
     }
     leaf encryption-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "Shall be marked 'true', if Ethernet payload encryption is available.";
     }
     leaf admin-shut-down-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Manual switching on and off of the interface without deleting it (underlying OSI network layers are also not affected) is available.";
@@ -583,6 +563,7 @@ module ethernet-container-2-0 {
     }
     leaf statistics-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Continuous statistics counters are available.";
@@ -596,6 +577,7 @@ module ethernet-container-2-0 {
     }
     leaf performance-monitoring-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Collection and aggregation of performance values is available.";
@@ -613,6 +595,7 @@ module ethernet-container-2-0 {
     }
     leaf interface-is-on {
       type boolean;
+      default "false";
       description
         "Only relevant if (adminShutDownIsAvail==1). 1 = Activation of the interface. 0 = De-activation of the interface without deleting it (underlying OSI network layers are not affected).";
     }
@@ -626,18 +609,21 @@ module ethernet-container-2-0 {
     }
     leaf explicit-congestion-notification-is-on {
       type boolean;
+      default "false";
       description
         "1 = Explicit Congestion Notification is activitated at this queue.";
     }
     leaf ingress-policing-profile {
       type leafref {
         path "/core-model:control-construct/core-model:profile-collection/core-model:profile/core-model:uuid";
+        require-instance false;
       }
       description
         "Reference to the policing profile, which is active on this interface. Attribute to point to an instance of Profile with profileName=='PROFILE_NAME_TYPE_POLICING_PROFILE'.";
     }
     leaf egress-shaping-is-on {
       type boolean;
+      default "false";
       description
         "1 = Shaping on the egress is activated.";
     }
@@ -657,13 +643,14 @@ module ethernet-container-2-0 {
     }
     leaf bundling-is-on {
       type boolean;
+      default "false";
       description
         "802.3 according to 30.11.1.1.5 aPAFAdminState and 45.2.3.26.3 PAF enable. 1 = Algorithm for bundling Ethernet segments is activated (, even if only a single Structure would be associated).";
     }
     leaf header-compression-kind {
       type leafref {
-        require-instance false;
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol/ethernet-container:ethernet-container-pac/ethernet-container:ethernet-container-capability/ethernet-container:supported-header-compression-kind-list/ethernet-container:header-compression-name";
+        require-instance false;
       }
       must 'boolean(/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol/ethernet-container:ethernet-container-pac/ethernet-container:ethernet-container-capability/ethernet-container:supported-header-compression-kind-list[header-compression-name=current()])';
       description
@@ -671,6 +658,7 @@ module ethernet-container-2-0 {
     }
     leaf fec-is-on {
       type boolean;
+      default "false";
       description
         "802.3 according to 30.5.1.1.16 aFECmode, 45.2.1.93.1 FEC enable and 45.2.3.38.2 10 Gb/s FEC Enable and ITU-T Rec. G.998.3 Appendix II aFECAdminState. Only relevant if (fecIsAvail==1). 1 = Activation of the Forward Error Correction (FEC).";
     }
@@ -683,21 +671,25 @@ module ethernet-container-2-0 {
     }
     leaf fec-redundancy-size {
       type fec-redundancy-size-type;
+      default "FEC_REDUNDANCY_SIZE_TYPE_NOT_YET_DEFINED";
       description
         "ITU-T Rec. G.998.3 Appendix II aFECRedundancySize. Only relevant if (fecIsSupported==1). Defining the Forward Error Correction (FEC) redundancy word size.";
     }
     leaf fec-interleaver-kind {
       type fec-interleaver-kind-type;
+      default "FEC_INTERLEAVER_KIND_TYPE_NOT_YET_DEFINED";
       description
         "ITU-T Rec. G.998.3 Appendix II aFECInterleaverType. Only relevant if (fecIsSupported==1). Defining the kind of Forward Error Correction (FEC) interleaver.";
     }
     leaf fec-interleaver-depth {
       type fec-interleaver-depth-type;
+      default "FEC_INTERLEAVER_DEPTH_TYPE_NOT_YET_DEFINED";
       description
         "ITU-T Rec. G.998.3 Appendix II aFECInterleaverDepth. Only relevant if (fecIsSupported==1). Defining the depth of Forward Error Correction (FEC) interleaver.";
     }
     leaf encryption-is-on {
       type boolean;
+      default "false";
       description
         "Activates encryption of the Ethernet payload.";
     }
@@ -709,6 +701,7 @@ module ethernet-container-2-0 {
     }
     leaf loop-back-kind-on {
       type loop-back-type;
+      default "LOOP_BACK_TYPE_NOT_YET_DEFINED";
       description
         "Maintenance Feature. Configuration of a loop back of TDM time slots on this interface.";
     }
@@ -721,6 +714,7 @@ module ethernet-container-2-0 {
     }
     leaf statistics-is-on {
       type boolean;
+      default "false";
       description
         "Only relevant if (statisticsIsAvail==1). 1 = Continuous statistics counters are switched on.";
     }
@@ -733,6 +727,7 @@ module ethernet-container-2-0 {
     }
     leaf performance-monitoring-is-on {
       type boolean;
+      default "false";
       description
         "Only relevant if (performanceMonitoringIsAvail==1). 1 = Collection and aggregation of performance values is switched on.";
     }
@@ -743,36 +738,42 @@ module ethernet-container-2-0 {
   grouping ethernet-container-status {
     leaf interface-status {
       type interface-status-type;
+      default "INTERFACE_STATUS_TYPE_NOT_YET_DEFINED";
       config false;
       description
         "Operational status of the interface.";
     }
     leaf bundling-is-up {
       type boolean;
+      default "false";
       config false;
       description
         "802.3 and ITU-T Rec. G.998.3 Appendix II aGroupStatus. 1 = Algorithm for bundling Ethernet segments is operative (, even if only a single Structure would be associated).";
     }
     leaf remote-site-is-faulty {
       type boolean;
+      default "false";
       config false;
       description
         "802.3. 1 = remote fault condition detected.";
     }
     leaf loop-back-kind-up {
       type loop-back-type;
+      default "LOOP_BACK_TYPE_NOT_YET_DEFINED";
       config false;
       description
         "The currently active (not just configured) type of loop back.";
     }
     leaf statistics-is-up {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Statistics are currently counted";
     }
     leaf performance-monitoring-is-up {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Performance values are currently collected and aggregated.";
@@ -782,7 +783,7 @@ module ethernet-container-2-0 {
       default "2010-11-20T14:00:00+01:00";
       config false;
       description
-        "none";
+        "The timestamp associated with when the statistic values were read/retrieved.";
     }
     leaf last-10-sec-data-input-rate {
       type int32;
@@ -803,6 +804,7 @@ module ethernet-container-2-0 {
     leaf total-bytes-input {
       type uint64;
       units "Byte";
+      default "0";
       config false;
       description
         "Received data volume in Byte.";
@@ -810,6 +812,7 @@ module ethernet-container-2-0 {
     leaf total-bytes-output {
       type uint64;
       units "Byte";
+      default "0";
       config false;
       description
         "Sent data volume in Byte.";
@@ -817,6 +820,7 @@ module ethernet-container-2-0 {
     leaf forwarded-bytes-input {
       type uint64;
       units "Byte";
+      default "0";
       config false;
       description
         "Number of received Bytes, for which the device was not their final destination and for which the device attempted to find a route to forward them to that final destination.";
@@ -824,6 +828,7 @@ module ethernet-container-2-0 {
     leaf forwarded-bytes-output {
       type uint64;
       units "Byte";
+      default "0";
       config false;
       description
         "Number of Bytes, for which the device was not their final destination and for which it was successful in finding a path to their final destination.";
@@ -840,6 +845,20 @@ module ethernet-container-2-0 {
       description
         "none";
     }
+    leaf number-of-current-problems {
+      type int8;
+      default "-1";
+      config false;
+      description
+        "Number of alarms, which are currently active on this interface.";
+    }
+    leaf time-of-latest-change {
+      type yang:date-and-time;
+      default "2010-11-20T14:00:00+01:00";
+      config false;
+      description
+        "Date and time when the list of alarms has been changed for the last time.";
+    }
     description
       "none";
   }
@@ -854,6 +873,13 @@ module ethernet-container-2-0 {
       description
         "none";
     }
+    leaf number-of-current-performance-sets {
+      type int8;
+      default "-1";
+      config false;
+      description
+        "Number of sets of current performance values, which are provided in the list.";
+    }
     description
       "Aggregated performance information of the Ethernet container at a particular moment.";
   }
@@ -865,6 +891,20 @@ module ethernet-container-2-0 {
       uses container-historical-performance-type;
       description
         "none";
+    }
+    leaf number-of-historical-performance-sets {
+      type int16;
+      default "-1";
+      config false;
+      description
+        "Number of sets of historical performance values, which are provided in the list.";
+    }
+    leaf time-of-latest-change {
+      type yang:date-and-time;
+      default "2010-11-20T14:00:00+01:00";
+      config false;
+      description
+        "Date and time when the list of sets of historical performance values has been changed for the last time (e.g. new one added or existing one deleted).";
     }
     description
       "Aggregated performance information of the Ethernet container for a pre-defined measurement interval.";
@@ -879,6 +919,7 @@ module ethernet-container-2-0 {
     }
     leaf header-compression-mode {
       type header-compression-mode-type;
+      default "HEADER_COMPRESSION_MODE_TYPE_NOT_YET_DEFINED";
       config false;
       description
         "Defines the way of configuring the header compression.";
@@ -890,7 +931,7 @@ module ethernet-container-2-0 {
       description
         "Only relevant if (headerCompressionMode==PROTOCOL_BASED). List of protocol layers that get compressed with this kind of header compression.";
     }
-    leaf-list mpls-payload-kind {
+    leaf-list mpls-payload-kind-list {
       type mpls-payload-kind-type;
       config false;
       min-elements 1;
@@ -908,6 +949,10 @@ module ethernet-container-2-0 {
     description
       "none";
   }
+
+  /****************************************
+   * typedef statements
+   **************************************/ 
 
   typedef loop-back-type {
     type identityref {
@@ -996,6 +1041,10 @@ module ethernet-container-2-0 {
     description
       "ITU-T Rec. G.998.3 Appendix II aFECInterleaverDepth";
   }
+
+  /*********************************************
+   * grouping statements for complex data types
+   *******************************************/ 
 
   identity LOOP_BACK_TYPE {
     description
@@ -1613,57 +1662,9 @@ module ethernet-container-2-0 {
       "none";
   }
 
-  identity OPERATIONAL_STATE_TYPE {
-    description
-      "none";
-  }
-
-  identity OPERATIONAL_STATE_TYPE_ENABLED {
-    base OPERATIONAL_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity OPERATIONAL_STATE_TYPE_DISABLED {
-    base OPERATIONAL_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity OPERATIONAL_STATE_TYPE_NOT_YET_DEFINED {
-    base OPERATIONAL_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity ADMINISTRATIVE_STATE_TYPE {
-    description
-      "none";
-  }
-
-  identity ADMINISTRATIVE_STATE_TYPE_UNLOCKED {
-    base ADMINISTRATIVE_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity ADMINISTRATIVE_STATE_TYPE_LOCKED {
-    base ADMINISTRATIVE_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity ADMINISTRATIVE_STATE_TYPE_SHUTTING_DOWN {
-    base ADMINISTRATIVE_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity ADMINISTRATIVE_STATE_TYPE_NOT_YET_DEFINED {
-    base ADMINISTRATIVE_STATE_TYPE;
-    description
-      "none";
-  }
+  /****************************************
+   * package super-types
+   **************************************/ 
 
   typedef granularity-period-type {
     type identityref {
@@ -1689,22 +1690,6 @@ module ethernet-container-2-0 {
       "Current Interface Status";
   }
 
-  typedef operational-state-type {
-    type identityref {
-      base OPERATIONAL_STATE_TYPE;
-    }
-    description
-      "The list of valid operational states for the connection.";
-  }
-
-  typedef administrative-state-type {
-    type identityref {
-      base ADMINISTRATIVE_STATE_TYPE;
-    }
-    description
-      "For more information on Administrative State, See ITU-T Recs. X.731 and M.3100.";
-  }
-
   grouping problem-kind-severity-type {
     leaf problem-kind-name {
       type string;
@@ -1713,6 +1698,7 @@ module ethernet-container-2-0 {
     }
     leaf problem-kind-severity {
       type severity-type;
+      default "SEVERITY_TYPE_NOT_YET_DEFINED";
       description
         "Severity of this type of alarm.";
     }
@@ -1737,6 +1723,7 @@ module ethernet-container-2-0 {
     }
     leaf queue-depth-configuration-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Size of the individual queue is configurable (setting thresholdHigh of a WRED profile might be an alternative way of configuring the effective queue depth).";
@@ -1759,6 +1746,7 @@ module ethernet-container-2-0 {
     }
     leaf wred-profile-per-drop-precedence-is-available {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Separate WRED profiles can be defined for every drop precedence.";
@@ -1789,6 +1777,7 @@ module ethernet-container-2-0 {
     leaf wred-profile {
       type leafref {
         path "/core-model:control-construct/core-model:profile-collection/core-model:profile/core-model:uuid";
+        require-instance false;
       }
       description
         "Associates a WRED profile to the queue, respectively drop precedence. Attribute to point to an instance of Profile with profileName=='PROFILE_NAME_TYPE_WRED_PROFILE'.";
@@ -1812,6 +1801,7 @@ module ethernet-container-2-0 {
     }
     leaf dropping-behavior-kind {
       type dropping-behavior-kind-type;
+      default "DROPPING_BEHAVIOR_KIND_TYPE_NOT_YET_DEFINED";
       description
         "Defines the behavior in case of congestions.";
     }
@@ -1823,6 +1813,7 @@ module ethernet-container-2-0 {
     }
     leaf scheduler-kind {
       type scheduler-kind-type;
+      default "SCHEDULER_KIND_TYPE_NOT_YET_DEFINED";
       description
         "Type of scheduler to be used for this queue.";
     }

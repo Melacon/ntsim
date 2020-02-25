@@ -34,6 +34,14 @@ module wire-interface-2-0 {
      See the License for the specific language governing permissions and
      limitations under the License.";
 
+  revision 2020-01-23 {
+    description
+      "Model for the Transport SDN Pilot at Telefonica Germany.
+       Please view https://github.com/openBackhaul/wireInterface/issues for changes.";
+    reference
+      "https://github.com/openBackhaul/wireInterface/tree/tsp: Model definition
+       https://github.com/openBackhaul/onfCoreIm/tree/tsp: ONF TR-512 Core IM incl. Profile and enhanced Equipment definition";
+  }
   revision 2019-11-22 {
     description
       "Model for the Transport SDN Pilot at Telefonica Germany.
@@ -100,8 +108,11 @@ module wire-interface-2-0 {
     leaf object-id-ref {
       type leafref {
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+        require-instance false;
       }
       config false;
+      description
+        "none";
     }
     leaf object-type {
       type string;
@@ -137,10 +148,12 @@ module wire-interface-2-0 {
     }
     leaf object-id-ref {
       type leafref {
-        require-instance false;
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+        require-instance false;
       }
       config false;
+      description
+        "none";
     }
     description
       "none";
@@ -170,8 +183,11 @@ module wire-interface-2-0 {
     leaf object-id-ref {
       type leafref {
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+        require-instance false;
       }
       config false;
+      description
+        "none";
     }
     leaf attribute-name {
       type string;
@@ -215,8 +231,11 @@ module wire-interface-2-0 {
     leaf object-id-ref {
       type leafref {
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+        require-instance false;
       }
       config false;
+      description
+        "none";
     }
     leaf problem {
       type string;
@@ -227,6 +246,7 @@ module wire-interface-2-0 {
     }
     leaf severity {
       type severity-type;
+      default "SEVERITY_TYPE_WARNING";
       config false;
       description
         "Severity of the problem according to problemKindSeverity";
@@ -254,10 +274,11 @@ module wire-interface-2-0 {
       default "2010-11-20T14:00:00+01:00";
       config false;
       description
-        "none";
+        "Time when the alarm was raised";
     }
     leaf problem-severity {
       type severity-type;
+      default "SEVERITY_TYPE_NOT_YET_DEFINED";
       config false;
       description
         "Severity of the alarm.";
@@ -276,15 +297,16 @@ module wire-interface-2-0 {
     }
     leaf suspect-interval-flag {
       type boolean;
+      default "false";
       config false;
       description
         "This attribute is used to indicate that the performance data for the current period may not be reliable. Some reasons for this to occur are:
-         – Suspect data were detected by the actual resource doing data collection.
-         – Transition of the administrativeState attribute to/from the 'lock' state.
-         – Transition of the operationalState to/from the 'disabled' state.
-         – Scheduler setting that inhibits the collection function.
-         – The performance counters were reset during the interval.
-         – The currentData (or subclass) object instance was created during the monitoring period.";
+            – Suspect data were detected by the actual resource doing data collection.
+            – Transition of the administrativeState attribute to/from the 'lock' state.
+            – Transition of the operationalState to/from the 'disabled' state.
+            – Scheduler setting that inhibits the collection function.
+            – The performance counters were reset during the interval.
+            – The currentData (or subclass) object instance was created during the monitoring period.";
     }
     leaf elapsed-time {
       type int64;
@@ -301,48 +323,11 @@ module wire-interface-2-0 {
       description
         "none";
     }
-    leaf operational-state {
-      type operational-state-type;
-      config false;
-      description
-        "none";
-    }
     leaf granularity-period {
       type granularity-period-type;
       config false;
       description
         "Time period between reset of the underlying counter.";
-    }
-    leaf administrative-state {
-      type administrative-state-type;
-      config false;
-      description
-        "none";
-    }
-    leaf object-class {
-      type yang:object-identifier;
-      config false;
-      description
-        "ObjectClass ::= CHOICE{    globalForm    [0] OBJECT IDENTIFIER,
-         localForm    [1] INTEGER}";
-    }
-    leaf name-binding {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
-    }
-    leaf packages {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
-    }
-    leaf allomorphs {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
     }
     description
       "none";
@@ -351,6 +336,7 @@ module wire-interface-2-0 {
   grouping historical-performance {
     leaf suspect-interval-flag {
       type boolean;
+      default "false";
       config false;
       description
         "This attribute indicates that the data collected during the interval is suspect.";
@@ -362,42 +348,17 @@ module wire-interface-2-0 {
       description
         "none";
     }
-    leaf period-end-time {
-      type yang:date-and-time;
-      config false;
-      description
-        "Time when the counter values have been recorded and the counter reset.";
-    }
     leaf granularity-period {
       type granularity-period-type;
       config false;
       description
         "Time period between reset of the underlying counter.";
     }
-    leaf object-class {
-      type yang:object-identifier;
+    leaf period-end-time {
+      type yang:date-and-time;
       config false;
       description
-        "ObjectClass ::= CHOICE{    globalForm    [0] OBJECT IDENTIFIER,
-         localForm    [1] INTEGER}";
-    }
-    leaf name-binding {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
-    }
-    leaf packages {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
-    }
-    leaf allomorphs {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
+        "Time when the counter values have been recorded and the counter reset.";
     }
     description
       "none";
@@ -464,12 +425,14 @@ module wire-interface-2-0 {
     }
     leaf auto-pmd-negotiation-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = device is supporting auto-negotiation";
     }
     leaf auto-negotiation-pmd-selection-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = device is supporting restricting auto-negotiation on a pre-defined list of PMDs";
@@ -483,45 +446,52 @@ module wire-interface-2-0 {
     }
     leaf auto-signal-ordering-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = there is a mechanism for automatically crossing over tx and rx implemented";
     }
     leaf configuration-of-rx-sync-preference-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Configuration of the behavior during the synchronization of transmitter and receiver is available. This attribute has nothing to do with clock signals.";
     }
     leaf mii-kind {
       type mii-kind-type;
+      default "MII_KIND_TYPE_NOT_YET_DEFINED";
       config false;
       description
         "Kind of Medium Independent Interface (MII) provided by this Medium Attachment Unit (MAU) (e.g. SFP, moldered port)";
     }
     leaf mdi-kind {
       type mdi-kind-type;
+      default "MDI_KIND_TYPE_NOT_YET_DEFINED";
       config false;
       description
         "Kind of Medium Dependent Interface (MDI) provided by this Medium Attachment Unit (MAU)";
     }
     leaf required-medium-kind {
       type medium-kind-type;
+      default "MEDIUM_KIND_TYPE_NOT_YET_DEFINED";
       config false;
       description
         "Kind of medium required for operating this Medium Attachment Unit (MAU), more like an information field";
     }
-    leaf-list wavelength-min {
+    leaf-list wavelength-min-list {
       type int32;
       units "pm";
+      default "-1";
       config false;
       max-elements 3;
       description
         "Source: SFF-8690. Minimum laser wavelength in pico meter, -1 = not applicable, 0 = not known, if (wavelengthMin==wavelengthMax): wavelength cannot be configured; multiplicity=0..3 for 10GBASE-LX4 according to 802.3 53.5. Value to be read from the EPROM of the SFP.";
     }
-    leaf-list wavelength-max {
+    leaf-list wavelength-max-list {
       type int32;
       units "pm";
+      default "-1";
       config false;
       max-elements 3;
       description
@@ -537,18 +507,21 @@ module wire-interface-2-0 {
     }
     leaf short-reach-mode-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Indicates that Short Reach Mode for 10GBASE-T according to 802.3 45.2.1.64 is available";
     }
     leaf eee-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Indicates that Energy-Efficient Ethernet (EEE) is available at the device.";
     }
     leaf unidirectional-operation-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "Source: 802.3. 1 = Medium Attachment Unit (MAU) able to transmit from Media Independent Interface (MII) regardless of whether the MAU has determined that a valid link has been established, 0 = MAU able to transmit from MII only when the MAU has determined that a valid link has been established";
@@ -589,18 +562,21 @@ module wire-interface-2-0 {
     }
     leaf configuration-of-number-of-bip-errors-per-ses-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = SET operation on the Line SES threshold defined by aLineSESThreshold in 30.8.1.1.11 of 802.3-2015 is available.";
     }
     leaf admin-shut-down-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Manual switching on and off of the interface without deleting it (underlying OSI network layers are also not affected) is available.";
     }
     leaf isolation-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Separation of the PHY from higher network layers is supported by the device. Maintenance feature. Source: 802.3. ";
@@ -629,6 +605,7 @@ module wire-interface-2-0 {
     }
     leaf performance-monitoring-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Collection and aggregation of performance values is available.";
@@ -646,6 +623,7 @@ module wire-interface-2-0 {
     }
     leaf interface-is-on {
       type boolean;
+      default "false";
       description
         "Source: 802.3 according 30.3.2.2.1 acPhyAdminControl. 1 = Activation of the interface (it gets powered and can be managed even if the transceiver is not yet transmitting or receiving). In case there is no Medium Attachment Unit (MAU) (e.g. no SFP in the cage) SETting (interfaceIsOn=1) must be ignored and GETing must return (interfaceIsOn=0)";
     }
@@ -657,20 +635,21 @@ module wire-interface-2-0 {
     }
     leaf-list transceiver-is-on-list {
       type boolean;
-      min-elements 1;
+      default "false";
       max-elements 11;
       description
         "Source: 802.3 45.2.1.8 PMD transmit disable register (Register 1.9). 1 = Activation of the transmitter and receiver (e.g. laser) of the PHY; transceiverIsOnList[0]:total interface; transceiverIsOnList[1..10] different lanes of a multilane Medium Attachment Unit (MAU)";
     }
     leaf auto-pmd-negotiation-is-on {
       type boolean;
+      default "false";
       description
         "Only relevant if (autoPmdNegotiationIsAvail == 1). 1 = Auto-negotiation is switched on";
     }
     leaf fixed-pmd-kind {
       type leafref {
-        require-instance false;
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol/wire-interface:wire-interface-pac/wire-interface:wire-interface-capability/wire-interface:supported-pmd-kind-list/wire-interface:pmd-name";
+        require-instance false;
       }
       must 'boolean(/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol/wire-interface:wire-interface-pac/wire-interface:wire-interface-capability/wire-interface:supported-pmd-kind-list[pmd-name=current()])';
       description
@@ -678,8 +657,8 @@ module wire-interface-2-0 {
     }
     leaf-list auto-negotiation-pmd-list {
       type leafref {
-	require-instance false;
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol/wire-interface:wire-interface-pac/wire-interface:wire-interface-capability/wire-interface:supported-pmd-kind-list/wire-interface:pmd-name";
+        require-instance false;
       }
       must 'boolean(/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol/wire-interface:wire-interface-pac/wire-interface:wire-interface-capability/wire-interface:supported-pmd-kind-list[pmd-name=current()])';
       description
@@ -687,38 +666,45 @@ module wire-interface-2-0 {
     }
     leaf auto-signal-ordering-is-on {
       type boolean;
+      default "false";
       description
         "Only relevant if (autoSignalOrderingIsAvail == 1). 1 = e.g. auto-MDI-X is switched on";
     }
     leaf fixed-signal-ordering-kind {
       type signal-ordering-kind-type;
+      default "SIGNAL_ORDERING_KIND_TYPE_NOT_YET_DEFINED";
       description
         "If (autoSignalOrderingIsOn==0) configuration of the concrete kind of signal ordering on the media (e.g. MDI, or MDI-X). If (autoSignalOrderingIsOn=1) value of this field becomes irrelevant";
     }
     leaf-list wavelength-list {
       type int32;
       units "pm";
+      default "-1";
       max-elements 3;
       description
         "Source: SFF-8690. Wavelength of the signal of laser in pico meter; multiplicity=0..3 for 10GBASE-LX4 according to 802.3 53.5";
     }
     leaf rx-sync-preference {
       type rx-sync-preference-type;
+      default "RX_SYNC_PREFERENCE_TYPE_NOT_YET_DEFINED";
       description
         "Source: 802.3. Only relevant if (configurationOfRxSyncPreferenceIsAvail == 1). Configuration of the behavior during the negotiation of the wire interface (master), which is sending a continuous stream of symbols for the remote site (slave) to synchronize its receiver on it. This attribute is for synchronizing transmitter and receiver and has nothing to do with clock signals.";
     }
     leaf short-reach-mode-is-on {
       type boolean;
+      default "false";
       description
         "Only relevant if (shortReachModeIsAvail == 1). Activation of the Short Reach Mode for 10GBASE-T according to 802.3 45.2.1.64";
     }
     leaf eee-is-on {
       type boolean;
+      default "false";
       description
         "Only relevant if (eeeIsAvail == 1). 1 = Energy Efficient Ethernet is activated\n";
     }
     leaf unidirectional-operation-is-on {
       type boolean;
+      default "false";
       description
         "Source: 802.3. Only relevant if (unidirectionalOperationIsAvail == 1). 1 = Enable transmit from media independent interface regardless of whether the PHY has determined that a valid link has been established, 0 = Enable transmit from media independent interface only when the PHY has determined that a valid link has been established";
     }
@@ -730,16 +716,19 @@ module wire-interface-2-0 {
     }
     leaf restart-pmd-negotiation-is-on {
       type boolean;
+      default "false";
       description
         "Source: 802.3. Restarts the auto negotiation process";
     }
     leaf isolation-is-on {
       type boolean;
+      default "false";
       description
         "Maintenance Feature. Only relevant if (isolationIsAvail == 1). Source: 802.3. 1 = Activation of the separation of the PHY from higher network layers. Maintenance feature.";
     }
     leaf loop-back-kind-on {
       type loop-back-type;
+      default "LOOP_BACK_TYPE_NONE";
       description
         "Maintenance Feature. Source:802.3 according 22.2.4.1.2 Loopback. The currently configured type of looping back of the wire interface header shall be expressed here. The received header is returned to the remote site.";
     }
@@ -759,6 +748,7 @@ module wire-interface-2-0 {
     }
     leaf performance-monitoring-is-on {
       type boolean;
+      default "false";
       description
         "Only relevant if (performanceMonitoringIsAvail==1). 1 = Collection and aggregation of performance values is switched on.";
     }
@@ -769,12 +759,14 @@ module wire-interface-2-0 {
   grouping wire-interface-status {
     leaf interface-status {
       type interface-status-type;
+      default "INTERFACE_STATUS_TYPE_NOT_YET_DEFINED";
       config false;
       description
         "Source: 802.3 according 30.3.2.1.7 aPhyAdminState. 1 = A Physical layer entity (PHY) exists (including Medium Attachment Unit (e.g. SFP) ) and it is powered and can be managed";
     }
-    leaf-list receive-signal-is-detected {
+    leaf-list receive-signal-is-detected-list {
       type boolean;
+      default "false";
       config false;
       max-elements 11;
       description
@@ -782,58 +774,65 @@ module wire-interface-2-0 {
     }
     leaf pmd-negotiation-state {
       type pmd-negotiation-state-type;
+      default "PMD_NEGOTIATION_STATE_TYPE_NOT_YET_DEFINED";
       config false;
       description
         "Source: 802.3. Status of the Physical Medium Dependent (PMD) negotiation process (auto-neg)";
     }
     leaf pmd-is-up {
       type boolean;
+      default "false";
       config false;
       description
         "Source: Inverse of 802.3 45.2.1.2.3 Fault (1.1.7). If (interfaceIsUp==1) BUT (pmdIsUp==0) : there is a fault in either transmit or receive path";
     }
     leaf pmd-kind-cur {
       type leafref {
-	require-instance false;
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol/wire-interface:wire-interface-pac/wire-interface:wire-interface-capability/wire-interface:supported-pmd-kind-list/wire-interface:pmd-name";
+        require-instance false;
       }
-      must 'boolean(/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol/wire-interface:wire-interface-pac/wire-interface:wire-interface-capability/wire-interface:supported-pmd-kind-list[pmd-name=current()])';
       config false;
       description
         "Indicates the kind of Physical Medium Dependent (PMD) currently operated at this interface";
     }
     leaf signal-ordering-kind-cur {
       type signal-ordering-kind-type;
+      default "SIGNAL_ORDERING_KIND_TYPE_NOT_YET_DEFINED";
       config false;
       description
         "Reference on a SignalOrderingType for expressing the currently active way of ordering the signals on the physical medium.";
     }
     leaf rx-sync-role {
       type rx-sync-role-type;
+      default "RX_SYNC_ROLE_TYPE_NOT_YET_DEFINED";
       config false;
       description
         "Indicates the result of the negotiation of the wire interface (master), which is sending a continuous stream of symbols for the remote site (slave) synchronizing its receiver on it";
     }
     leaf eee-is-up {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Energy Efficient Ethernet is supported at both ends of the link and it is activated";
     }
     leaf link-is-up {
       type boolean;
+      default "false";
       config false;
       description
         "If (transceiverIsUp==1) AND (linkIsUp==1) : communication is established to the remote site";
     }
     leaf link-is-idle {
       type boolean;
+      default "false";
       config false;
       description
         "If (linkIsUp==1) AND (eeeIsAvail==1) AND (eeeIsOn==1) AND (linkIsIdle==1) : link is currently in idle mode. If Energy Efficient Ethernet is not supported or switched off, this attribute must be 0.";
     }
     leaf loop-back-kind-up {
       type loop-back-type;
+      default "LOOP_BACK_TYPE_NONE";
       config false;
       description
         "The currently active (not just configured) type of looping back of the wire interface header shall be expressed here. The received header is returned to the remote site.";
@@ -846,9 +845,10 @@ module wire-interface-2-0 {
       description
         "Current transmit power";
     }
-    leaf-list rx-level-cur {
+    leaf-list rx-level-cur-list {
       type int8;
       units "dBm";
+      default "99";
       config false;
       max-elements 4;
       description
@@ -856,6 +856,7 @@ module wire-interface-2-0 {
     }
     leaf performance-monitoring-is-up {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Performance values are currently collected and aggregated.";
@@ -872,6 +873,20 @@ module wire-interface-2-0 {
       description
         "none";
     }
+    leaf number-of-current-problems {
+      type int8;
+      default "-1";
+      config false;
+      description
+        "Number of alarms, which are currently active on this interface.";
+    }
+    leaf time-of-latest-change {
+      type yang:date-and-time;
+      default "2010-11-20T14:00:00+01:00";
+      config false;
+      description
+        "Date and time when the list of alarms has been changed for the last time.";
+    }
     description
       "none";
   }
@@ -886,6 +901,13 @@ module wire-interface-2-0 {
       description
         "At least values of the counters, which are reset every 15 minutes, are to be provided. If available, the current values of the counters, which are reset every 24 hour, can be provided, too.";
     }
+    leaf number-of-current-performance-sets {
+      type int8;
+      default "-1";
+      config false;
+      description
+        "Number of sets of current performance values, which are provided in the list.";
+    }
     description
       "Aggregated performance information of the air interface at a particular moment.";
   }
@@ -897,6 +919,20 @@ module wire-interface-2-0 {
       uses wire-interface-historical-performance-type;
       description
         "none";
+    }
+    leaf number-of-historical-performance-sets {
+      type int16;
+      default "-1";
+      config false;
+      description
+        "Number of sets of historical performance values, which are provided in the list.";
+    }
+    leaf time-of-latest-change {
+      type yang:date-and-time;
+      default "2010-11-20T14:00:00+01:00";
+      config false;
+      description
+        "Date and time when the list of sets of historical performance values has been changed for the last time (e.g. new one added or existing one deleted).";
     }
     description
       "Aggregated performance information of the air interface for a pre-defined measurement interval.";
@@ -917,6 +953,7 @@ module wire-interface-2-0 {
     }
     leaf duplex {
       type duplex-type;
+      default "DUPLEX_TYPE_NOT_YET_DEFINED";
       description
         "To be expressed, whether the PMD is full duplex or just half duplex. This field is not for configuration purposes, but for supporting selection of the correct PMD on application layer.";
     }
@@ -1654,58 +1691,6 @@ module wire-interface-2-0 {
       "none";
   }
 
-  identity OPERATIONAL_STATE_TYPE {
-    description
-      "none";
-  }
-
-  identity OPERATIONAL_STATE_TYPE_ENABLED {
-    base OPERATIONAL_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity OPERATIONAL_STATE_TYPE_DISABLED {
-    base OPERATIONAL_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity OPERATIONAL_STATE_TYPE_NOT_YET_DEFINED {
-    base OPERATIONAL_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity ADMINISTRATIVE_STATE_TYPE {
-    description
-      "none";
-  }
-
-  identity ADMINISTRATIVE_STATE_TYPE_UNLOCKED {
-    base ADMINISTRATIVE_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity ADMINISTRATIVE_STATE_TYPE_LOCKED {
-    base ADMINISTRATIVE_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity ADMINISTRATIVE_STATE_TYPE_SHUTTING_DOWN {
-    base ADMINISTRATIVE_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity ADMINISTRATIVE_STATE_TYPE_NOT_YET_DEFINED {
-    base ADMINISTRATIVE_STATE_TYPE;
-    description
-      "none";
-  }
-
   /****************************************
    * package super-types
    **************************************/ 
@@ -1734,22 +1719,6 @@ module wire-interface-2-0 {
       "Current Interface Status";
   }
 
-  typedef operational-state-type {
-    type identityref {
-      base OPERATIONAL_STATE_TYPE;
-    }
-    description
-      "The list of valid operational states for the connection.";
-  }
-
-  typedef administrative-state-type {
-    type identityref {
-      base ADMINISTRATIVE_STATE_TYPE;
-    }
-    description
-      "For more information on Administrative State, See ITU-T Recs. X.731 and M.3100.";
-  }
-
   grouping problem-kind-severity-type {
     leaf problem-kind-name {
       type string;
@@ -1758,6 +1727,7 @@ module wire-interface-2-0 {
     }
     leaf problem-kind-severity {
       type severity-type;
+      default "SEVERITY_TYPE_NOT_YET_DEFINED";
       description
         "Severity of this type of alarm.";
     }

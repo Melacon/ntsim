@@ -30,6 +30,14 @@ module air-interface-2-0 {
      See the License for the specific language governing permissions and
      limitations under the License.";
 
+  revision 2020-01-21 {
+    description
+      "Model for the Transport SDN Pilot at Telefonica Germany.
+       Please view https://github.com/openBackhaul/airInterface/issues for changes.";
+    reference
+      "https://github.com/openBackhaul/airInterface/tree/tsp: Model definition
+       https://github.com/openBackhaul/onfCoreIm/tree/tsp: ONF TR-512 Core IM incl. Profile and enhanced Equipment definition";
+  }
   revision 2019-11-22 {
     description
       "Model for the Transport SDN Pilot at Telefonica Germany.
@@ -88,8 +96,11 @@ module air-interface-2-0 {
     leaf object-id-ref {
       type leafref {
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+        require-instance false;
       }
       config false;
+      description
+        "none";
     }
     leaf object-type {
       type string;
@@ -99,7 +110,7 @@ module air-interface-2-0 {
         "none";
     }
     description
-      "To be sent when a new MW_AirInterface_Pac, MW_AirInterfaceDiversity_Pac, MW_Structure_Pac, MW_PureEthernetStructure_Pac, MW_HybridMwStructure_Pac, MW_Container_Pac, MW_EthernetContainer_Pac or MW_TdmContainer_Pac has to be instancieted in the controller.";
+      "none";
   }
 
   notification object-deletion-notification {
@@ -125,13 +136,15 @@ module air-interface-2-0 {
     }
     leaf object-id-ref {
       type leafref {
-        require-instance false;
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+        require-instance false;
       }
       config false;
+      description
+        "none";
     }
     description
-      "To be sent when a new MW_AirInterface_Pac, MW_AirInterfaceDiversity_Pac, MW_Structure_Pac, MW_PureEthernetStructure_Pac, MW_HybridMwStructure_Pac, MW_Container_Pac, MW_EthernetContainer_Pac or MW_TdmContainer_Pac instance has to be deleted in the controller.";
+      "none";
   }
 
   notification attribute-value-changed-notification {
@@ -158,8 +171,11 @@ module air-interface-2-0 {
     leaf object-id-ref {
       type leafref {
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+        require-instance false;
       }
       config false;
+      description
+        "none";
     }
     leaf attribute-name {
       type string;
@@ -203,8 +219,11 @@ module air-interface-2-0 {
     leaf object-id-ref {
       type leafref {
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+        require-instance false;
       }
       config false;
+      description
+        "none";
     }
     leaf problem {
       type string;
@@ -215,12 +234,13 @@ module air-interface-2-0 {
     }
     leaf severity {
       type severity-type;
+      default "SEVERITY_TYPE_WARNING";
       config false;
       description
         "Severity of the problem according to AirInterface::AirInterfaceConfiguration::problemSeverityList";
     }
     description
-      "To be sent when a problem occurs at a MW_AirInterface_Pac, MW_AirInterfaceDiversity_Pac, MW_Structure_Pac, MW_PureEthernetStructure_Pac, MW_HybridMwStructure_Pac, MW_Container_Pac, MW_EthernetContainer_Pac or MW_TdmContainer_Pac.";
+      "none";
   }
 
   /****************************************
@@ -246,6 +266,7 @@ module air-interface-2-0 {
     }
     leaf problem-severity {
       type severity-type;
+      default "SEVERITY_TYPE_NOT_YET_DEFINED";
       config false;
       description
         "Severity of the alarm.";
@@ -264,15 +285,16 @@ module air-interface-2-0 {
     }
     leaf suspect-interval-flag {
       type boolean;
+      default "false";
       config false;
       description
         "This attribute is used to indicate that the performance data for the current period may not be reliable. Some reasons for this to occur are:
-         – Suspect data were detected by the actual resource doing data collection.
-         – Transition of the administrativeState attribute to/from the 'lock' state.
-         – Transition of the operationalState to/from the 'disabled' state.
-         – Scheduler setting that inhibits the collection function.
-         – The performance counters were reset during the interval.
-         – The currentData (or subclass) object instance was created during the monitoring period.";
+            – Suspect data were detected by the actual resource doing data collection.
+            – Transition of the administrativeState attribute to/from the 'lock' state.
+            – Transition of the operationalState to/from the 'disabled' state.
+            – Scheduler setting that inhibits the collection function.
+            – The performance counters were reset during the interval.
+            – The currentData (or subclass) object instance was created during the monitoring period.";
     }
     leaf elapsed-time {
       type int64;
@@ -289,48 +311,11 @@ module air-interface-2-0 {
       description
         "none";
     }
-    leaf operational-state {
-      type operational-state-type;
-      config false;
-      description
-        "none";
-    }
     leaf granularity-period {
       type granularity-period-type;
       config false;
       description
         "Time period between reset of the underlying counter.";
-    }
-    leaf administrative-state {
-      type administrative-state-type;
-      config false;
-      description
-        "none";
-    }
-    leaf object-class {
-      type yang:object-identifier;
-      config false;
-      description
-        "ObjectClass ::= CHOICE{    globalForm    [0] OBJECT IDENTIFIER,
-         localForm    [1] INTEGER}";
-    }
-    leaf name-binding {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
-    }
-    leaf packages {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
-    }
-    leaf allomorphs {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
     }
     description
       "none";
@@ -339,6 +324,7 @@ module air-interface-2-0 {
   grouping historical-performance {
     leaf suspect-interval-flag {
       type boolean;
+      default "false";
       config false;
       description
         "This attribute indicates that the data collected during the interval is suspect.";
@@ -350,42 +336,17 @@ module air-interface-2-0 {
       description
         "none";
     }
-    leaf period-end-time {
-      type yang:date-and-time;
-      config false;
-      description
-        "Time when the counter values have been recorded and the counter reset.";
-    }
     leaf granularity-period {
       type granularity-period-type;
       config false;
       description
         "Time period between reset of the underlying counter.";
     }
-    leaf object-class {
-      type yang:object-identifier;
+    leaf period-end-time {
+      type yang:date-and-time;
       config false;
       description
-        "ObjectClass ::= CHOICE{    globalForm    [0] OBJECT IDENTIFIER,
-         localForm    [1] INTEGER}";
-    }
-    leaf name-binding {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
-    }
-    leaf packages {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
-    }
-    leaf allomorphs {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
+        "Time when the counter values have been recorded and the counter reset.";
     }
     description
       "none";
@@ -491,6 +452,7 @@ module air-interface-2-0 {
     }
     leaf duplex-distance-is-freely-configurable {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Transmitted and received frequency can be freely chosen between the given minimum and maximum values.";
@@ -498,25 +460,28 @@ module air-interface-2-0 {
     leaf-list duplex-distance-list {
       type int32;
       units "kHz";
+      default "-1";
       config false;
-      min-elements 1;
       description
         "Only relevant if (duplexDistanceIsFreelyConfigurable==0). Lists all supported distances between transmitted and received frequency.";
     }
     leaf auto-freq-select-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "In case the microwave radio is capable of automatically selecting the transmit frequency in unlicensed bands, this field shall contain a 'true'.";
     }
     leaf adaptive-modulation-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "In case the device is capable of adaptive modulation, this field shall contain a 'true'.";
     }
     leaf atpc-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "In case the microwave radio is capable of ATPC, this field shall contain a 'true'.";
@@ -524,12 +489,14 @@ module air-interface-2-0 {
     leaf atpc-range {
       type int8;
       units "dB";
+      default "0";
       config false;
       description
         "Extent of the ATPC range. This value represents a device specific maximum value. The actual range of the ATPC at a specific link might be limited by the difference between configured transmit power (AirInterface::AirInterfaceConfiguration::txPower) and minimum transmit power of the device (TypeDefinitions::TransmissionModeType::txPowerMin).";
     }
     leaf supported-radio-signal-id-datatype {
       type radio-signal-id-datatype-type;
+      default "RADIO_SIGNAL_ID_DATATYPE_TYPE_NOT_YET_DEFINED";
       config false;
       description
         "This attribute is for expressing the datatype, which is supported as a Radio Signal ID by the device.";
@@ -543,12 +510,14 @@ module air-interface-2-0 {
     }
     leaf expected-equals-transmitted-radio-signal-id {
       type boolean;
+      default "false";
       config false;
       description
         "1 = It is not possible to configure an expectedRadioSignalID different from the transmittedRadioSignalID.";
     }
     leaf encryption-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "Shall be marked 'true', if payload encryption is available.";
@@ -577,9 +546,17 @@ module air-interface-2-0 {
     }
     leaf performance-monitoring-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Collection and aggregation of performance values is available.";
+    }
+    leaf direction-of-acm-performance-values {
+      type direction-type;
+      default "DIRECTION_TYPE_NONE";
+      config false;
+      description
+        "Expresses, whether the ACM performance values (timeXStatesList) are measured at the transmitter (TX) or at the receiver (RX).";
     }
     description
       "Describes the 'analog' capabilities of modem and transmitter of the microwave device. Value ranges of attributes are not independently (e.g. min. and max. transmit power depends on modulation). Legal combinations of values are expressed in transmissionModeTypes.";
@@ -624,8 +601,8 @@ module air-interface-2-0 {
     }
     leaf transmission-mode-min {
       type leafref {
-        require-instance false;
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol/air-interface:air-interface-pac/air-interface:air-interface-capability/air-interface:transmission-mode-list/air-interface:transmission-mode-name";
+        require-instance false;
       }
       must 'boolean(/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol/air-interface:air-interface-pac/air-interface:air-interface-capability/air-interface:transmission-mode-list[transmission-mode-name=current()])';
       description
@@ -633,8 +610,8 @@ module air-interface-2-0 {
     }
     leaf transmission-mode-max {
       type leafref {
-        require-instance false;
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol/air-interface:air-interface-pac/air-interface:air-interface-capability/air-interface:transmission-mode-list/air-interface:transmission-mode-name";
+        require-instance false;
       }
       must 'boolean(/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol/air-interface:air-interface-pac/air-interface:air-interface-capability/air-interface:transmission-mode-list[transmission-mode-name=current()])';
       description
@@ -648,6 +625,7 @@ module air-interface-2-0 {
     }
     leaf transmitter-is-on {
       type boolean;
+      default "false";
       description
         "Activation of the transmitter inside the radio shall be expressed as a 'true'.";
     }
@@ -655,7 +633,7 @@ module air-interface-2-0 {
       type boolean;
       default "true";
       description
-        "Maintenance Feature. Activation of the receiver inside the radio shall be expressed as a 'true'. Attribute shall also be used for RX main and RX diversity squelches in case of diversity configurations.\n";
+        "Maintenance Feature. Activation of the receiver inside the radio shall be expressed as a 'true'. Attribute shall also be used for RX main and RX diversity squelches in case of diversity configurations.";
     }
     leaf tx-power {
       type int8;
@@ -666,26 +644,31 @@ module air-interface-2-0 {
     }
     leaf adaptive-modulation-is-on {
       type boolean;
+      default "false";
       description
         "Adaptive Modulation. Activation of adaptive modulation shall be expressed as a 'true'.";
     }
     leaf xpic-is-on {
       type boolean;
+      default "false";
       description
         "Activation of Cross Polarization Interference Cancelation shall be expressed as a 'true'. In case XPIC is not available for the current combination of channel bandwidth and modulation or the hardware in general, this parameter shall always be set to 'false'.";
     }
     leaf mimo-is-on {
       type boolean;
+      default "false";
       description
         "Activation of Multiple Input Multiple Output (MIMO) shall be expressed as a 'true'.";
     }
     leaf alic-is-on {
       type boolean;
+      default "false";
       description
         "Activation of Adjacent Link Interference Cancelation (ALIC) shall be expressed as a 'true'.";
     }
     leaf atpc-is-on {
       type boolean;
+      default "false";
       description
         "ATPC. Activation of Automated Transmit Power Control shall be expressed as a 'true'.";
     }
@@ -712,6 +695,7 @@ module air-interface-2-0 {
     }
     leaf auto-freq-select-is-on {
       type boolean;
+      default "false";
       description
         "Activation of automatically selecting the transmit frequency in unlicensed bands shall be expressed as a 'true'.";
     }
@@ -730,6 +714,7 @@ module air-interface-2-0 {
     }
     leaf encryption-is-on {
       type boolean;
+      default "false";
       description
         "Activates encryption of the payload.";
     }
@@ -741,6 +726,7 @@ module air-interface-2-0 {
     }
     leaf loop-back-kind-on {
       type loop-back-type;
+      default "LOOP_BACK_TYPE_NONE";
       description
         "Maintenance Feature. The currently configured type of looping back of the air interface header shall be expressed here. The received header is returned to the remote site.";
     }
@@ -760,16 +746,15 @@ module air-interface-2-0 {
     }
     list g-826-threshold-cross-alarm-list {
       key "g-826-value-kind granularity-period";
-      max-elements 6;
       uses g-826-threshold-cross-alarm-type;
       description
         "List of G826 related threshold cross alarms to be configured.";
     }
     list xlts-threshold-cross-alarm-list {
-      key "level-threshold-second-kind granularity-period xlts-level";
+      key "level-threshold-second-kind granularity-period xlts-threshold-cross-alarm-definition-number";
       uses xlts-threshold-cross-alarm-type;
       description
-        "List of RLTS or TLTS (ETSI ETSI EN 301 129) related threshold cross alarms to be configured.";
+        "List of RLTS or TLTS (ETSI EN 301 129) related threshold cross alarms to be configured.";
     }
     list acm-threshold-cross-alarm-list {
       key "acm-threshold-cross-alarm-definition-number granularity-period";
@@ -779,11 +764,13 @@ module air-interface-2-0 {
     }
     leaf clearing-threshold-cross-alarms-is-on {
       type boolean;
+      default "false";
       description
         "Setting this bit is clearing all the currently active threshold cross alarms.";
     }
     leaf performance-monitoring-is-on {
       type boolean;
+      default "false";
       description
         "Enables measurement, collection, storage and access to performance data.";
     }
@@ -794,6 +781,7 @@ module air-interface-2-0 {
   grouping air-interface-status {
     leaf interface-status {
       type interface-status-type;
+      default "INTERFACE_STATUS_TYPE_NOT_YET_DEFINED";
       config false;
       description
         "Operational status of the interface.";
@@ -816,10 +804,9 @@ module air-interface-2-0 {
     }
     leaf transmission-mode-cur {
       type leafref {
-        require-instance false;
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol/air-interface:air-interface-pac/air-interface:air-interface-capability/air-interface:transmission-mode-list/air-interface:transmission-mode-name";
+        require-instance false;
       }
-      must 'boolean(/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol/air-interface:air-interface-pac/air-interface:air-interface-capability/air-interface:transmission-mode-list[transmission-mode-name=current()])';
       config false;
       description
         "Currently operated transmission mode according to definitions in Capabilities.";
@@ -832,42 +819,49 @@ module air-interface-2-0 {
     }
     leaf radio-power-is-up {
       type boolean;
+      default "false";
       config false;
       description
         "If the radio unit has power and is switched on, this shall be expressed as a 'true'.";
     }
     leaf link-is-up {
       type boolean;
+      default "false";
       config false;
       description
         "If connection is established to the remote site with the same linkID, this shall be expressed as a 'true'.";
     }
     leaf xpic-is-up {
       type boolean;
+      default "false";
       config false;
       description
         "If XPIC is currently actually working (not just configured), this shall be expressed as a 'true'.";
     }
     leaf mimo-is-up {
       type boolean;
+      default "false";
       config false;
       description
         "If MIMO is currently actually working (not just configured), this shall be expressed as a 'true'.";
     }
     leaf alic-is-up {
       type boolean;
+      default "false";
       config false;
       description
         "If Adjacent Link Interference Cancelation (ALIC) is currently actually working (not just configured), this shall be expressed as a 'true'.";
     }
     leaf atpc-is-up {
       type boolean;
+      default "false";
       config false;
       description
         "If ATPC is currently actually working (not just configured), this shall be expressed as a 'true'.";
     }
     leaf auto-freq-select-is-up {
       type boolean;
+      default "false";
       config false;
       description
         "If automated frequency selection is currently actually working (not just configured), this shall be expressed as a 'true'.";
@@ -888,12 +882,14 @@ module air-interface-2-0 {
     }
     leaf loop-back-kind-up {
       type loop-back-type;
+      default "LOOP_BACK_TYPE_NONE";
       config false;
       description
         "The currently active (not just configured) type of looping back of the air interface header shall be expressed here. The received header is returned to the remote site.";
     }
     leaf performance-monitoring-is-up {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Performance values are currently collected and aggregated.";
@@ -950,6 +946,20 @@ module air-interface-2-0 {
       description
         "none";
     }
+    leaf number-of-current-problems {
+      type int8;
+      default "-1";
+      config false;
+      description
+        "Number of alarms, which are currently active on this air interface.";
+    }
+    leaf time-of-latest-change {
+      type yang:date-and-time;
+      default "2010-11-20T14:00:00+01:00";
+      config false;
+      description
+        "Date and time when the list of alarms has been changed for the last time.";
+    }
     description
       "none";
   }
@@ -964,6 +974,13 @@ module air-interface-2-0 {
       description
         "At least values of the counters, which are reset every 15 minutes, are to be provided. If available, the current values of the counters, which are reset every 24 hour, can be provided, too.";
     }
+    leaf number-of-current-performance-sets {
+      type int8;
+      default "-1";
+      config false;
+      description
+        "Number of sets of current performance values, which are provided in the list.";
+    }
     description
       "Aggregated performance information of the air interface at a particular moment.";
   }
@@ -975,6 +992,20 @@ module air-interface-2-0 {
       uses air-interface-historical-performance-type;
       description
         "none";
+    }
+    leaf number-of-historical-performance-sets {
+      type int16;
+      default "-1";
+      config false;
+      description
+        "Number of sets of historical performance values, which are provided in the list.";
+    }
+    leaf time-of-latest-change {
+      type yang:date-and-time;
+      default "2010-11-20T14:00:00+01:00";
+      config false;
+      description
+        "Date and time when the list of sets of historical performance values has been changed for the last time (e.g. new one added or existing one deleted).";
     }
     description
       "Aggregated performance information of the air interface for a pre-defined measurement interval.";
@@ -1067,12 +1098,14 @@ module air-interface-2-0 {
     }
     leaf xpic-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "In case this air interface type is capable of XPIC, this field shall contain a 'true'. This information shall purely relate to capabilities of the equipment type, but not to the operational capability of a specific hardware composition on site. Means for example that this attribute might contain a 'true' statement, even if an additional cable would have been required to actually operate XPIC in a specific case.";
     }
     leaf supported-as-fixed-configuration {
       type boolean;
+      default "false";
       config false;
       description
         "1 = This transmission mode is available for manual configuration when Adaptive Modulation is switched off.";
@@ -1096,6 +1129,14 @@ module air-interface-2-0 {
   typedef loop-back-type {
     type identityref {
       base LOOP_BACK_TYPE;
+    }
+    description
+      "none";
+  }
+
+  typedef direction-type {
+    type identityref {
+      base DIRECTION_TYPE;
     }
     description
       "none";
@@ -1175,6 +1216,29 @@ module air-interface-2-0 {
 
   identity LOOP_BACK_TYPE_NONE {
     base LOOP_BACK_TYPE;
+    description
+      "none";
+  }
+
+  identity DIRECTION_TYPE {
+    description
+      "none";
+  }
+
+  identity DIRECTION_TYPE_TX {
+    base DIRECTION_TYPE;
+    description
+      "none";
+  }
+
+  identity DIRECTION_TYPE_RX {
+    base DIRECTION_TYPE;
+    description
+      "none";
+  }
+
+  identity DIRECTION_TYPE_NONE {
+    base DIRECTION_TYPE;
     description
       "none";
   }
@@ -1366,58 +1430,6 @@ module air-interface-2-0 {
       "none";
   }
 
-  identity OPERATIONAL_STATE_TYPE {
-    description
-      "none";
-  }
-
-  identity OPERATIONAL_STATE_TYPE_ENABLED {
-    base OPERATIONAL_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity OPERATIONAL_STATE_TYPE_DISABLED {
-    base OPERATIONAL_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity OPERATIONAL_STATE_TYPE_NOT_YET_DEFINED {
-    base OPERATIONAL_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity ADMINISTRATIVE_STATE_TYPE {
-    description
-      "none";
-  }
-
-  identity ADMINISTRATIVE_STATE_TYPE_UNLOCKED {
-    base ADMINISTRATIVE_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity ADMINISTRATIVE_STATE_TYPE_LOCKED {
-    base ADMINISTRATIVE_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity ADMINISTRATIVE_STATE_TYPE_SHUTTING_DOWN {
-    base ADMINISTRATIVE_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity ADMINISTRATIVE_STATE_TYPE_NOT_YET_DEFINED {
-    base ADMINISTRATIVE_STATE_TYPE;
-    description
-      "none";
-  }
-
   /****************************************
    * package super-types
    **************************************/ 
@@ -1446,22 +1458,6 @@ module air-interface-2-0 {
       "Current Interface Status";
   }
 
-  typedef operational-state-type {
-    type identityref {
-      base OPERATIONAL_STATE_TYPE;
-    }
-    description
-      "The list of valid operational states for the connection.";
-  }
-
-  typedef administrative-state-type {
-    type identityref {
-      base ADMINISTRATIVE_STATE_TYPE;
-    }
-    description
-      "For more information on Administrative State, See ITU-T Recs. X.731 and M.3100.";
-  }
-
   grouping problem-kind-severity-type {
     leaf problem-kind-name {
       type string;
@@ -1470,6 +1466,7 @@ module air-interface-2-0 {
     }
     leaf problem-kind-severity {
       type severity-type;
+      default "SEVERITY_TYPE_NOT_YET_DEFINED";
       description
         "Severity of this type of alarm.";
     }
@@ -1480,6 +1477,7 @@ module air-interface-2-0 {
   grouping radio-signal-id-type {
     leaf numeric-radio-signal-id {
       type uint16;
+      default "0";
       description
         "Only relevant if (supportedRadioSignalIdDatatype==INTEGER): 0 = the receiver ignores the signal ID of the received signal. Any other value = the receiver exclusively synchronizes on signals with the same signal ID.";
     }
@@ -1487,7 +1485,7 @@ module air-interface-2-0 {
       type string;
       default "Not yet defined.";
       description
-        "Only relevant if (supportedRadioSignalIdDatatype==STRING): Empty field = the receiver ignores the signal ID of the received signal. Any other entry = the receiver exclusively synchronizes on signals with the same signal ID.";
+        "Only relevant if (supportedRadioSignalIdDatatype==STRING): Empty String = the receiver synchronizes on the received signal regardless of the signal ID of the received signal. Any other entry = the receiver exclusively synchronizes on signals with the same signal ID.";
     }
     description
       "none";
@@ -1519,7 +1517,7 @@ module air-interface-2-0 {
         "Period of the performance data collection.";
     }
     description
-      "Allows defining a threshold cross alarm.\n";
+      "Allows defining a threshold cross alarm.";
   }
 
   grouping xlts-threshold-cross-alarm-type {
@@ -1546,6 +1544,11 @@ module air-interface-2-0 {
       description
         "Period of the performance data collection.";
     }
+    leaf xlts-threshold-cross-alarm-definition-number {
+      type int8;
+      description
+        "Sequence number of the definitions.";
+    }
     description
       "none";
   }
@@ -1553,14 +1556,13 @@ module air-interface-2-0 {
   grouping acm-threshold-cross-alarm-type {
     leaf acm-threshold-cross-alarm-definition-number {
       type int8;
-      units "s";
       description
         "Sequence number of the definitions.";
     }
     leaf transmission-mode {
       type leafref {
-        require-instance false;
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol/air-interface:air-interface-pac/air-interface:air-interface-capability/air-interface:transmission-mode-list/air-interface:transmission-mode-name";
+        require-instance false;
       }
       must 'boolean(/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol/air-interface:air-interface-pac/air-interface:air-interface-capability/air-interface:transmission-mode-list[transmission-mode-name=current()])';
       description
@@ -1604,10 +1606,9 @@ module air-interface-2-0 {
     }
     leaf transmission-mode {
       type leafref {
-        require-instance false;
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol/air-interface:air-interface-pac/air-interface:air-interface-capability/air-interface:transmission-mode-list/air-interface:transmission-mode-name";
+        require-instance false;
       }
-      must 'boolean(/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol/air-interface:air-interface-pac/air-interface:air-interface-capability/air-interface:transmission-mode-list[transmission-mode-name=current()])';
       config false;
       description
         "Operated transmission mode.";

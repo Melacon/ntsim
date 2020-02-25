@@ -32,12 +32,20 @@ module tdm-container-2-0 {
      See the License for the specific language governing permissions and
      limitations under the License.";
 
+  revision 2020-01-23 {
+    description
+      "Model for the Transport SDN Pilot at Telefonica Germany.
+       Please view https://github.com/openBackhaul/tdmContainer/issues for changes.";
+    reference
+      "https://github.com/openBackhaul/tdmContainer/tree/tsp: Model definition
+       https://github.com/openBackhaul/onfCoreIm/tree/tsp: ONF TR-512 Core IM incl. Profile and enhanced Equipment definition";
+  }
   revision 2019-11-23 {
     description
       "Model for the Transport SDN Pilot at Telefonica Germany.
-       Please view https://github.com/openBackhaul/airInterface/issues for changes.";
+       Please view https://github.com/openBackhaul/tdmContainer/issues for changes.";
     reference
-      "https://github.com/openBackhaul/airInterface/tree/tsp: Model definition
+      "https://github.com/openBackhaul/tdmContainer/tree/tsp: Model definition
        https://github.com/openBackhaul/onfCoreIm/tree/tsp: ONF TR-512 Core IM incl. Profile and enhanced Equipment definition";
   }
   revision 2019-07-05 {
@@ -56,7 +64,7 @@ module tdm-container-2-0 {
   }
 
   augment "/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol" {
-    when 'derived-from-or-self(./core-model:layer-protocol-name, "tdm-container:LAYER_PROTOCOL_NAME_TYPE_TDM_CONTAINER_LAYER")';
+    when "derived-from-or-self(./core-model:layer-protocol-name, 'tdm-container:LAYER_PROTOCOL_NAME_TYPE_TDM_CONTAINER_LAYER')";
     uses tdm-container-lp-spec;
     description
       "none";
@@ -90,8 +98,11 @@ module tdm-container-2-0 {
     leaf object-id-ref {
       type leafref {
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+        require-instance false;
       }
       config false;
+      description
+        "none";
     }
     leaf object-type {
       type string;
@@ -127,10 +138,12 @@ module tdm-container-2-0 {
     }
     leaf object-id-ref {
       type leafref {
-        require-instance false;
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+        require-instance false;
       }
       config false;
+      description
+        "none";
     }
     description
       "none";
@@ -160,8 +173,11 @@ module tdm-container-2-0 {
     leaf object-id-ref {
       type leafref {
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+        require-instance false;
       }
       config false;
+      description
+        "none";
     }
     leaf attribute-name {
       type string;
@@ -205,8 +221,11 @@ module tdm-container-2-0 {
     leaf object-id-ref {
       type leafref {
         path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+        require-instance false;
       }
       config false;
+      description
+        "none";
     }
     leaf problem {
       type string;
@@ -217,6 +236,7 @@ module tdm-container-2-0 {
     }
     leaf severity {
       type severity-type;
+      default "SEVERITY_TYPE_WARNING";
       config false;
       description
         "Severity of the problem according to problemKindSeverity";
@@ -244,10 +264,11 @@ module tdm-container-2-0 {
       default "2010-11-20T14:00:00+01:00";
       config false;
       description
-        "none";
+        "Time when the alarm was raised.";
     }
     leaf problem-severity {
       type severity-type;
+      default "SEVERITY_TYPE_NOT_YET_DEFINED";
       config false;
       description
         "Severity of the alarm.";
@@ -266,15 +287,16 @@ module tdm-container-2-0 {
     }
     leaf suspect-interval-flag {
       type boolean;
+      default "false";
       config false;
       description
         "This attribute is used to indicate that the performance data for the current period may not be reliable. Some reasons for this to occur are:
-         – Suspect data were detected by the actual resource doing data collection.
-         – Transition of the administrativeState attribute to/from the 'lock' state.
-         – Transition of the operationalState to/from the 'disabled' state.
-         – Scheduler setting that inhibits the collection function.
-         – The performance counters were reset during the interval.
-         – The currentData (or subclass) object instance was created during the monitoring period.";
+            – Suspect data were detected by the actual resource doing data collection.
+            – Transition of the administrativeState attribute to/from the 'lock' state.
+            – Transition of the operationalState to/from the 'disabled' state.
+            – Scheduler setting that inhibits the collection function.
+            – The performance counters were reset during the interval.
+            – The currentData (or subclass) object instance was created during the monitoring period.";
     }
     leaf elapsed-time {
       type int64;
@@ -291,48 +313,11 @@ module tdm-container-2-0 {
       description
         "none";
     }
-    leaf operational-state {
-      type operational-state-type;
-      config false;
-      description
-        "none";
-    }
     leaf granularity-period {
       type granularity-period-type;
       config false;
       description
         "Time period between reset of the underlying counter.";
-    }
-    leaf administrative-state {
-      type administrative-state-type;
-      config false;
-      description
-        "none";
-    }
-    leaf object-class {
-      type yang:object-identifier;
-      config false;
-      description
-        "ObjectClass ::= CHOICE{    globalForm    [0] OBJECT IDENTIFIER,
-         localForm    [1] INTEGER}";
-    }
-    leaf name-binding {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
-    }
-    leaf packages {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
-    }
-    leaf allomorphs {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
     }
     description
       "none";
@@ -341,6 +326,7 @@ module tdm-container-2-0 {
   grouping historical-performance {
     leaf suspect-interval-flag {
       type boolean;
+      default "false";
       config false;
       description
         "This attribute indicates that the data collected during the interval is suspect.";
@@ -352,42 +338,17 @@ module tdm-container-2-0 {
       description
         "none";
     }
-    leaf period-end-time {
-      type yang:date-and-time;
-      config false;
-      description
-        "Time when the counter values have been recorded and the counter reset.";
-    }
     leaf granularity-period {
       type granularity-period-type;
       config false;
       description
         "Time period between reset of the underlying counter.";
     }
-    leaf object-class {
-      type yang:object-identifier;
+    leaf period-end-time {
+      type yang:date-and-time;
       config false;
       description
-        "ObjectClass ::= CHOICE{    globalForm    [0] OBJECT IDENTIFIER,
-         localForm    [1] INTEGER}";
-    }
-    leaf name-binding {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
-    }
-    leaf packages {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
-    }
-    leaf allomorphs {
-      type yang:object-identifier;
-      config false;
-      description
-        "none";
+        "Time when the counter values have been recorded and the counter reset.";
     }
     description
       "none";
@@ -454,6 +415,7 @@ module tdm-container-2-0 {
     }
     leaf admin-shut-down-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Manual switching on and off of the interface without deleting it (underlying OSI network layers are also not affected) is available.";
@@ -482,6 +444,7 @@ module tdm-container-2-0 {
     }
     leaf performance-monitoring-is-avail {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Collection and aggregation of performance values is available.";
@@ -499,21 +462,28 @@ module tdm-container-2-0 {
     }
     leaf interface-is-on {
       type boolean;
+      default "false";
       description
         "Only relevant if (adminShutDownIsAvail==1). 1 = Activation of the interface. 0 = De-activation of the interface without deleting it (underlying OSI network layers are not affected).";
     }
-    container tdm-container-kind {
-      uses tdm-container-kind;
+    leaf tdm-container-kind {
+      type leafref {
+        path "/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol/tdm-container:tdm-container-pac/tdm-container:tdm-container-capability/tdm-container:supported-tdm-container-kind-list/tdm-container:tdm-container-name";
+        require-instance false;
+      }
+      must 'boolean(/core-model:control-construct/core-model:logical-termination-point/core-model:layer-protocol/tdm-container:tdm-container-pac/tdm-container:tdm-container-capability/tdm-container:supported-tdm-container-kind-list[tdm-container-name=current()])';
       description
         "Type of TDM container.";
     }
     leaf segment-number {
       type int16;
+      default "-1";
       description
         "Serving TDM structure is identified by LogicalTerminationPoint::_serverLtpRefList (Multiplicity = 1; One segment per TDM container). Serving Segment is identified by segmentID attribute. Type of segment must match type of container.";
     }
     leaf loop-back-kind-on {
       type loop-back-type;
+      default "LOOP_BACK_TYPE_NOT_YET_DEFINED";
       description
         "Maintenance Feature. Configuration of a loop back of TDM time slots on this interface.";
     }
@@ -533,6 +503,7 @@ module tdm-container-2-0 {
     }
     leaf performance-monitoring-is-on {
       type boolean;
+      default "false";
       description
         "Enables measurement, collection, storage and access to performance data.";
     }
@@ -543,24 +514,28 @@ module tdm-container-2-0 {
   grouping tdm-container-status {
     leaf interface-status {
       type interface-status-type;
+      default "INTERFACE_STATUS_TYPE_NOT_YET_DEFINED";
       config false;
       description
         "Operational status of the interface.";
     }
     leaf loop-back-kind-up {
       type loop-back-type;
+      default "LOOP_BACK_TYPE_NOT_YET_DEFINED";
       config false;
       description
         "The currently active (not just configured) type of loop back.";
     }
     leaf statistics-is-up {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Statistics are currently collected and aggregated.";
     }
     leaf performance-monitoring-is-up {
       type boolean;
+      default "false";
       config false;
       description
         "1 = Performance values are currently collected and aggregated.";
@@ -577,6 +552,20 @@ module tdm-container-2-0 {
       description
         "none";
     }
+    leaf number-of-current-problems {
+      type int8;
+      default "-1";
+      config false;
+      description
+        "Number of alarms, which are currently active on this interface.";
+    }
+    leaf time-of-latest-change {
+      type yang:date-and-time;
+      default "2010-11-20T14:00:00+01:00";
+      config false;
+      description
+        "Date and time when the list of alarms has been changed for the last time.";
+    }
     description
       "none";
   }
@@ -591,6 +580,13 @@ module tdm-container-2-0 {
       description
         "At least values of the counters, which are reset every 15 minutes, are to be provided. If available, the current values of the counters, which are reset every 24 hour, can be provided, too.";
     }
+    leaf number-of-current-performance-sets {
+      type int8;
+      default "-1";
+      config false;
+      description
+        "Number of sets of current performance values, which are provided in the list.";
+    }
     description
       "Aggregated performance information of the TDM container at a particular moment.";
   }
@@ -602,6 +598,20 @@ module tdm-container-2-0 {
       uses container-historical-performance-type;
       description
         "none";
+    }
+    leaf number-of-historical-performance-sets {
+      type int16;
+      default "-1";
+      config false;
+      description
+        "Number of sets of historical performance values, which are provided in the list.";
+    }
+    leaf time-of-latest-change {
+      type yang:date-and-time;
+      default "2010-11-20T14:00:00+01:00";
+      config false;
+      description
+        "Date and time when the list of sets of historical performance values has been changed for the last time (e.g. new one added or existing one deleted).";
     }
     description
       "Aggregated performance information of the TDM container for a pre-defined measurement interval.";
@@ -806,58 +816,6 @@ module tdm-container-2-0 {
       "none";
   }
 
-  identity OPERATIONAL_STATE_TYPE {
-    description
-      "none";
-  }
-
-  identity OPERATIONAL_STATE_TYPE_ENABLED {
-    base OPERATIONAL_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity OPERATIONAL_STATE_TYPE_DISABLED {
-    base OPERATIONAL_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity OPERATIONAL_STATE_TYPE_NOT_YET_DEFINED {
-    base OPERATIONAL_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity ADMINISTRATIVE_STATE_TYPE {
-    description
-      "none";
-  }
-
-  identity ADMINISTRATIVE_STATE_TYPE_UNLOCKED {
-    base ADMINISTRATIVE_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity ADMINISTRATIVE_STATE_TYPE_LOCKED {
-    base ADMINISTRATIVE_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity ADMINISTRATIVE_STATE_TYPE_SHUTTING_DOWN {
-    base ADMINISTRATIVE_STATE_TYPE;
-    description
-      "none";
-  }
-
-  identity ADMINISTRATIVE_STATE_TYPE_NOT_YET_DEFINED {
-    base ADMINISTRATIVE_STATE_TYPE;
-    description
-      "none";
-  }
-
   /****************************************
    * package super-types
    **************************************/ 
@@ -886,22 +844,6 @@ module tdm-container-2-0 {
       "Current Interface Status";
   }
 
-  typedef operational-state-type {
-    type identityref {
-      base OPERATIONAL_STATE_TYPE;
-    }
-    description
-      "The list of valid operational states for the connection.";
-  }
-
-  typedef administrative-state-type {
-    type identityref {
-      base ADMINISTRATIVE_STATE_TYPE;
-    }
-    description
-      "For more information on Administrative State, See ITU-T Recs. X.731 and M.3100.";
-  }
-
   grouping problem-kind-severity-type {
     leaf problem-kind-name {
       type string;
@@ -910,6 +852,7 @@ module tdm-container-2-0 {
     }
     leaf problem-kind-severity {
       type severity-type;
+      default "SEVERITY_TYPE_NOT_YET_DEFINED";
       description
         "Severity of this type of alarm.";
     }
