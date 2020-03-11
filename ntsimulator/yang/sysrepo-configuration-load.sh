@@ -23,8 +23,11 @@ result=$(netopeer2-cli <<-END
 END
 )
 
-while [[ "$result" != "OK" ]]
+count=1
+
+while [[ $count -le 20 ]] && [[ "$result" != "OK" ]]
 do
+  ((count++))
   pyang -f sample-xml-skeleton --sample-xml-list-entries 2 *.yang
   
   result=$(netopeer2-cli <<-END
