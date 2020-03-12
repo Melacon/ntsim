@@ -1,0 +1,385 @@
+module xran-interfaces {
+  yang-version 1.1;
+  namespace "urn:xran:interfaces:1.0";
+  prefix "xran-int";
+
+
+  import ietf-inet-types {
+    prefix "inet";
+  }
+
+  import iana-if-type {
+    prefix "ianaift";
+  }
+
+  import ietf-interfaces {
+    prefix "if";
+  }
+
+  import ietf-ip {
+    prefix "ip";
+  }
+
+  import ietf-hardware {
+    prefix "hw";
+  }
+
+  import ietf-yang-types {
+    prefix "yang";
+  }
+
+  organization "xRAN Forum";
+
+  contact
+    "www.xran.org";
+
+  description
+    "This module defines the YANG definitions for managng the xRAN Radio Unit
+     interfaces.
+
+    Copyright 2018 the xRAN Forum.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS'
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the above disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the above disclaimer in the documentation
+    and/or other materials provided with the distribution.
+    * Neither the Members of the xRAN Forum nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.";
+
+  revision "2018-07-20" {
+    description
+      "version 1.0.0 - First release of the xRAN YANG M-Plane models.
+
+      This version of the model supports v01.00 of the corrsponding xRAN
+      M-Plane Specification.";
+    reference "XRAN-FH.MP.0-v01.00";
+  }
+
+  identity XRAN-INTERFACE-TYPE {
+    base if:interface-type;
+    description
+      "This identity is used as a base for all interface types
+       defined by xRAN.";
+  }
+
+  identity ALIASMAC-INTERFACE {
+    base XRAN-INTERFACE-TYPE;
+    description
+      "Identity type for alias MAC based CU plane interface,
+      whwere multiple MAC addresses are used on the same Ethernet interface. ";
+  }
+
+  identity ETH-INTERFACE {
+    base XRAN-INTERFACE-TYPE;
+    description
+      "identity type for ethernet plus vlan based CU plane interface. ";
+  }
+
+  identity UDPIP-INTERFACE {
+    base XRAN-INTERFACE-TYPE;
+    description
+      "identity type for UDP/IP based CU plane interface. ";
+  }
+
+  feature UDPIP-BASED-CU-PLANE {
+    description
+      "This feature indicates that the RU supports the UDP/IP based transport
+      for the CU plane.";
+  }
+
+  feature ALIASMAC-BASED-CU-PLANE {
+    description
+      "This feature indicates that the RU supports the alias MAC address
+       based transport for the CU plane.";
+  }
+
+
+  typedef pcp {
+    type uint8 {
+      range "0..7";
+    }
+    description
+      "Priority Code Point. PCP is a 3-bit field that refers to the
+      class of service applied to a VLAN tagged frame.  The
+      field specifies a priority value between 0 and 7, these values
+      can be used by quality of service (QoS) to prioritize
+      different classes of traffic.";
+    reference
+     "IEEE 802.1Q-2014: Virtual Bridged Local Area Networks";
+  }
+
+  grouping cos-marking {
+    description
+      "Configuration data for CU Plane ethernet CoS marking";
+    leaf u-plane-marking {
+      type pcp;
+      default 7;
+      description "7 represents highest priority for u-plane marking";
+    }
+    leaf c-plane-marking {
+      type pcp;
+      default 7;
+      description "7 represents highest priority for c-plane marking";
+    }
+    leaf m-plane-marking {
+      type pcp;
+      default 2;
+      description "2 represents highest excellent effort for m-plane marking";
+    }
+	leaf s-plane-marking {
+      type pcp;
+      default 7;
+      description "7 represents highest priority for s-plane marking";
+	}
+	leaf other-marking {
+      type pcp;
+      default 1;
+      description "1 represents best effort for other marking";
+	}
+  }
+
+  grouping xran-dscp-marking {
+    description
+      "Configuration data for CU Plane DSCP CoS marking";
+    leaf u-plane-marking {
+      type inet:dscp;
+      default 46;
+      description "46 represents expedited forwarding";
+    }
+    leaf c-plane-marking {
+      type inet:dscp;
+      default 46;
+      description "46 represents expedited forwarding";
+    }
+    leaf m-plane-marking {
+      type inet:dscp;
+      default 18;
+      description "18 represents AF21 or 'immediate traffic'";
+    }
+	leaf s-plane-marking {
+      type inet:dscp;
+      default 46;
+      description "46 represents expedited forwarding";
+	}
+	leaf other-marking {
+      type inet:dscp;
+      default 0;
+      description "0 represents best effort forwarding";
+	}
+  }
+
+
+  augment '/if:interfaces/if:interface' {
+    when "derived-from-or-self(if:type, 'xran-int:XRAN-INTERFACE-TYPE')";
+    description
+      "Applicable for xran interfaces which use references to a port
+      component.";
+
+    container port-reference {
+      description
+        "a port reference used by other xRAN modules";
+      leaf xran-port-name {
+        type leafref {
+          path '/hw:hardware/hw:component/hw:name';
+        }
+        description
+          "xRAN interfaces use a reference to a physical port component";
+      }
+      leaf xran-port-number {
+        type uint8;
+        description
+          "A number allocated by the server which identifies a port.
+          Port number value is 0 to N-1 where N is number of ports
+          in the device.
+
+          This value is fixed for the lifetime of the RU, i.e., cannot be
+          changed suring RU reboots.";
+      }
+    }
+    leaf last-cleared {
+      type yang:date-and-time;
+      config false;
+      description
+        "Timestamp of the last time the interface counters were
+        cleared.";
+    }
+  }
+
+  // Augmentation for lower layer definition
+
+  augment '/if:interfaces/if:interface' {
+    when "derived-from-or-self(if:type, 'xran-int:XRAN-INTERFACE-TYPE') and
+          not(if:lower-layer-if)" {
+      description
+        "Data specific for an xRAN bottom level interface, i.e.,
+        use relative path to check the current interface does not have any
+        lower-layer-if defined";
+    }
+    description
+      "Augments interfaces/interface with xRAN information .";
+    container physical-int {
+      description "container for physical interface";
+      leaf maximum-speed {
+        type enumeration {
+          enum 1000BASE {
+            description "1GbE";
+          }
+          enum 2.5GBASE {
+            description "2.5GbE";
+          }
+          enum 5GBASE{
+            description "5GbE";
+          }
+          enum 10GBASE{
+            description "10GbE";
+          }
+          enum 25GBASE{
+            description "25GbE";
+          }
+          enum 40GBASE{
+            description "40GbE";
+          }
+          enum 50GBASE{
+            description "50GbE";
+          }
+          enum 100GBASE{
+            description "100GbE";
+          }
+        }
+        config false;
+        description "maximum speed of physical interface";
+      }
+      leaf cable-type {
+        type enumeration {
+            enum TWISTED-PAIR{
+              description "twisted pair";
+            }
+            enum FIBER-OPTIC{
+              description "fiber optic";
+            }
+        }
+        config false;
+        description "type of cable";
+      }
+    }
+  }
+
+// Augmentation for basic Ethernet leafs
+
+  augment "/if:interfaces/if:interface" {
+    when "derived-from-or-self(if:type, 'ianaift:ethernetCsmacd') or
+          derived-from-or-self(if:type, 'ianaift:l2vlan')" {
+      description "Applies to Ethernet interfaces";
+    }
+    description
+      "Augment the interface model with parameters for all
+      Ethernet-like interfaces
+
+      Contains parameters for interfaces that use Ethernet framing
+      and expose an Ethernet MAC layer";
+    leaf l2-mtu {
+      type uint16 {
+        range "64 .. 65535";
+      }
+      units bytes;
+      default 1500;
+      description
+        "The maximum size of layer 2 frames that may be transmitted
+        or received on the interface (excluding any FCS overhead).
+        For Ethernet interfaces it also excludes the
+        4-8 byte overhead of any known (i.e. explicitly matched by
+        a child sub-interface) 801.1Q VLAN tags.";
+    }
+    leaf mac-address {
+      type yang:mac-address;
+      description
+        "The MAC address of the interface.";
+    }
+    leaf bia-mac-address {
+      type yang:mac-address;
+      config false;
+      description
+        "The 'burnt-in' MAC address.  I.e the default MAC address
+        assigned to the interface if no MAC address has been
+        explicitly configured on it.";
+    }
+    leaf-list alias-macs {
+      when "derived-from-or-self(../if:type, 'xran-int:ALIASMAC-INTERFACE')";
+      if-feature ALIASMAC-BASED-CU-PLANE;
+      type yang:mac-address;
+      config false;
+      description
+        "Augments interfaces with range of alias MAC addresses.";
+    }
+    leaf vlan-tagging {
+      type boolean;
+      default true;
+      description
+        "Indicates if VLAN tagging is used.
+        Default true is used to enable an RU to auonomously discover that it is
+        connected to a trunk port.";
+    }
+    uses cos-marking;
+  }
+
+// augmentation for VLAN definition
+
+  augment "/if:interfaces/if:interface" {
+    when "derived-from-or-self (if:type, 'ianaift:l2vlan')";
+    description "augments for VLAN definition";
+    leaf base-interface {
+      type if:interface-ref;
+      must "/if:interfaces/if:interface[if:name = current()]"
+            + "/xran-int:vlan-tagging = 'true'" {
+        description
+          "The base interface must have VLAN tagging enabled.";
+      }
+      description
+        "The base interface for the VLAN sub-interafce.";
+    }
+    leaf vlan-id {
+      type uint16 {
+        range "1..4094";
+      }
+      description
+        "The VLAN-ID.";
+    }
+  }
+
+  // Augmention to ietf-ip covering DSCP
+
+  augment "/if:interfaces/if:interface/ip:ipv4" {
+    when "derived-from-or-self(../if:type, 'xran-int:UDPIP-INTERFACE')";
+    if-feature UDPIP-BASED-CU-PLANE;
+    description "augments for IPv4 based transport";
+    uses xran-dscp-marking;
+  }
+  augment "/if:interfaces/if:interface/ip:ipv6" {
+    when "derived-from-or-self(../if:type, 'xran-int:UDPIP-INTERFACE')";
+    if-feature UDPIP-BASED-CU-PLANE;
+    description "augments for IPv6 based transport";
+    uses xran-dscp-marking;
+  }
+
+  rpc reset-interface-counters {
+    description
+      "Management plane triggered restart of the interface counters.";
+  }
+}

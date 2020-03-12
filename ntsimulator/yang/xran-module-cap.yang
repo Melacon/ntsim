@@ -1,0 +1,533 @@
+module xran-module-cap {
+  yang-version 1.1;
+  namespace "urn:xran:module-cap:1.0";
+  prefix "xran-module-cap";
+
+  organization "xRAN Forum";
+
+  contact
+    "www.xran.org";
+
+  description
+    "This module defines the module capabilities for
+    the xRAN Radio Unit.
+
+    Copyright 2018 the xRAN Forum.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS'
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the above disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the above disclaimer in the documentation
+    and/or other materials provided with the distribution.
+    * Neither the Members of the xRAN Forum nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.";
+
+  revision "2018-07-20" {
+    description
+      "version 1.0.0 - First release of the xRAN YANG M-Plane models.
+
+      This version of the model supports v01.00 of the corrsponding xRAN
+      M-Plane Specification.";
+    reference "XRAN-FH.MP.0-v01.00";
+  }
+
+  grouping compression-method-grouping {
+    description
+	  "Grouping for compression method.";
+
+    leaf compression-method {
+      type enumeration {
+        enum BLOCK_FLOATING_POINT {
+          description
+            "Block floating point compression and decompression will be used";
+        }
+
+        enum BLOCK_SCALING {
+          description
+            "Block scaling compression and decompresion will be used";
+        }
+
+        enum U_LAW {
+          description
+            "u-Law compression and decompresion method will be used";
+        }
+
+        enum BEAMSPACE {
+          description
+            "Beamspace compression and decompression will be used";
+        }
+
+        enum MODULATION {
+          description
+            "Modulation compression and decompression will be used";
+        }
+      }
+	  description
+	    "Compresion method which can be supported by the RU";
+    }
+  }
+
+  container module-capability {
+    config false;
+    description
+      "module capability object responsible for providing module capability.";
+
+    container ru-capabilities {
+      description
+        "Structure representing set of capabilities.";
+
+      leaf ru-supported-category {
+        type enumeration {
+          enum CAT_A {
+            description
+              "Informs that precoding is supported in lls-CU";
+          }
+          enum CAT_B {
+            description
+              "Informs that precoding is supported in RU";
+          }
+        }
+
+        description
+          "Informs about which category RU supports";
+      }
+
+      leaf number-of-ru-ports {
+        type uint8;
+        description
+          "This value indicates the maximum number of simultaneous beams per RU.
+          This value is derived by the products of “numberOfPolarizations” and “numberOfPanels”
+          and “the maximum number of simultaneous beams per sub-carrier”.";
+      }
+
+      leaf number-of-antenna-ports {
+        type uint8;
+        description
+          "This value indicates the number of antenna ports supported at RU.
+          This parameter is used by the precoding control between lls-CU and UE.
+          This value conforms to 3GPP TS38.214, Section 5.2. Value 0 means “unused”.";
+      }
+
+      leaf max-power-per-pa-antenna {
+        type decimal64{
+          fraction-digits 4;
+        }
+        description
+          "This value indicates Maximum Power per PA per antenna. Value unit is dBm.";
+      }
+
+      leaf min-power-per-pa-antenna {
+        type decimal64{
+          fraction-digits 4;
+        }
+        description
+          "This value indicates Minimum Power per PA per antenna. Value unit is dBm.";
+      }
+
+      leaf fronthaul-split-option {
+        type uint8 {
+          range "7";
+        }
+        description
+          "This value indicates the Fronthaul Split Option, i.e., 2 or 7 in this release.";
+      }
+
+      container format-of-iq-sample {
+        description
+          "Indicates module capabilities about IQ samples";
+
+        leaf dynamic-compression-supported {
+          type boolean;
+
+          description
+            "Informs if radio supports dynamic compression method";
+        }
+
+        leaf-list supported-bitwidths {
+          type uint8 {
+            range "1..16";
+          }
+
+          description
+            "List of supported bitwidths";
+        }
+
+        leaf realtime-variable-bit-width-supported {
+          type boolean;
+
+          description
+            "Informs if RU supports realtime variable bit with";
+        }
+
+        list compression-method-supported {
+          uses compression-method-grouping;
+          key "compression-method";
+          description
+            "List of supported compression methods by RU";
+        }
+
+        leaf variable-bit-width-per-channel-supported {
+          when "/module-capability/ru-capabilities/format-of-iq-sample/realtime-variable-bit-width-supported = 'true'";
+          type boolean;
+
+          description
+            "Informs if variable bit width per channel is supported or not";
+        }
+
+        leaf syminc-supported {
+          type boolean;
+
+          description
+            "Informs if symbol number increment command in a C-Plane is
+             supported or not";
+        }
+      }
+
+      list ul-mixed-num-required-guard-rbs {
+        key "scs-a scs-b";
+        description
+          "Required number of guard resource blocks for the combination of
+          subcarrier spacing values for uplink";
+        leaf scs-a{
+          type enumeration {
+            enum KHZ_15 {
+              value 0;
+                    description
+                    "15kHz sub carrier spacing";
+            }
+            enum KHZ_30 {
+              value 1;
+                  description
+                    "30kHz sub carrier spacing";
+            }
+            enum KHZ_60 {
+              value 2;
+                  description
+                    "60kHz sub carrier spacing";
+            }
+            enum KHZ_120 {
+              value 3;
+                  description
+                    "120kHz sub carrier spacing";
+            }
+            enum KHZ_240 {
+              value 4;
+                  description
+                    "240kHz sub carrier spacing";
+            }
+            enum KHZ_1_25 {
+              value 12;
+                    description
+                    "1,25kHz sub carrier spacing";
+            }
+            enum KHZ_5 {
+              value 14;
+                  description
+                    "5kHz sub carrier spacing";
+            }
+          }
+          description
+            "Sub-carrier spacing configuration";
+        }
+        leaf scs-b{
+          type enumeration {
+            enum KHZ_15 {
+              value 0;
+                    description
+                    "15kHz sub carrier spacing";
+            }
+            enum KHZ_30 {
+              value 1;
+                  description
+                    "30kHz sub carrier spacing";
+            }
+            enum KHZ_60 {
+              value 2;
+                  description
+                    "60kHz sub carrier spacing";
+            }
+            enum KHZ_120 {
+              value 3;
+                  description
+                    "120kHz sub carrier spacing";
+            }
+            enum KHZ_240 {
+              value 4;
+                  description
+                    "240kHz sub carrier spacing";
+            }
+            enum KHZ_1_25 {
+              value 12;
+                    description
+                    "1,25kHz sub carrier spacing";
+            }
+            enum KHZ_5 {
+              value 14;
+                  description
+                    "5kHz sub carrier spacing";
+            }
+          }
+          description
+            "Sub-carrier spacing configuration";
+        }
+        leaf number-of-guard-rbs-ul{
+          type uint8;
+          description
+            "This value indicates the required number of guard resource blocks
+             between the mixed numerologies, the RB using scs-a and the RB
+             using scs-b. It's number is based on scs-a";
+        }
+      }
+      list dl-mixed-num-required-guard-rbs {
+        key "scs-a scs-b";
+        description
+          "Required number of guard resource blocks for the combination of
+          subcarrier spacing values for downlink";
+          leaf scs-a{
+            type enumeration {
+              enum KHZ_15 {
+                value 0;
+                      description
+                      "15kHz sub carrier spacing";
+              }
+              enum KHZ_30 {
+                value 1;
+                    description
+                      "30kHz sub carrier spacing";
+              }
+              enum KHZ_60 {
+                value 2;
+                    description
+                      "60kHz sub carrier spacing";
+              }
+              enum KHZ_120 {
+                value 3;
+                    description
+                      "120kHz sub carrier spacing";
+              }
+              enum KHZ_240 {
+                value 4;
+                    description
+                      "240kHz sub carrier spacing";
+              }
+              enum KHZ_1_25 {
+                value 12;
+                      description
+                      "1,25kHz sub carrier spacing";
+              }
+              enum KHZ_5 {
+                value 14;
+                    description
+                      "5kHz sub carrier spacing";
+              }
+            }
+            description
+              "Sub-carrier spacing configuration";
+          }
+          leaf scs-b{
+            type enumeration {
+              enum KHZ_15 {
+                value 0;
+                      description
+                      "15kHz sub carrier spacing";
+              }
+              enum KHZ_30 {
+                value 1;
+                    description
+                      "30kHz sub carrier spacing";
+              }
+              enum KHZ_60 {
+                value 2;
+                    description
+                      "60kHz sub carrier spacing";
+              }
+              enum KHZ_120 {
+                value 3;
+                    description
+                      "120kHz sub carrier spacing";
+              }
+              enum KHZ_240 {
+                value 4;
+                    description
+                      "240kHz sub carrier spacing";
+              }
+              enum KHZ_1_25 {
+                value 12;
+                      description
+                      "1,25kHz sub carrier spacing";
+              }
+              enum KHZ_5 {
+                value 14;
+                    description
+                      "5kHz sub carrier spacing";
+              }
+            }
+            description
+              "Sub-carrier spacing configuration";
+          }
+        leaf number-of-guard-rbs-dl{
+          type uint8;
+          description
+            "This value indicates the required number of guard resource blocks
+             between the mixed numerologies, the RB using scs-a and the RB
+             using scs-b. It's number is based on scs-a";
+        }
+      }
+    }
+    list band-capabilities {
+      key band-number;
+      description
+        "Capabilities that are needed to be defined per each band";
+
+      leaf band-number {
+        type uint16;
+        description
+          "Band number";
+      }
+
+      leaf max-supported-frequency-dl {
+        type uint64;
+        description
+          "This value indicates Maximum supported downlink frequency. Value unit is Hz.";
+      }
+
+      leaf min-supported-frequency-dl {
+        type uint64;
+        description
+          "This value indicates Minimum supported downlink frequency. Value unit is Hz.";
+      }
+
+      leaf max-supported-bandwidth-dl {
+        type uint64;
+        description
+          "This value indicates Maximum total downlink bandwidth in module. Value unit is Hz.";
+      }
+
+      leaf max-num-carriers-dl {
+        type uint32;
+        description
+          "This value indicates Maximum number of downlink carriers in module.";
+      }
+
+      leaf max-carrier-bandwidth-dl {
+        type uint64;
+        description
+          "This value indicates Maximum bandwidth per downlink carrier. Value unit is Hz.";
+      }
+
+      leaf min-carrier-bandwidth-dl {
+        type uint64;
+        description
+          "This value indicates Minimum bandwidth per downlink carrier. Value unit is Hz.";
+      }
+
+      leaf max-supported-frequency-ul {
+        type uint64;
+        description
+          "This value indicates Maximum supported uplink frequency. Value unit is Hz.";
+      }
+
+      leaf min-supported-frequency-ul {
+        type uint64;
+        description
+          "This value indicates Minimum supported uplink frequency. Value unit is Hz.";
+      }
+
+      leaf max-supported-bandwidth-ul {
+        type uint64;
+        description
+          "This value indicates Maximum total uplink bandwidth in module. Value unit is Hz.";
+      }
+
+      leaf max-num-carriers-ul {
+        type uint32;
+        description
+          "This value indicates Maximum number of uplink carriers in module.";
+      }
+
+      leaf max-carrier-bandwidth-ul {
+        type uint64;
+        description
+          "This value indicates Maximum bandwidth per uplink carrier. Value unit is Hz.";
+      }
+
+      leaf min-carrier-bandwidth-ul {
+        type uint64;
+        description
+          "This value indicates Minimum bandwidth per uplink carrier. Value unit is Hz.";
+      }
+//      leaf number-of-supported-streams {
+//        when "/module-capability/ru-capabilities/ru-supported-category = 'CAT_A'"
+//        type uint8;
+//        description
+//          "Number of supported spatial stream in case CAT-A is supported";
+//      }
+// Fixed me if they are necessary.
+
+      leaf max-num-component-carriers {
+        type uint8;
+        description "maximum number of component carriers supported by the RU";
+      }
+
+      leaf max-num-bands {
+        type uint16;
+        description "maximum number of bands supported by the RU";
+      }
+
+      leaf max-num-sectors {
+        type uint8;
+        description "maximum number of sectors supported by the RU";
+      }
+
+      leaf max-power-per-antenna {
+        type decimal64{
+          fraction-digits 4;
+        }
+        description
+          "This value indicates Maximum Power per band per antenna. Value unit is dBm.";
+      }
+
+      leaf min-power-per-antenna {
+        type decimal64{
+          fraction-digits 4;
+        }
+        description
+          "This value indicates Minimum Power per band per antenna. Value unit is dBm.";
+      }
+
+  	  leaf codebook-configuration_ng {
+          type uint8;
+          description
+            "This parameter informs the precoder codebook_ng that are used for precoding";
+        }
+
+  	  leaf codebook-configuration_n1 {
+          type uint8;
+          description
+            "This parameter informs the precoder codebook_n1 that are used for precoding";
+        }
+
+  	  leaf codebook-configuration_n2 {
+          type uint8;
+          description
+            "This parameter informs the precoder codebook_n2 that are used for precoding";
+      }
+    }
+  }
+}

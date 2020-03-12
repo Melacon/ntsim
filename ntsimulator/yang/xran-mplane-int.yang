@@ -1,0 +1,171 @@
+module xran-mplane-int {
+  yang-version 1.1;
+  namespace "urn:xran:mplane-interfaces:1.0";
+  prefix "xran-mplane-int";
+
+  import ietf-inet-types {
+    prefix "inet";
+  }
+
+  import ietf-interfaces {
+    prefix "if";
+  }
+
+  import xran-interfaces {
+    prefix "xran-int";
+  }
+
+  organization "xRAN Forum";
+
+  contact
+    "www.xran.org";
+
+  description
+    "This module defines the YANG definitions for managng the xRAN Radio Unit
+     management plane interface.
+
+     Copyright 2018 the xRAN Forum.
+
+     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS'
+     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+     LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+     CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+     SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+     INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+     CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+     POSSIBILITY OF SUCH DAMAGE.
+
+     Redistribution and use in source and binary forms, with or without
+     modification, are permitted provided that the following conditions are met:
+
+     * Redistributions of source code must retain the above copyright notice,
+     this list of conditions and the above disclaimer.
+     * Redistributions in binary form must reproduce the above copyright notice,
+     this list of conditions and the above disclaimer in the documentation
+     and/or other materials provided with the distribution.
+     * Neither the Members of the xRAN Forum nor the names of its
+     contributors may be used to endorse or promote products derived from
+     this software without specific prior written permission.";
+
+  revision "2018-07-20" {
+    description
+      "version 1.0.0 - First release of the xRAN YANG M-Plane models.
+
+      This version of the model supports v01.00 of the corrsponding xRAN
+      M-Plane Specification.";
+    reference "XRAN-FH.MP.0-v01.00";
+  }
+
+  typedef vlan-id {
+    type uint16 {
+      range 1..4094;
+    }
+    description
+      "Type definition representing a single-tagged VLAN";
+  }
+  container mplane-info {
+    description "top level container for management plane information";
+    container searchable-mplane-access-vlans-info {
+      description
+        "These parameters shall be stored by the RU in reset persistant memory
+        to enable it to be re-used to optimize VALN discovery procerdures.";
+      leaf-list searchable-access-vlans {
+        type vlan-id;
+        description
+          "A list of access VLANs that may be operational on the transport
+          network. Can be used by the RU to optimize its VLAN searching - for
+          M-plane operations.";
+      }
+      container vlan-range {
+        description "the range of VLAN IDs that may be configured for M-Plane";
+        leaf lowest-vlan-id {
+          type vlan-id;
+          description
+            "Value of this parameter informs RU about lowest VID to be used
+            in VLAN scan procedure";
+        }
+        leaf highest-vlan-id {
+          type vlan-id;
+          description
+            "Value of this parameter informs RU about highest VID to be used
+            in VLAN scan procedure";
+        }
+      }
+    }
+
+    container m-plane-interfaces {
+      description "information concerning m-plane interfaces";
+      list m-plane-sub-interfaces {
+        key "interface-name sub-interface";
+        description "list of m-plane information";
+        leaf interface-name {
+          type leafref {
+            path "/if:interfaces/if:interface/if:name";
+          }
+          description "the name of the interface";
+        }
+        leaf sub-interface {
+          type leafref {
+            path "/if:interfaces/if:interface[if:name = current()/../interface-name]/xran-int:vlan-id";
+          }
+          description
+            "vlans used to communicate with management plane servers.";
+        }
+        container client-info {
+          description "the NETCONF client information";
+          list mplane-ipv4-info {
+            key mplane-ipv4;
+            description "list of IPv4 NETCONF clients";
+            leaf mplane-ipv4 {
+              type inet:ipv4-address;
+              description "The IPv4 address of M-Plane client discovered by the RU
+              or manually configured.";
+            }
+            leaf port {
+              type inet:port-number;
+              default "4334";
+              description
+                "The port number the call home server listens on.";
+            }
+          }
+          list mplane-ipv6-info {
+            key mplane-ipv6;
+            description "list of IPv6 NETCONF clients";
+            leaf mplane-ipv6 {
+              type inet:ipv6-address;
+              description "The IPv6 address of M-Plane client discovered by the RU
+              or manually configured.";
+            }
+            leaf port {
+              type inet:port-number;
+              default "4334";
+              description
+                "The port number the call home server listens on.";
+            }
+          }
+          leaf-list mplane-fqdn {
+            type inet:domain-name;
+            description "The discovered FQDN(s) of M-Plane client(s).";
+          }
+        }
+      }
+
+      container m-plane-ssh-ports {
+        description "leafs for managing SSH ports";
+        leaf call-home-ssh-port {
+          type inet:port-number;
+          default 4334;
+          description "call home server port number";
+        }
+        leaf server-ssh-port {
+          type inet:port-number;
+          default 830;
+          description "SSH server port number";
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,237 @@
+module xran-processing-element {
+  yang-version 1.1;
+  namespace "urn:xran:processing-element:1.0";
+  prefix "xran-elements";
+
+  import ietf-yang-types {
+    prefix yang;
+  }
+
+  import ietf-inet-types {
+    prefix "inet";
+  }
+
+  import ietf-interfaces {
+    prefix "if";
+  }
+
+  import ietf-ip {
+    prefix "ip";
+  }
+
+  import xran-interfaces {
+    prefix "xran-int";
+  }
+
+  organization "xRAN Forum";
+
+  contact
+    "www.xran.org";
+
+  description
+    "This module defines the YANG definitions for mapping of transport flows to
+    processing elements. Three options are supported:
+    i) virtual MAC based mapping
+    ii) MAC addrress + VLAN-ID based mapping
+    iii) UDP/IP based mapping
+
+    Copyright 2018 the xRAN Forum.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS'
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the above disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the above disclaimer in the documentation
+    and/or other materials provided with the distribution.
+    * Neither the Members of the xRAN Forum nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.";
+
+  revision "2018-07-20" {
+    description
+      "version 1.0.0 - First release of the xRAN YANG M-Plane models.
+
+      This version of the model supports v01.00 of the corrsponding xRAN
+      M-Plane Specification.";
+    reference "XRAN-FH.MP.0-v01.00";
+  }
+
+  identity XRAN-INTERFACE-TYPE {
+    base if:interface-type;
+    description
+      "This identity is used as a base for all interface types
+       defined by xRAN.";
+  }
+
+  identity ALIASMAC-INTERFACE {
+    base XRAN-INTERFACE-TYPE;
+    description
+      "Identity type for alias MAC based CU plane interface,
+      whwere multiple MAC addresses are used on the same Ethernet interface. ";
+  }
+
+  identity ETH-INTERFACE {
+    base XRAN-INTERFACE-TYPE;
+    description
+      "identity type for ethernet plus vlan based CU plane interface. ";
+  }
+
+  identity UDPIP-INTERFACE {
+    base XRAN-INTERFACE-TYPE;
+    description
+      "identity type for UDP/IP based CU plane interface. ";
+  }
+
+  container processing-elements {
+    description
+      "a model defining the mapping between transport flows and arbitrary
+      xRAN processing elements. A processing element may be then defined for
+      handling connectivity or delay procedures, or defined with a corresponding
+      eaxcid for CU plane operations";
+    leaf transport-session-type {
+      type identityref {
+        base XRAN-INTERFACE-TYPE;
+      }
+      description
+        "the type of transport session used for identifying different processing
+        elements";
+    }
+    list ru-elements {
+      key "name";
+      description
+        "the list of transport definitions for each processing element";
+      leaf name {
+        type string {
+          length "1..255";
+        }
+        description
+          "A name that is unique across the RU that identifies a processing
+          element instance.
+
+          This name may be used in fault management to refer to a fault source
+          or affected object";
+      }
+      container transport-flow {
+        description
+          "container for the transport-flow used for CU plane";
+        leaf interface-name {
+          type leafref {
+            path "/if:interfaces/if:interface/if:name";
+          }
+          description "the interface name ";
+        }
+        container aliasmac-flow {
+          when "derived-from(../../../transport-session-type, 'ALIASMAC-INTERFACE')";
+          if-feature xran-int:ALIASMAC-BASED-CU-PLANE;
+          description "leafs for virtual mac type data flows";
+          leaf ru-aliasmac-address {
+            type leafref {
+              path "/if:interfaces/if:interface[if:name = current()/../../interface-name]/xran-int:alias-macs";
+            }
+            config false;
+            mandatory true;
+            description
+              "RU's alias MAC address used for alias MAC based flow";
+          }
+          leaf vlan-id {
+            type leafref {
+              path "/if:interfaces/if:interface[if:name = current()/../../interface-name]/xran-int:vlan-id";
+            }
+            description
+              "RU's VLAN-ID used for alias MAC based flow";
+          }
+          leaf llscu-mac-address {
+            type yang:mac-address;
+            mandatory true;
+            description
+              "lls-CU's MAC address used for alias MAC based flow";
+          }
+        }
+        container eth-flow {
+          when "derived-from(../../../transport-session-type, 'ETH-INTERFACE')";
+          description "leafs for mac + vlan-id type data flows";
+          leaf ru-mac-address {
+            type leafref {
+              path "/if:interfaces/if:interface[if:name = current()/../../interface-name]/xran-int:mac-address";
+            }
+            mandatory true;
+            description
+              "RU's MAC address used for Ethernet based flow";
+          }
+          leaf vlan-id {
+            type leafref {
+              path "/if:interfaces/if:interface[if:name = current()/../../interface-name]/xran-int:vlan-id";
+            }
+            mandatory true;
+            description
+              "RU's VLAN-ID used for Ethernet based flow";
+          }
+          leaf llscu-mac-address {
+            type yang:mac-address;
+            mandatory true;
+            description
+              "lls-CU's MAC address used for alias MAC based flow";
+          }
+        }
+        container udpip-flow {
+          when "derived-from(../../../transport-session-type, 'UDPIP-INTERFACE')";
+          if-feature xran-int:UDPIP-BASED-CU-PLANE;
+          description "leafs for UDP/IP type data flows";
+          choice address {
+            leaf ru-ipv4-address {
+              type leafref {
+                path "/if:interfaces/if:interface[if:name = current()/../../interface-name]/ip:ipv4/ip:address/ip:ip";
+              }
+              description "RU's IPv4 address";
+            }
+            leaf ru-ipv6-address {
+              type leafref {
+                path "/if:interfaces/if:interface[if:name = current()/../../interface-name]/ip:ipv6/ip:address/ip:ip";
+              }
+              description "RU's IPv6 address";
+            }
+            mandatory true;
+            description "choice of RU IPv4 or IPv6 address";
+          }
+          leaf llscu-ip-address {
+            type inet:ip-address;
+            mandatory true;
+            description "lls-CU's IPv address";
+          }
+          leaf ru-ephemeral-udp-port {
+            type inet:port-number;
+            mandatory true;
+            description
+              "ephemeral port used by RU";
+          }
+          leaf llscu-ephemeral-udp-port {
+            type inet:port-number;
+            mandatory true;
+            description
+              "ephemeral port used by lls-CU";
+          }
+          leaf destination-udp {
+            type inet:port-number;
+            mandatory true;
+            description "the well known UDP port number used by eCPRI";
+            // fixme - add in a default when allocated by IANA
+          }
+        }
+      }
+    }
+  }
+}

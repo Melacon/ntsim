@@ -1,0 +1,948 @@
+module xran-uplane-conf {
+  yang-version 1.1;
+  namespace "urn:xran:uplane-conf:1.0";
+  prefix "xran-uplane-conf";
+
+  import xran-processing-element {
+    prefix "xran-pe";
+  }
+
+  import ietf-interfaces {
+    prefix "if";
+  }
+
+  import xran-module-cap {
+    prefix "mcap";
+  }
+
+  organization "xRAN Forum";
+
+  contact
+    "www.xran.org";
+
+  description
+    "This module defines the module capabilities for
+    the xRAN Radio Unit U-Plane configuration.
+
+    Copyright 2018 the xRAN Forum.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS'
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the above disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the above disclaimer in the documentation
+    and/or other materials provided with the distribution.
+    * Neither the Members of the xRAN Forum nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.";
+
+  revision "2018-07-20" {
+    description
+      "version 1.0.0 - First release of the xRAN YANG M-Plane models.
+
+      This version of the model supports v01.00 of the corrsponding xRAN
+      M-Plane Specification.";
+    reference "XRAN-FH.MP.0-v01.00";
+  }
+
+  grouping  eaxc {
+    description
+      "One eAxC identifier (eAxC ID) comprises a band and sector
+      identifier (BandSector_ID), a component-carrier identifier (CC_ID) and a
+      spatial stream identifier (RU_Port_ID).
+
+      In this version of the specification, one eAxC contains only one spatial
+      stream (i.e. one beam per subcarrier) at a time.
+
+      Bit allocation is subdivided as follows:
+      *    CU_Port_ID: Used to differentiate processing units at lls-CU
+      *    BandSector_ID: Aggregated cell identifier
+      *    CC_ID: distinguishes Carrier Components
+      *    RU_Port_ID: Used to differentiate spatial streams or beams on the RU
+
+      The bitwidth of each of the above fields is variable this model is supposed to check
+        if we are occpying bits continuously but we do not have to occupy all 16 bits";
+
+
+    leaf cu-port-bitmask {
+      type uint16;
+	  mandatory true;
+      description
+        "mask for eaxc-id bits used to encode CU Port ID";
+    }
+
+    leaf band-sector-bitmask {
+      type uint16;
+      mandatory true;
+      description
+        "mask for eaxc-id bits used to encode the band sector ID";
+    }
+
+    leaf ccid-bitmask {
+      type uint16;
+	  mandatory true;
+      description
+        "mask for eaxc-id bits used to encode the component carrier id";
+    }
+
+    leaf ru-port-bitmask {
+      type uint16;
+	  mandatory true;
+      description
+        "mask for eaxc-id bits used to encode the RU Port ID";
+    }
+
+    leaf eaxc-id {
+      type uint16;
+	  mandatory true;
+      description
+        "encoded value of eaxcid to be read by CU-Plane";
+    }
+  }
+
+  container user-plane-configuration {
+    description "top level container for user plane configuration";
+
+    container compression {
+	  description
+	    "Container which consists of global configurable parameters for compression";
+
+      leaf compression-type {
+        type enumeration {
+          enum STATIC {
+            description
+              "Indicates that static compression method will be used (both compression and IQ bitwidth)";
+          }
+
+          enum DYNAMIC {
+            description
+              "Indicates that dynamic compresion method will be used";
+          }
+        }
+    		description
+    		  "Compression type that lls-CU wants to be supported";
+      }
+
+      leaf bitwidth {
+        when "./../compression-type = 'STATIC'";
+        type uint8;
+        description
+          "Bitwidth to be used in compression";
+      }
+
+      leaf compression-method {
+        when "./../compression-type = 'STATIC'";
+        type enumeration {
+          enum BLOCK_FLOATING_POINT {
+            description
+              "Block floating point compression and decompression will be used";
+          }
+
+          enum BLOCK_SCALING {
+            description
+              "Block scaling compression and decompresion will be used";
+          }
+
+          enum U_LAW {
+            description
+              "u-Law compression and decompresion method will be used";
+          }
+
+          enum BEAMSPACE {
+            description
+              "Beamspace compression and decompression will be used";
+          }
+
+          enum MODULATION {
+            description
+              "Modulation compression and decompression will be used";
+          }
+        }
+  	    description
+  	      "Compresion method which can be supported by the RU";
+      }
+    }
+
+    list low-level-tx-links {
+      key name;
+      description
+        "Object model for low-level-tx-link configuration";
+
+      leaf name {
+        type string;
+        description
+          "Unique name of low-level-tx-link object.";
+      }
+
+      leaf processing-element {
+        type leafref {
+          path "/xran-pe:processing-elements/xran-pe:ru-elements/xran-pe:name";
+        }
+        mandatory true;
+        description
+          "Contains name of processing-element to be used as transport by low-level-tx-link";
+      }
+
+      leaf tx-array-carrier {
+        type leafref {
+          path "/user-plane-configuration/tx-array-carriers/name";
+        }
+        mandatory true;
+        description
+          "Contains name of tx-array-carriers MO to be used as transport by low-level-tx-link";
+      }
+
+      leaf low-level-tx-endpoint {
+        type string;
+        must "boolean(../../low-level-tx-endpoints[name = current()])" {
+          error-message "low-level-tx-endpoint you want to set does not exists in /low-level-tx-endpoints/name";
+        }
+        mandatory true;
+        description
+          "Contains name of low-level-tx-endpoints MO to be used as transport by low-level-tx-link";
+      }
+
+      container remote-address {
+        uses eaxc;
+
+        must "( cu-port-bitmask + band-sector-bitmask + ccid-bitmask + ru-port-bitmask ) =
+              '(0 | 1 | 3 | 7 | 15 | 31 | 63 | 127 | 255 | 511 | 1023 | 2047 | 4095 | 8191 | 16383 | 32767 | 65535)'" {
+          error-message "Bitmasks for eaxc-id is badly formatted";
+        }
+
+        description
+          "Contains address of remote TX endpoint served by NETCONF client.";
+      }
+    }
+
+    list low-level-rx-links {
+      key name;
+      description
+        "Object model for low-level-rx-links configuration";
+
+      leaf name {
+        type string;
+
+        description
+          "Unique name of low-level-rx-links object.";
+      }
+
+      leaf processing-element {
+        type leafref {
+          path "/xran-pe:processing-elements/xran-pe:ru-elements/xran-pe:name";
+        }
+        mandatory true;
+        description
+          "Contains name of processing-element to be used as transport by LowLevelTxLink";
+      }
+
+      leaf rx-array-carrier {
+        type leafref {
+          path "/user-plane-configuration/rx-array-carriers/name";
+        }
+        mandatory true;
+
+        description
+          "Contains name of rx-array-carriers MO to be used as transport by low-level-rx-links";
+      }
+
+      leaf low-level-rx-endpoint {
+        type string;
+        must "boolean(../../low-level-rx-endpoints[name = current()])" {
+          error-message "low-level-rx-endpoint you want to set does not exists in /low-level-rx-endpoints/name";
+        }
+        mandatory true;
+
+        description
+          "Contains name of low-level-rx-endpoints MO to be used as transport by low-level-rx-links";
+      }
+
+      container remote-address {
+        uses eaxc;
+
+        must "( cu-port-bitmask + band-sector-bitmask +ccid-bitmask + ru-port-bitmask ) =
+              '(0 | 1 | 3 | 7 | 15 | 31 | 63 | 127 | 255 | 511 | 1023 | 2047 | 4095 | 8191 | 16383 | 32767 | 65535)'" {
+          error-message "Bitmasks for eaxc-id is badly formatted";
+        }
+
+        description
+          "Contains address of remote RX endpoint served by Netconf client.";
+      }
+
+  	  leaf priority {
+  	    type enumeration {
+    		  enum HIGH {
+    		    description
+    			     "Means high priority for link";
+    		  }
+    		  enum LOW {
+    		    description
+    			     "Means low priority for link";
+    		  }
+  	    }
+
+    		description
+    		  "Parameter to set priority for this link";
+  	  }
+    }
+
+    list static-low-level-tx-endpoints {
+      key name;
+      config false;
+      description
+        "Object model for static-low-level-tx-endpoints configuration";
+
+      leaf name {
+        type string;
+
+        description
+          "Unique name of static-low-level-tx-endpoints object.";
+      }
+
+      leaf interface {
+        type string;
+        must "boolean(/if:interfaces/if:interface[if:name = current()])" {
+          error-message "ethernet-interface you want to set does not exists in /interfaces/interface/name";
+        }
+
+        description
+          "Contains name of ietf:interface to be used as transport by low-level-tx-endpoints";
+      }
+
+      leaf array {
+        type leafref {
+          path "/user-plane-configuration/tx-arrays/name";
+        }
+        description
+          "Contains distname of tx-arrays, particular low-level-tx-endpoints is in hardware dependency with.
+          Note: single instance of tx-arrays can be referenced by many instances of low-level-tx-endpoints
+          (e.g. to allow DU to handle multiple fronthauls and multiple component carriers).";
+      }
+    }
+
+    list static-low-level-rx-endpoints {
+      key name;
+      config false;
+      description
+        "Object model for static-low-level-rx-endpoints configuration";
+
+      leaf name {
+        type string;
+
+        description
+          "Unique name of static-low-level-rx-endpoints object.";
+      }
+
+      leaf interface {
+        type string;
+        must "boolean(/if:interfaces/if:interface[if:name = current()])" {
+          error-message "interface you want to set does not exists in /interfaces/interface/name";
+        }
+
+        description
+          "Contains name of ietf:interface to be used as transport by low-level-rx-endpoints";
+      }
+
+      leaf array {
+        type leafref {
+          path "/user-plane-configuration/rx-arrays/name";
+        }
+        description
+          "Contains distname of rx-arrays, particular low-level-rx-endpoints is in hardware dependency with.
+          Note: single instance of rx-arrays can be referenced by many instances of low-level-rx-endpoints
+          (e.g. to allow DU to handle multiple fronthauls and multiple component carriers).";
+      }
+    }
+
+    list low-level-tx-endpoints {
+      key name;
+      description
+        "Object model for low-level-tx-endpoints configuration - augmented static-low-level-tx-endpoints by local-address
+        which cannot be added to static low-level-tx-endpoints as we cannot have modificable element in static object";
+
+      leaf name {
+        type string;
+        must "boolean(../../static-low-level-tx-endpoints[name = current()])" {
+          error-message "name you want to set does not exist in /static-low-level-tx-endpoints/name";
+        }
+
+        description
+          "Unique name of low-level-tx-endpoint object.";
+      }
+
+      container local-address {
+        uses eaxc;
+
+        must "( cu-port-bitmask + band-sector-bitmask + ccid-bitmask + ru-port-bitmask ) =
+              '(0 | 1 | 3 | 7 | 15 | 31 | 63 | 127 | 255 | 511 | 1023 | 2047 | 4095 | 8191 | 16383 | 32767 | 65535)'" {
+          error-message "Bitmasks for eaxc-id is badly formatted";
+        }
+        description
+          "Contains local address of low level TX endpoint offered by Netconf server.";
+      }
+    }
+
+
+    list low-level-rx-endpoints {
+      key name;
+      description
+        "Object model for low-level-rx-endpoint configuration - augmented static-low-level-rx-endpoints by local-address
+        which cannot be added to static low-level-rx-endpoints as we cannot have modificable element in static object";
+
+      leaf name {
+        type string;
+        must "boolean(../../static-low-level-rx-endpoints[name = current()])" {
+          error-message "name you want to set does not exist in /static-low-level-rx-endpoints/name";
+        }
+
+        description
+          "Unique name of low-level-rx-endpoint object.";
+      }
+
+      container local-address {
+        uses eaxc;
+
+        must "( cu-port-bitmask + band-sector-bitmask + ccid-bitmask + ru-port-bitmask ) =
+              '(0 | 1 | 3 | 7 | 15 | 31 | 63 | 127 | 255 | 511 | 1023 | 2047 | 4095 | 8191 | 16383 | 32767 | 65535)'" {
+          error-message "Bitmasks for eaxc-id is badly formatted";
+        }
+
+        description
+          "Contains local address of low level RX endpoint offered by Netconf server.";
+      }
+    }
+
+    list tx-array-carriers {
+      key name;
+      description
+        "Object model for tx-array-carriers configuration";
+
+      leaf name {
+        type string;
+
+        description
+          "Unique name of tx-array-carriers object.";
+      }
+
+      leaf absolute-frequency-center {
+        type uint32;
+        mandatory true;
+        description
+          "Absolute Radio Frequency Channel Number - indirectly indicates RF center carrier frequency of downlink signal.";
+      }
+
+      leaf center-of-channel-bandwidth {
+        type uint64;
+		    units Hz;
+        mandatory true;
+        description
+          "Center frequency of channel bandwidth in Hz. Common for all numerologies.";
+      }
+
+      leaf channel-bandwidth {
+        type uint64;
+        units Hz;
+        mandatory true;
+
+        description
+          "Width of carrier given in Hertz";
+      }
+
+
+      leaf power {
+        type decimal64 {
+          fraction-digits 4;
+        }
+        mandatory true;
+
+        description
+          "Transmission power in dBm. Value applicable to each array element carrier belonging to array carrier.";
+      }
+
+      leaf active {
+        type enumeration {
+          enum INACTIVE {
+                description
+                  "carrier does not provide signal - transmission is disabled";
+              }
+          enum SLEEP{
+                description
+                  "carrier is fully configured and was active but is energy saving mode";
+              }
+          enum ACTIVE{
+                description
+                  "carrier is fully configured and properly providing the signal";
+              }
+        }
+        default INACTIVE;
+
+        description
+          "Indicates if transmission is enabled for this tx-array-carriers. Note that Netconf server uses state parameter
+          to indicate actual state of tx-array-carriers operation. When tx-array-carriers is in sleep status,
+          Netconf server rejects all other operation request to tx-array-carriers object except either request to change from sleep
+          to active status or delete MO operation (see 4.8) to the object.";
+      }
+
+      leaf state {
+        type enumeration {
+          enum DISABLED {
+            description
+              "tx-array-carrier is not active - transmission of signal is disabled.";
+          }
+          enum BUSY {
+            description
+              "tx-array-carrier is processing an operation requested by change of active parameter.
+              When tx-array-carriers is BUSY the transmission of signal is not guaranteed.";
+          }
+          enum READY {
+            description
+              "tx-array-carrier had completed activation operation - is active and transmission of signal is ongoing.";
+          }
+        }
+        config false;
+
+        description
+          "Indicates state of tx-array-carriers activation operation";
+      }
+
+      leaf type {
+        type enumeration {
+          enum NR {
+                description
+                  "5G technology";
+              }
+        }
+        config false;
+
+        description
+          "Type of carrier. Indicates array-carrier technology.";
+      }
+
+      leaf fft-size {
+        type uint32;
+
+        description
+            "The FFT size defines the number of bins used for dividing the window into equal strips, or bins.
+              Hence, a bin is a spectrum sample, and defines the frequency resolution of the window.";
+      }
+
+      leaf downlink-radio-frame-offset {
+        type uint32 {
+          range 0..12288000;
+        }
+        mandatory true;
+
+        description
+          "This parameter is used for offsetting the starting position of 10ms radio frame.
+          Note: The value should have same value within DU to all tx-array-carrierss that have same frequency and bandwidth.
+          Note2: Unit is 1/1.2288e9 Hz and accuracy is 1/4 Tc. Then, its range is calculated 0..12288000.";
+      }
+
+      leaf downlink-sfn-offset {
+        type int16 {
+          range -32768..32767;
+        }
+        mandatory true;
+
+        description
+          "This parameter is used for offsetting SFN value.
+          Unit is in 10ms.
+          Note: The value should have same value within DU to all tx-array-carrierss that have same frequency and bandwidth.";
+      }
+
+      leaf default-scs {
+		type enumeration {
+          enum KHZ_15 {
+      	    value 0;
+            description
+            "15kHz sub carrier spacing";
+          }
+          enum KHZ_30 {
+            value 1;
+                description
+                  "30kHz sub carrier spacing";
+          }
+          enum KHZ_60 {
+            value 2;
+                description
+                  "60kHz sub carrier spacing";
+          }
+          enum KHZ_120 {
+            value 3;
+                description
+                  "120kHz sub carrier spacing";
+          }
+          enum KHZ_240 {
+            value 4;
+                description
+                  "240kHz sub carrier spacing";
+          }
+          enum KHZ_1_25 {
+            value 12;
+                  description
+                  "1,25kHz sub carrier spacing";
+          }
+          enum KHZ_5 {
+            value 14;
+                description
+                  "5kHz sub carrier spacing";
+          }
+        }
+
+  	    mandatory true;
+
+        description
+          "Sub-carrier spacing configuration";
+  	  }
+
+  		list scs-specific-config {
+  			key scs;
+  			description
+  				"List of scs-specific configurations";
+  				uses scs-config;
+  			}
+        leaf cp-length {
+          type uint32;
+            description
+              "CP length woud be determined by deployment types that has different
+                delay spread requirements, and/or determined by frequency bands, service type
+                or determined by whether beam forming technology is used or not";
+        }
+      }
+
+    list rx-array-carriers {
+      key name;
+      description
+        "Object model for rx-array-carriers configuration";
+
+  		leaf name {
+  		  type string;
+            description
+            "Unique name of rx-array-carriers object.";
+      }
+
+
+      leaf absolute-frequency-center {
+        type uint32;
+        mandatory true;
+        description
+         "Absolute Radio Frequency Channel Number - indirectly indicates RF center carrier frequency of downlink signal.";
+      }
+      leaf center-of-channel-bandwidth {
+        type uint64;
+		    units Hz;
+        mandatory true;
+        description
+          "Center frequency of channel bandwidth. Common for all numerologies.";
+      }
+      leaf channel-bandwidth {
+        type uint64;
+        units Hz;
+        mandatory true;
+        description
+          "Width of carrier given in Hertz";
+      }
+
+
+      leaf active {
+        type enumeration {
+          enum INACTIVE {
+                description
+                  "carrier does not provide signal - transmission is disabled";
+              }
+          enum SLEEP{
+                description
+                  "carrier is fully configured and was active but is energy saving mode";
+              }
+          enum ACTIVE{
+                description
+                  "carrier is fully configured and properly providing the signal";
+              }
+        }
+        default INACTIVE;
+        description
+          "Indicates if transmission is enabled for this rx-array-carriers. Note that Netconf server uses state parameter
+          to indicate actual state of rx-array-carriers operation. When rx-array-carriers is in sleep status,
+          Netconf server rejects all other operation request to rx-array-carriers object except either request to change from sleep
+          to active status or delete MO operation (see 4.8) to the object.";
+      }
+
+      leaf state {
+        type enumeration {
+          enum DISABLED {
+            description
+              "rx-array-carrier is not active - transmission of signal is disabled.";
+          }
+          enum BUSY {
+            description
+              "rx-array-carrier is processing an operation requested by change of active parameter.
+              When tx-array-carriers is BUSY the transmission of signal is not guaranteed.";
+          }
+          enum READY {
+            description
+              "rx-array-carrier had completed activation operation - is active and transmission of signal is ongoing.";
+          }
+        }
+        config false;
+
+        description
+          "Indicates state of rx-array-carriers activation operation";
+      }
+
+      leaf type {
+        type enumeration {
+          enum NR {
+                description
+                  "5G technology";
+              }
+        }
+        config false;
+
+        description
+          "Type of carrier. Indicates array-carrier technology.";
+      }
+
+      leaf fft-size {
+        type uint32;
+          description
+            "FFT size";
+      }
+
+      leaf ul-fft-sampling-offset {
+        type uint32;
+            description
+              "uplink FFT sampling offset";
+      }
+
+      leaf n-ta-offset {
+        type uint32;
+        description
+          "Value of configurable N-TA offset";
+      }
+      leaf default-scs {
+  	    type enumeration {
+          enum KHZ_15 {
+            value 0;
+            description
+              "15kHz sub carrier spacing";
+          }
+          enum KHZ_30 {
+            value 1;
+                description
+                  "30kHz sub carrier spacing";
+          }
+          enum KHZ_60 {
+            value 2;
+                description
+                  "60kHz sub carrier spacing";
+          }
+          enum KHZ_120 {
+            value 3;
+                description
+                  "120kHz sub carrier spacing";
+          }
+          enum KHZ_240 {
+            value 4;
+                description
+                  "240kHz sub carrier spacing";
+          }
+          enum KHZ_1_25 {
+            value 12;
+                  description
+                  "1,25kHz sub carrier spacing";
+          }
+          enum KHZ_5 {
+            value 14;
+                description
+                  "5kHz sub carrier spacing";
+          }
+        }
+        mandatory true;
+
+        description
+          "Sub-carrier spacing configuration";
+	  }
+
+  	  list scs-specific-config {
+  		key scs;
+  		description
+  		  "List of static scs-specific configurations";
+  		  uses scs-config;
+  		}
+
+
+      leaf cp-length {
+        type uint32;
+          description
+            "CP length woud be determined by deployment types that has different
+              delay spread requirements, and/or determined by frequency bands, service type
+              or determined by whether beam forming technology is used or not";
+      }
+
+    }
+
+    list tx-arrays {
+      key name;
+      config false;
+      description
+        "Object model for tx-arrays configuration";
+
+      leaf name {
+        type string;
+        description
+          "Unique name of tx-arrays object.";
+      }
+
+      leaf polarisation {
+        type int8 {
+          range "-45 | 0 | 45 | 90";
+        }
+          description
+            "This parameter informing which polarization is served by particular antenna array
+              as per HW design. Expected values are +45 deg, -45 deg, 0 deg and 90 deg.
+              Note: In case of multi-band RU orthogonality is assumed to exist per band, meaning:
+              either pair of +45 deg and -45 deg or pair of 0 deg and 90 deg are expected per band.
+              Non-orthogonal pairs like e.g 0 deg and +45 deg are not expected.";
+      }
+
+      leaf panel-id {
+        type uint8;
+          description
+            "This parameter informing panel particular antenna array is built into.
+              Intended use is to indicate if two orthogonal arrays occupy the same physical panel (e.g. as cross-polarized
+              radiators) or if arrays of different polarizations are built into physically separated panels.";
+      }
+
+      leaf band-number {
+        type leafref {
+          path "/mcap:module-capability/mcap:band-capabilities/mcap:band-number";
+        }
+        description
+          "This parameter informing which frequency band particular antenna
+           array is serving for.
+           Intended use is to deal with multiband solutions.";
+      }
+    }
+
+    list rx-arrays {
+      key name;
+      config false;
+      description
+        "Object model for rx-arrays configuration";
+
+      leaf name {
+        type string;
+        description
+          "Unique name of rx-arrays object.";
+      }
+
+      leaf polarisation {
+        type int8 {
+          range "-45 | 0 | 45 | 90";
+        }
+        description
+          "This parameter informing which polarization is served by  particular antenna array
+          as per HW design. Expected values are +45 deg, -45 deg, 0 deg and 90 deg.
+          Note: In case of multi-band RU orthogonality is assumed to exist per band, meaning:
+          either pair of +45 deg and -45 deg or pair of 0 deg and 90 deg are expected per band.
+          Non-orthogonal pairs like e.g 0 deg and +45 deg are not expected.";
+      }
+
+      leaf panel-id {
+        type uint8;
+        description
+          "This parameter informing panel particular antenna array is built
+           into.
+           Intended use is to indicate if two orthogonal arrays occupy the same
+           physical panel (e.g. as cross-polarized radiators) or if arrays of
+           different polarizations are built into physically separated panels.";
+      }
+
+      leaf band-number {
+        type leafref {
+          path "/mcap:module-capability/mcap:band-capabilities/mcap:band-number";
+        }
+        description
+          "This parameter informing which frequency band particular antenna
+           array is serving for.
+           Intended use is to deal with multiband solutions.";
+      }
+    }
+  }
+
+   grouping scs-config {
+    description
+	  "It groups all parameters related to SCS configuration";
+
+    leaf scs {
+      type enumeration {
+        enum KHZ_15 {
+          value 0;
+              description
+                "15kHz sub carrier spacing";
+        }
+        enum KHZ_30 {
+          value 1;
+              description
+                "30kHz sub carrier spacing";
+        }
+        enum KHZ_60 {
+          value 2;
+              description
+                "60kHz sub carrier spacing";
+        }
+        enum KHZ_120 {
+          value 3;
+              description
+                "120kHz sub carrier spacing";
+        }
+        enum KHZ_240 {
+          value 4;
+              description
+                "240kHz sub carrier spacing";
+        }
+        enum KHZ_1_25 {
+          value 12;
+                description
+                "1,25kHz sub carrier spacing";
+        }
+        enum KHZ_5 {
+          value 14;
+              description
+                "5kHz sub carrier spacing";
+        }
+      }
+        description
+          "Sub-carrier spacing configuration";
+    }
+    leaf offset-to-absolute-frequency-center {
+      type int32;
+      mandatory true;
+      description
+        "Offset to center-of-carrier-bandwidth. Mostly negative value. Granularity of this parameter is 0.5 SCS";
+    }
+
+    leaf number-of-prbs {
+      type uint32;
+      mandatory true;
+      description
+        "Number of physical resource blocks.";
+    }
+  }
+
+
+}

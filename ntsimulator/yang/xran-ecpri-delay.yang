@@ -1,0 +1,125 @@
+module xran-ecpri-delay {
+  yang-version 1.1;
+  namespace "urn:xran:message5:1.0";
+  prefix "xran-msg5";
+
+  import xran-processing-element {
+    prefix "element";
+  }
+
+  organization "xRAN Forum";
+
+  contact
+    "www.xran.org";
+
+  description
+    "This module is an optional module for supporting eCPRI message 5 handling
+    used for eCPRI based delay measurements.
+
+    Copyright 2018 the xRAN Forum.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS'
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the above disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the above disclaimer in the documentation
+    and/or other materials provided with the distribution.
+    * Neither the Members of the xRAN Forum nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.";
+
+  revision "2018-07-20" {
+    description
+      "version 1.0.0 - First release of the xRAN YANG M-Plane models.
+
+      This version of the model supports v01.00 of the corrsponding xRAN
+      M-Plane Specification.";
+    reference "XRAN-FH.MP.0-v01.00";
+  }
+
+  container ecpri-delay-message {
+    description "top level tree covering off lls-CU to RU msg5 delay measurement";
+
+    container ru-compensation {
+      config false;
+      description
+        "leafs for ru timing compensation based on message 5 handling";
+      leaf tcv2 {
+        type uint32;
+        units nanoseconds;
+        description
+          "a compensation value to account for expected delay from packet
+          receipt at R2 to timestamping in the RU";
+      }
+      leaf tcv1 {
+        type uint32;
+        units nanoseconds;
+        description
+          "a compensation value to account for expected processing time from
+          timestamping in the RU until actual packet transmission at R3";
+      }
+    }
+
+    leaf enable-message5 {
+      type boolean;
+      default false;
+      description
+        "whether RU's eCPRI message 5 handling is enabled.";
+    }
+
+    container message5-sessions {
+      description "session information for eCPRI message 5";
+
+      list session-parameters {
+        key "session-id";
+        description "list of MSG5 session information";
+        leaf session-id {
+          type uint32;
+          description "Session ID for MSG5 responder";
+        }
+        leaf processing-element-name {
+          type leafref {
+            path "/element:processing-elements/element:ru-elements/element:name";
+          }
+          description "the name of the processing element used for MSG5";
+        }
+        container flow-state {
+          config false;
+          description "MSG5 flow state";
+          leaf responses-transmitted {
+            type uint32;
+            description
+              "The total number of eCPRI mesage 5 response messages transmitted by
+              the RU.";
+          }
+          leaf requests-transmitted {
+            type uint32;
+            description
+              "The total number of eCPRI mesage 5 request messages transmitted by
+              the RU.";
+          }
+          leaf followups-transmitted {
+            type uint32;
+            description
+              "The total number of eCPRI mesage 5 follow up messages transmitted by
+              the RU.";
+          }
+        }
+      }
+    }
+  }
+}

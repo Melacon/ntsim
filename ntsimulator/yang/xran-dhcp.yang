@@ -1,0 +1,183 @@
+module xran-dhcp {
+  yang-version 1.1;
+  namespace "urn:xran:dhcp:1.0";
+  prefix "xran-dhcp";
+
+  import ietf-interfaces {
+    prefix "if";
+  }
+
+  import ietf-inet-types {
+    prefix "inet";
+  }
+
+  import ietf-dhcpv6-types {
+    prefix dhcpv6-type;
+    revision-date 2018-01-30;
+  }
+
+  organization "xRAN Alliance";
+
+  contact
+    "www.xran.org";
+
+  description
+    "This module defines the YANG definitions for managng the DHCP client on
+    the xRAN Radio Unit.
+
+    Copyright 2018 Members of the xRAN alliance.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS'
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the above disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the above disclaimer in the documentation
+    and/or other materials provided with the distribution.
+    * Neither the Members of the xRAN Forum nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.";
+
+  revision "2018-07-20" {
+    description
+      "version 1.0.0 - First release of the xRAN YANG M-Plane models.
+
+      This version of the model supports v01.00 of the corrsponding xRAN
+      M-Plane Specification.";
+    reference "XRAN-FH.MP.0-v01.00";
+  }
+
+  typedef netconf-client-id {
+    type union {
+      type inet:ip-address;
+      type inet:uri;
+    }
+    description "A NETCONF client identifier";
+  }
+
+  grouping netconf-clients {
+    description "the netconf clients discovered using DHCP";
+    list netconf-clients{
+      key client;
+      description "A list of IP addresses or URIs for NETCONF clients";
+      leaf client{
+        type netconf-client-id;
+        description "the client identifier";
+      }
+      leaf optional-port {
+        type inet:port-number;
+        description "an optional (non-default) port";
+      }
+    }
+  }
+
+  grouping dhcpv4-option {
+    description "DHCPv4 Configuration options";
+
+    leaf dhcp-server-identifier {
+      type  inet:ip-address;
+      description "DHCP server identifier";
+    }
+    leaf domain-name {
+      type  string;
+      description "Name of the domain";
+    }
+    leaf-list domain-name-servers {
+      type  inet:ip-address;
+      description "A list of DNS servers";
+    }
+    leaf interface-mtu {
+      type  uint32 {
+        range "0..65535";
+      }
+      description "Minimum Transmission Unit (MTU) of the interface";
+    }
+    leaf-list default-gateways{
+      type inet:ip-address;
+      description "the list of default gateways on the RUs subnet";
+    }
+    leaf vendor-specific-option {
+      type string;
+      description "The vendor specific option #43";
+    }
+    uses netconf-clients;
+  }
+
+  grouping dhcpv6-option {
+    description "DHCPv6 Configuration options";
+
+    container dhcp-server-identifier{
+      description "dhcpv6 server identifief";
+      uses dhcpv6-type:duid;
+    }
+    leaf domain-name {
+      type  string;
+      description "Name of the domain";
+    }
+    leaf-list domain-name-servers {
+      type  inet:ip-address;
+      description "A list of DNS servers";
+    }
+    uses netconf-clients;
+  }
+
+  container dhcp {
+    config false;
+    description
+      "DHCP client configuration";
+
+    list interfaces {
+      key "interface";
+      description "Interface configuration";
+
+      leaf interface {
+        type if:interface-ref;
+        description "Name of the interface";
+      }
+
+      container dhcpv4 {
+        description "DHCPv4 information";
+        leaf client-id {
+          type string;
+          description "DHCP client identifier";
+        }
+        uses dhcpv4-option;
+      }
+      container dhcpv6 {
+        description "DHCPv6 information";
+        container dhcp-client-identifier{
+          description "dhcpv6 client identifief";
+          uses dhcpv6-type:duid;
+        }
+        uses dhcpv6-option;
+      }
+    }
+
+    container m-plane-dhcp {
+      description "leafs covering off DHCP aspects of m-plane operations";
+      leaf private-enterprise-number {
+        type uint16;
+        description "the private eneteprrise number allocated to xRAN";
+      }
+      leaf vendor-class-data {
+        type string;
+        description
+          "The string used in DHCPv4 option 60 or DHCPv4 option 124 and
+          DHCPv6 option 16";
+      }
+    }
+  }
+}

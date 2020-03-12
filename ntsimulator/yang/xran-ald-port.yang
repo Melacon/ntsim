@@ -1,0 +1,158 @@
+module xran-ald-port {
+  yang-version 1.1;
+  namespace "urn:xran:ald-port:1.0";
+  prefix "xran-ald-port";
+
+  organization "xRAN Forum";
+
+  contact
+    "www.xran.org";
+
+  description
+    "This module defines the input state and output configuration for
+    the xRAN Radio Unit Antenna Line Device capability.
+
+    Copyright 2018 the xRAN Forum.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS'
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the above disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the above disclaimer in the documentation
+    and/or other materials provided with the distribution.
+    * Neither the Members of the xRAN Forum nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.";
+
+  revision "2018-07-20" {
+    description
+      "version 1.0.0 - First release of the xRAN YANG M-Plane models.
+
+      This version of the model supports v01.00 of the corrsponding xRAN
+      M-Plane Specification.";
+    reference "XRAN-FH.MP.0-v01.00";
+  }
+
+  feature OVERCURRENT-SUPPORTED {
+    description
+      "This feature indicates that the RU supports the over-current notification
+      capability.";
+  }
+
+  container ald-ports-io {
+    description
+      "ALD port information.
+       ALD port of the RU that can be used to connect External Equipment (Antenna Line Devices).
+       Communication uses AISG over HDLC.
+       Physical connection depends on connector type offered by the port (RS-485 or antenna line)
+       Note: Single instance of ALD Port can point to more than one antenna line devices.";
+
+    leaf over-current-supported {
+      type boolean;
+      default false;
+      description
+	    "Set to TRUE when the RU supports over curent notifications";
+    }
+
+    list ald-port {
+      key "name";
+      description
+        "Leaf nodes describing ALD Port";
+      leaf name {
+        type string {
+          length "1..255";
+        }
+        description
+          "A name that is unique across the RU that identifies a ald port instance.
+          This name may be used in fault management to refer to a fault source
+          or affected object";
+      }
+
+      leaf port-id {
+        type uint8;
+		    config false;
+		    mandatory true;
+
+		    description
+          "A number which identifies an ALD Port.
+          The number of the Physical ALD port connector in the module.
+          If the module supports 2 ALD Port connectors, use 0 and 1.";
+      }
+
+      leaf dc-control-support{
+        type boolean;
+        config false;
+		    mandatory true;
+
+		    description
+          "It is shown that on/off in the DC power supply is possible.
+          In case of False, power supply is always on.";
+      }
+
+      leaf dc-enabled{
+		    when "./../dc-control-support = 'true'";
+        type boolean;
+
+		    description
+          "If dc-control-support is true case, this leaf is effective.
+          In case of true, the power supply is turned on.";
+      }
+
+      leaf supported-connector{
+        type enumeration {
+		      enum ANTENNA_CONNECTOR {
+		        description
+			        "This ald port is related to antenna connector";
+		      }
+		      enum RS485_PORT {
+		        description
+			        "This ald port is related to RS485 port";
+		      }
+		    }
+        config false;
+		    mandatory true;
+
+		    description
+          "Informs about the connectors of Module which ALDs are connected to.
+          This value is depending on HW design.";
+      }
+    }
+  }
+
+  notification overcurrent-report {
+    if-feature OVERCURRENT-SUPPORTED;
+
+	  description
+      "The RU is able to report overcurrent condition about Port.
+      This function is depending on HW design.
+      The notification depend on power consumption which connected ALD devices and module.";
+
+	  container overload-condition {
+      description
+	      "Container used in notification";
+
+	    leaf-list overloaded-ports {
+        type leafref {
+          path "/ald-ports-io/ald-port/name";
+        }
+
+        description
+		      "List of overloaded ports";
+      }
+    }
+  }
+}

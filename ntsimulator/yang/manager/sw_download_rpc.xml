@@ -1,0 +1,4 @@
+<software-download xmlns="urn:xran:software-management:1.0">
+  <remote-file-path>sftp://admin@sim.o-ran-sc.org:22/images/WHB-odu#123.ext</remote-file-path>
+  <certificate/>
+</software-download>

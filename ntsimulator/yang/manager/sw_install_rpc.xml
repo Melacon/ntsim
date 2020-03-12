@@ -1,0 +1,4 @@
+<software-install xmlns="urn:xran:software-management:1.0">
+  <slot-name>this needs to be replaced with an actual slot-name</slot-name>
+  <file-names>WHB-odu#123.ext</file-names>
+</software-install>

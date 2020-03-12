@@ -3,7 +3,7 @@
 		"fault-notification-delay-period":	0,
 		"ves-heartbeat-period":	0,
 		"is-netconf-available":	true,
-		"is-ves-available":	false
+		"is-ves-available":	true
 	},
 	"ves-endpoint-details":	{
 		"ves-endpoint-ip":	"172.17.0.1",

@@ -1,0 +1,3 @@
+<software-activate xmlns="urn:xran:software-management:1.0">
+  <slot-name>this needs to be replaced with an actual slot-name</slot-name>
+</software-activate>

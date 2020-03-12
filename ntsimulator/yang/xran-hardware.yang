@@ -1,0 +1,211 @@
+module xran-hardware {
+  yang-version 1.1;
+  namespace "urn:xran:hardware:1.0";
+  prefix "xran-hw";
+
+  import ietf-hardware {
+    prefix hw;
+  }
+  import iana-hardware {
+    prefix ianahw;
+  }
+
+  organization "xRAN Forum";
+
+  contact
+    "www.xran.org";
+
+  description
+    "This module defines the YANG definitions for managng the xRAN Radio Unit
+     hardware.
+
+     Copyright 2018 the xRAN Forum.
+
+     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS'
+     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+     IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+     ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+     LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+     CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+     SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+     INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+     CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+     ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+     POSSIBILITY OF SUCH DAMAGE.
+
+     Redistribution and use in source and binary forms, with or without
+     modification, are permitted provided that the following conditions are met:
+
+     * Redistributions of source code must retain the above copyright notice,
+     this list of conditions and the above disclaimer.
+     * Redistributions in binary form must reproduce the above copyright notice,
+     this list of conditions and the above disclaimer in the documentation
+     and/or other materials provided with the distribution.
+     * Neither the Members of the xRAN Forum nor the names of its
+     contributors may be used to endorse or promote products derived from
+     this software without specific prior written permission.";
+
+  revision "2018-07-20" {
+    description
+      "version 1.0.0 - First release of the xRAN YANG M-Plane models.
+
+      This version of the model supports v01.00 of the corrsponding xRAN
+      M-Plane Specification.";
+    reference "XRAN-FH.MP.0-v01.00";
+  }
+
+  feature ENERGYSAVING {
+    description
+      "Indicates that the Radio Unit supports energy saving state.";
+  }
+
+  // identity statements
+  identity XRAN-RADIO {
+    base ianahw:module;
+    description
+      "Module used as it represents a self-contained sub-system
+      used in /hw:/hardware/hw:component/hw:class";
+  }
+
+  // typedef statements
+  typedef energysaving-state {
+    type enumeration {
+      enum UNKNOWN {
+        description "The Radio Unit is unable to report energy saving state.";
+      }
+      enum SLEEPING {
+        description
+          "The Radio Unit is in a sleep state. The NETCONF management plane
+           connection is functioning. Other functions and hardware which are
+           not needed for management plane may be in energy saving mode.";
+      }
+      enum AWAKE {
+        description
+          "The Radio Unit is not in an energy saving state.";
+      }
+    }
+    description
+      "new typedef since ietf-hardware only covers pwer-state
+      for redundancy purposes and not power saving operations.";
+  }
+
+  typedef availability-type {
+    type enumeration {
+      enum UNKNOWN {
+        description "The Radio Unit is unable to report its availability state.";
+      }
+      enum NORMAL {
+        description
+          "The RU is functioning correctly.";
+      }
+      enum DEGRADED {
+        description
+          "The RU may be reporting a major alarm or may be reporting a critical
+           alarm that is only impacting one or more subcomponent, but where the
+           RU's implementation permit it to continue operation (server traffic)
+           in a degraded state.
+
+           Used for example, when the RU has M identical sub-components and
+           when a critical alarm is imapcting only N subcomponents, where N<M.";
+      }
+      enum FAULTY {
+        description
+          "The (sub-)components impacted by the critical alarm(s) impact the
+          ability of the RU to continue operation (serve traffic).";
+      }
+    }
+    description
+      "RU’s availability-state is derived by matching active faults
+       and their impact to module’s operation and enables an RU to indicate
+       that even though it may have one or more critical alarms, it can continue
+       to serve traffic.";
+  }
+
+  deviation /hw:hardware/hw:component/hw:name {
+    description
+      "Deviations for oryginal ietf-hardware/component/name to check if its pattern
+      and length mathes xRAN limitation
+
+      A name that is unique across the RU that identifies the RU instance.
+      This name may be used in fault management to refer to a fault source or
+      affected object corresponding to the generic RU.";
+
+      deviate add {
+      must "re-match(current(),'[a-zA-Z0-9]{1,255}')" {
+        error-message "Name must match pattern and length.";
+	  }
+    }
+  }
+
+  augment "/hw:hardware/hw:component" {
+    when "derived-from-or-self(hw:class, 'XRAN-RADIO')";
+    description "New xRAN parameters for xran hardware";
+    container label-content {
+      config false;
+      description
+        "Which set of attributes are printed on the Radio Unit's label";
+      leaf model-name {
+        type boolean;
+        description
+          "indicates whether model-name is included on the RU's label";
+      }
+      leaf serial-number {
+        type boolean;
+        description
+          "indicates whether serial number is included on the RU's label";
+      }
+      // add in other leafs according to manufacturer feedback on labels
+    }
+    leaf product-code {
+      type string;
+      config false;
+      description
+        "xRAN term that is distinct from model-name in ietf-hardware.";
+    }
+  }
+
+  augment "/hw:hardware/hw:component/hw:state"  {
+    when "derived-from-or-self(../hw:class, 'XRAN-RADIO')";
+    description
+      "new xRAN defined state";
+    leaf power-state {
+      if-feature "ENERGYSAVING";
+      type energysaving-state;
+      description
+        "The current power saving state for this component.
+        Note - hw:/hardware/compnent/state/standby-state defined in RFC 4268 is
+        used for redundancy purposes and not power saving operations.";
+    }
+    leaf availability-state {
+      type availability-type;
+      config false;
+      description
+        "RU’s availability-state is derived by matching active faults
+         and their impact to module’s operation and enables an RU to indicate
+         that even though it may have one or more critical alarms, it can continue
+         to serve traffic.";
+    }
+  }
+
+  augment "/hw:hardware-state-oper-enabled"  {
+    description "new availability state";
+    leaf availability-state {
+      type leafref {
+        path "/hw:hardware/hw:component/hw:state/xran-hw:availability-state";
+      }
+      description
+        "The availability-state of the RU.";
+    }
+  }
+
+  augment "/hw:hardware-state-oper-disabled"  {
+    description "new availability state";
+    leaf availability-state {
+      type leafref {
+        path "/hw:hardware/hw:component/hw:state/xran-hw:availability-state";
+      }
+      description
+        "The availability-state of the RU.";
+    }
+  }
+}

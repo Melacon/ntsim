@@ -15,5 +15,5 @@ services:
       NTS_IP: "0.0.0.0"
       NETCONF_BASE: 50000
       DOCKER_ENGINE_VERSION: "1.40"
-      MODELS_IMAGE: "ntsim_oran"
+      MODELS_IMAGE: "ntsim_xran"
 
