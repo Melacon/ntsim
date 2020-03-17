@@ -1,0 +1,297 @@
+module network-topology-simulator {
+  yang-version 1.1;
+  namespace "urn:onf:params:xml:ns:yang:network-topology-simulator";
+  prefix network-topology-simulator;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+
+  organization
+    "Melacon";
+  contact
+    "Web: <https://github.com/Melacon>
+     Editors:  Alex Stancu
+               <mailto:stancu.liviualex@gmail.com>";
+  description
+    "This module contains a collection of YANG definitions for managing the Network Topology Simulator.";
+
+  revision 2019-10-25 {
+    description
+      "Modify notifications. Add VES message configuration options.";
+    reference
+      "O-RAN SC SIM project";
+  }
+  revision 2019-06-07 {
+    description
+      "Modify controller details.";
+    reference
+      "O-RAN SC SIM project";
+  }
+  revision 2019-03-07 {
+    description
+      "Initial version";
+    reference
+      "O-RAN SC SIM project";
+  }
+
+  typedef operational-state-type {
+    type enumeration {
+      enum not-specified {
+        description
+          "none";
+      }
+      enum running {
+        description
+          "none";
+      }
+      enum created {
+        description
+          "none";
+      }
+      enum exited {
+        description
+          "none";
+      }
+    }
+    description
+      "The operation state of the simulated device.";
+  }
+
+  typedef authentication-method-type {
+    type enumeration {
+      enum no-auth {
+        description
+          "no security (http)";
+      }
+      enum cert-only {
+        description
+          "auth by certificate (https)";
+      }
+      enum basic-auth {
+        description
+          "auth by basic auth username and password (https)";
+      }
+      enum cert-basic-auth {
+        description
+          "auth by certificate and basic auth username / password (https)";
+      }
+    }
+    description
+      "The authentication method for VES messaging.";
+  }
+
+  typedef percent {
+    type decimal64 {
+      fraction-digits 2;
+      range "0 .. 100";
+    }
+    description
+      "Percentage";
+  }
+
+  grouping controller-details-type-g {
+    leaf controller-ip {
+      type inet:ip-address;
+      description
+        "The IP Address of the SDN Controller.";
+    }
+    leaf controller-port {
+      type inet:port-number;
+      description
+        "The Port of the SDN Controller.";
+    }
+    leaf controller-username {
+      type string;
+      description
+        "The Username of the SDN Controller.";
+    }
+    leaf controller-password {
+      type string;
+      description
+        "The Password of the SDN Controller.";
+    }
+    description
+      "none";
+  }
+
+  grouping simulated-devices-type-g {
+    leaf uuid {
+      type string;
+      description
+        "The UUID of the simulated device.";
+    }
+    leaf device-ip {
+      type string;
+      description
+        "The IP Address of the simulated device.";
+    }
+    leaf-list device-port {
+      type uint32;
+      description
+        "A NETCONF endpoint (port) of the simulated device.";
+    }
+    leaf is-mounted {
+      type boolean;
+      description
+        "Specifies if the simulated device is mounted in the SDN Controller.";
+    }
+    leaf operational-state {
+      type operational-state-type;
+      description
+        "Specifies the operational state of the simulated device.";
+    }
+    description
+      "none";
+  }
+
+  container simulator-config {
+    description
+      "Configuration container of the simulator.";
+    leaf simulated-devices {
+      type uint32;
+      default "0";
+      description
+        "The number of devices to be simulated.";
+    }
+    leaf mounted-devices {
+      type uint32;
+      default "0";
+      description
+        "The number of devices to be mounted in ODL. The configured number should not exceed the number of mounted devices.";
+    }
+    container notification-config {
+      leaf fault-notification-delay-period {
+        type uint32;
+        default "0";
+        description
+          "Interval in seconds between two consecutive notifications. If the attribute is set to 0, nofitications are not generated.";
+      }
+      leaf ves-heartbeat-period {
+        type uint32;
+        default "0";
+        description
+          "Interval in seconds between two VES heartbeat messages. If the attribute is set to 0, heartbeat messages are not generated.";
+      }
+      leaf is-netconf-available {
+        type boolean;
+        default "true";
+        description
+          "If set to 'true', NETCONF notifications will be generated.";
+      }
+      leaf is-ves-available {
+        type boolean;
+        default "true";
+        description
+          "If set to 'true', VES messages will be generated.";
+      }
+      description
+        "none";
+    }
+    container controller-details {
+      uses controller-details-type-g;
+      description
+        "The connectivity details of the SDN Controller where we want to mount our simulated devices.";
+    }
+    container ves-endpoint-details {
+      must 'ves-registration = "false" or ../mounted-devices = 0' {
+        error-message "VES registration cannot be active while devices are still mounted to ODL not via VES.";
+      }
+      leaf ves-endpoint-ip {
+        type inet:ip-address;
+        description
+          "The IP Address of the VES Endpoint.";
+      }
+      leaf ves-endpoint-port {
+        type inet:port-number;
+        description
+          "The Port of the VES Endpoint.";
+      }
+      leaf ves-endpoint-auth-method {
+        type authentication-method-type;
+        default "no-auth";
+        description
+          "The type of the authentication to be used with the VES Endpoint.";
+      }
+      leaf ves-endpoint-username {
+        when "../ves-endpoint-auth-method = 'basic-auth' or ../ves-endpoint-auth-method = 'cert-basic-auth'";
+        type string;
+        description
+          "The Username to be used to authenticate to the VES Endpoint.";
+      }
+      leaf ves-endpoint-password {
+        when "../ves-endpoint-auth-method = 'basic-auth' or ../ves-endpoint-auth-method = 'cert-basic-auth'";
+        type string;
+        description
+          "The Password to be used to authenticate to the VES Endpoint.";
+      }
+      leaf ves-endpoint-certificate {
+        when "../ves-endpoint-auth-method = 'cert-only' or ../ves-endpoint-auth-method = 'cert-basic-auth'";
+        type string;
+        description
+          "The Certificate to be used to authenticate to the VES Endpoint.";
+      }
+      leaf ves-registration {
+        type boolean;
+        default "false";
+        description
+          "If this is set to 'True', the simulated devices will automatically send a pnfRegistration VES message when they start. This cannot be set to 'True' if we already have 'mounted-devices' greater that 0, because we already mounted the devices directly to ODL.";
+      }
+      description
+        "none";
+    }
+  }
+  container simulator-status {
+    config false;
+    container simulation-usage-details {
+      config false;
+      leaf running-simulated-devices {
+        type uint32;
+        description
+          "The current number of running simulated devices.";
+      }
+      leaf running-mounted-devices {
+        type uint32;
+        description
+          "The current number of running simulated devices that are mounted in ODL.";
+      }
+      leaf base-netconf-port {
+        type uint32;
+        default "30000";
+        description
+          "The starting port number for the NETCONF connections exposed.";
+      }
+      leaf cpu-usage {
+        type percent;
+        description
+          "Specifies the CPU load generated by this simulated device.";
+      }
+      leaf mem-usage {
+        type uint32;
+        description
+          "Specifies the RAM in MB used by this simulated device.";
+      }
+      description
+        "The details about the simulation, including resources consumed.";
+    }
+    list simulated-devices-list {
+      key "uuid";
+      config false;
+      uses simulated-devices-type-g;
+      description
+        "The list of the devices that are currently simulated.";
+    }
+    description
+      "State data container of the simulator.";
+  }
+
+  rpc restart-simulation {
+    description
+      "Operation to restart all the simulated devices with the new configuration of the simulator.";
+  }
+
+  rpc add-key-pair-to-odl {
+    description
+      "Operation to add a key pair signed by the NTS to OpenDaylight, such that it can connect to devices using TLS.";
+  }
+}

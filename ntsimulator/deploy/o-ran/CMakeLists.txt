@@ -5,7 +5,6 @@ include_directories(
     "/usr/include"
 )
 
-add_subdirectory(ntsimulator-manager)
 add_subdirectory(o-ran-notifications)
 add_subdirectory(ves-messages)
 

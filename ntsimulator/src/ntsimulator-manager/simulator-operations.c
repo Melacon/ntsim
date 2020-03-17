@@ -1,9 +1,19 @@
-/*
- * simulator-operations.c
- *
- *  Created on: Mar 9, 2019
- *      Author: parallels
- */
+/*************************************************************************
+*
+* Copyright 2019 highstreet technologies GmbH and others
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+***************************************************************************/
 
 #include "simulator-operations.h"
 #include "sysrepo.h"
@@ -11,6 +21,8 @@
 #include <string.h>
 #include <math.h>
 #include <linux/limits.h>
+
+#include "utils.h"
 
 #define LINE_BUFSIZE 128
 
@@ -80,8 +92,8 @@ static cJSON* get_docker_container_bindings(void)
 	curl_easy_reset(curl);
 	set_curl_common_info();
 
-	char url[100];
-	sprintf(url, "http:/v%s/containers/NTS_Manager/json", getenv("DOCKER_ENGINE_VERSION"));
+	char url[200];
+	sprintf(url, "http:/v%s/containers/%s/json", getenv("DOCKER_ENGINE_VERSION"), getenv("HOSTNAME"));
 
 	curl_easy_setopt(curl, CURLOPT_URL, url);
 
@@ -134,73 +146,7 @@ static cJSON* get_docker_container_bindings(void)
 	return NULL;
 }
 
-// static char* get_docker_container_name(void)
-// {
-// 	struct MemoryStruct curl_response_mem;
-
-// 	curl_response_mem.memory = malloc(1);  /* will be grown as needed by the realloc above */
-// 	curl_response_mem.size = 0;    /* no data at this point */
-
-// 	CURLcode res;
-
-// 	curl_easy_reset(curl);
-// 	set_curl_common_info();
-
-// 	char url[200];
-// 	sprintf(url, "http:/v%s/containers/%s/json", getenv("DOCKER_ENGINE_VERSION"), getenv("HOSTNAME"));
-
-// 	curl_easy_setopt(curl, CURLOPT_URL, url);
-
-//     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "");
-//     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
-
-// 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&curl_response_mem);
-
-// 	res = curl_easy_perform(curl);
-
-// 	if (res != CURLE_OK)
-// 	{
-// 		return NULL;
-// 	}
-// 	else
-// 	{
-// 		cJSON *json_response = cJSON_Parse(curl_response_mem.memory);
-
-// 		printf("%lu bytes retrieved\n", (unsigned long)curl_response_mem.size);
-
-// 		if (json_response == NULL)
-// 		{
-// 			printf("Could not parse JSON response for url=\"%s\"\n", url);
-// 			return NULL;
-// 		}
-
-// 		cJSON *containerObject = cJSON_GetObjectItemCaseSensitive(json_response, "Name");
-
-// 		if (containerObject == NULL)
-// 		{
-// 			printf("Could not get Name object\n");
-// 			cJSON_Delete(json_response);
-// 			return NULL;
-// 		}
-
-// 		if (!cJSON_IsString(containerObject))
-// 		{
-// 			printf("Name object is not string in container bindings!");
-// 			cJSON_Delete(json_response);
-// 			return NULL;
-// 		}
-
-// 		char *containerName = strdup(cJSON_GetStringValue(containerObject));
-
-// 		cJSON_Delete(json_response);
-
-// 		return containerName;
-// 	}
-
-// 	return NULL;
-// }
-
-static char *create_docker_container_curl(int base_netconf_port, cJSON *managerBinds)
+static char* create_docker_container_curl(int base_netconf_port, cJSON* managerBinds)
 {
 	if (managerBinds == NULL)
 	{
@@ -323,7 +269,7 @@ static char *create_docker_container_curl(int base_netconf_port, cJSON *managerB
     cJSON_AddItemToObject(postDataJson, "Env", env_variables_array);
 
     char environment_var[50];
-    sprintf(environment_var, "NTS_IP=\"%s\"", getenv("NTS_IP"));
+    sprintf(environment_var, "NTS_IP=%s", getenv("NTS_IP"));
 
     cJSON *env_var_obj = cJSON_CreateString(environment_var);
     if (env_var_obj == NULL)
@@ -333,7 +279,7 @@ static char *create_docker_container_curl(int base_netconf_port, cJSON *managerB
 	}
     cJSON_AddItemToArray(env_variables_array, env_var_obj);
 
-    sprintf(environment_var, "NETCONF_BASE=%s", getenv("NETCONF_BASE"));
+    sprintf(environment_var, "NETCONF_BASE=%d", base_netconf_port);
     cJSON *env_var_obj_2 = cJSON_CreateString(environment_var);
     if (env_var_obj_2 == NULL)
 	{
@@ -341,6 +287,16 @@ static char *create_docker_container_curl(int base_netconf_port, cJSON *managerB
 		return NULL;
 	}
     cJSON_AddItemToArray(env_variables_array, env_var_obj_2);
+
+	char scripts_dir[200];
+	sprintf(scripts_dir, "SCRIPTS_DIR=%s", getenv("SCRIPTS_DIR"));
+	cJSON *env_var_obj_3 = cJSON_CreateString(scripts_dir);
+	if (env_var_obj_3 == NULL)
+	{
+		printf("Could not create JSON object: Env array object SCRIPTS_DIR\n");
+		return NULL;
+	}
+	cJSON_AddItemToArray(env_variables_array, env_var_obj_3);
 
     cJSON_AddItemToObject(hostConfig, "Binds", binds);
 
@@ -478,7 +434,7 @@ static int send_mount_device_instance_ssh(char *url, char *credentials, char *de
 
 	curl_easy_setopt(curl_odl, CURLOPT_URL, url_for_curl);
 
-	char post_data_xml[1000];
+	char post_data_xml[1500];
 
 	sprintf(post_data_xml,
 			"<node xmlns=\"urn:TBD:params:xml:ns:yang:network-topology\">"
@@ -489,6 +445,11 @@ static int send_mount_device_instance_ssh(char *url, char *credentials, char *de
 			"<password xmlns=\"urn:opendaylight:netconf-node-topology\">%s</password>"
 			"<tcp-only xmlns=\"urn:opendaylight:netconf-node-topology\">false</tcp-only>"
 			"<keepalive-delay xmlns=\"urn:opendaylight:netconf-node-topology\">120</keepalive-delay>"
+			"<reconnect-on-changed-schema xmlns=\"urn:opendaylight:netconf-node-topology\">false</reconnect-on-changed-schema>"
+			"<sleep-factor xmlns=\"urn:opendaylight:netconf-node-topology\">1.5</sleep-factor>"
+			"<connection-timeout-millis xmlns=\"urn:opendaylight:netconf-node-topology\">20000</connection-timeout-millis>"
+			"<max-connection-attempts xmlns=\"urn:opendaylight:netconf-node-topology\">100</max-connection-attempts>"
+			"<between-attempts-timeout-millis xmlns=\"urn:opendaylight:netconf-node-topology\">2000</between-attempts-timeout-millis>"
 			"</node>",
 			device_name, device_port, getenv("NTS_IP"), device_port, "netconf", "netconf");
 
@@ -531,7 +492,7 @@ static int send_mount_device_instance_tls(char *url, char *credentials, char *de
 
 	curl_easy_setopt(curl_odl, CURLOPT_URL, url_for_curl);
 
-	char post_data_xml[1000];
+	char post_data_xml[1500];
 
 	sprintf(post_data_xml,
 			"<node xmlns=\"urn:TBD:params:xml:ns:yang:network-topology\">"
@@ -547,6 +508,11 @@ static int send_mount_device_instance_tls(char *url, char *credentials, char *de
 			"<port xmlns=\"urn:opendaylight:netconf-node-topology\">%d</port>"
 			"<tcp-only xmlns=\"urn:opendaylight:netconf-node-topology\">false</tcp-only>"
 			"<keepalive-delay xmlns=\"urn:opendaylight:netconf-node-topology\">120</keepalive-delay>"
+			"<reconnect-on-changed-schema xmlns=\"urn:opendaylight:netconf-node-topology\">false</reconnect-on-changed-schema>"
+			"<sleep-factor xmlns=\"urn:opendaylight:netconf-node-topology\">1.5</sleep-factor>"
+			"<connection-timeout-millis xmlns=\"urn:opendaylight:netconf-node-topology\">20000</connection-timeout-millis>"
+			"<max-connection-attempts xmlns=\"urn:opendaylight:netconf-node-topology\">100</max-connection-attempts>"
+			"<between-attempts-timeout-millis xmlns=\"urn:opendaylight:netconf-node-topology\">2000</between-attempts-timeout-millis>"
 			"</node>",
 			device_name, device_port, getenv("NTS_IP"), "netconf", device_port);
 
@@ -616,31 +582,28 @@ static int send_unmount_device_instance(char *url, char *credentials, char *devi
 }
 
 
-static int send_mount_device(device_t *current_device, controller_t *controller_list, int controller_list_size)
+static int send_mount_device(device_t *current_device, controller_t controller_details)
 {
 	int rc = SR_ERR_OK;
 	bool is_mounted = true;
 
-	for (int i = 0; i < controller_list_size; ++i)
+	//This is where we hardcoded: 7 devices will have SSH connections and 3 devices will have TLS connections
+	for (int port = 0; port < NETCONF_CONNECTIONS_PER_DEVICE - 3; ++port)
 	{
-		//This is where we hardcoded: 7 devices will have SSH connections and 3 devices will have TLS connections
-		for (int port = 0; port < NETCONF_CONNECTIONS_PER_DEVICE - 3; ++port)
+		rc = send_mount_device_instance_ssh(controller_details.url, controller_details.credentials,
+				current_device->device_id, current_device->netconf_port + port);
+		if (rc != SR_ERR_OK)
 		{
-			rc = send_mount_device_instance_ssh(controller_list[i].url, controller_list[i].credentials,
-					current_device->device_id, current_device->netconf_port + port);
-			if (rc != SR_ERR_OK)
-			{
-				is_mounted = false;
-			}
+			is_mounted = false;
 		}
-		for (int port = NETCONF_CONNECTIONS_PER_DEVICE - 3; port < NETCONF_CONNECTIONS_PER_DEVICE; ++port)
+	}
+	for (int port = NETCONF_CONNECTIONS_PER_DEVICE - 3; port < NETCONF_CONNECTIONS_PER_DEVICE; ++port)
+	{
+		rc = send_mount_device_instance_tls(controller_details.url, controller_details.credentials,
+				current_device->device_id, current_device->netconf_port + port);
+		if (rc != SR_ERR_OK)
 		{
-			rc = send_mount_device_instance_tls(controller_list[i].url, controller_list[i].credentials,
-					current_device->device_id, current_device->netconf_port + port);
-			if (rc != SR_ERR_OK)
-			{
-				is_mounted = false;
-			}
+			is_mounted = false;
 		}
 	}
 
@@ -649,24 +612,22 @@ static int send_mount_device(device_t *current_device, controller_t *controller_
 	return SR_ERR_OK;
 }
 
-static int send_unmount_device(device_t *current_device, controller_t *controller_list, int controller_list_size)
+static int send_unmount_device(device_t *current_device, controller_t controller_details)
 {
 	int rc = SR_ERR_OK;
 
-	for (int i = 0; i < controller_list_size; ++i)
+	for (int port = 0; port < NETCONF_CONNECTIONS_PER_DEVICE; ++port)
 	{
-		for (int port = 0; port < NETCONF_CONNECTIONS_PER_DEVICE; ++port)
+		rc = send_unmount_device_instance(controller_details.url, controller_details.credentials,
+				current_device->device_id, current_device->netconf_port + port);
+		if (rc != SR_ERR_OK)
 		{
-			rc = send_unmount_device_instance(controller_list[i].url, controller_list[i].credentials,
-					current_device->device_id, current_device->netconf_port + port);
-			if (rc != SR_ERR_OK)
-			{
-				printf("Could not send unmount for ODL with url=\"%s\", for device=\"%s\" and port=%d\n",
-						controller_list[i].url, current_device->device_id, current_device->netconf_port);
-			}
+			printf("Could not send unmount for ODL with url=\"%s\", for device=\"%s\" and port=%d\n",
+					controller_details.url, current_device->device_id, current_device->netconf_port);
 		}
 	}
 	current_device->is_mounted = false;
+
 	return SR_ERR_OK;
 }
 
@@ -952,7 +913,7 @@ int stop_device(device_stack_t *theStack)
 	return SR_ERR_OK;
 }
 
-int mount_device(device_stack_t *theStack, controller_t *controller_list, int controller_list_size)
+int mount_device(device_stack_t *theStack, controller_t controller_details)
 {
 	int rc;
 
@@ -968,7 +929,7 @@ int mount_device(device_stack_t *theStack, controller_t *controller_list, int co
 		if (current_device != NULL)
 		{
 			printf("Sending mount device for device \"%s\"...\n", current_device->device_id);
-			rc = send_mount_device(current_device, controller_list, controller_list_size);
+			rc = send_mount_device(current_device, controller_details);
 			if (rc != SR_ERR_OK)
 			{
 				return SR_ERR_OPERATION_FAILED;
@@ -979,7 +940,7 @@ int mount_device(device_stack_t *theStack, controller_t *controller_list, int co
 	return SR_ERR_OK;
 }
 
-int unmount_device(device_stack_t *theStack, controller_t *controller_list, int controller_list_size)
+int unmount_device(device_stack_t *theStack, controller_t controller_list)
 {
 	int rc;
 
@@ -995,7 +956,7 @@ int unmount_device(device_stack_t *theStack, controller_t *controller_list, int 
 		if (current_device != NULL)
 		{
 			printf("Sending unmount device for device \"%s\"...\n", current_device->device_id);
-			rc = send_unmount_device(current_device, controller_list, controller_list_size);
+			rc = send_unmount_device(current_device, controller_list);
 			if (rc != SR_ERR_OK)
 			{
 				return SR_ERR_OPERATION_FAILED;
@@ -1110,20 +1071,106 @@ char* get_docker_container_resource_stats(device_stack_t *theStack)
 
 int notification_delay_period_changed(int period)
 {
-	FILE * fp;
+	char *stringConfiguration = readConfigFileInString();
 
-	char script[200];
-	sprintf(script, "%s/gen.notif", getenv("SCRIPTS_DIR"));
-
-	fp = fopen(script, "w");
-	if (fp == NULL)
+	if (stringConfiguration == NULL)
 	{
-		printf("Could not open the file the notification-delay-period from path=%s\n", script);
+		printf("Could not read configuration file!\n");
 		return SR_ERR_OPERATION_FAILED;
 	}
 
-	fprintf(fp, "%d", period);
-	fclose(fp);
+	cJSON *jsonConfig = cJSON_Parse(stringConfiguration);
+	if (jsonConfig == NULL)
+	{
+		free(stringConfiguration);
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL)
+		{
+			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+		}
+		return SR_ERR_OPERATION_FAILED;
+	}
+	//we don't need the string anymore
+	free(stringConfiguration);
+	stringConfiguration = NULL;
+
+	cJSON *notifConfig = cJSON_GetObjectItemCaseSensitive(jsonConfig, "notification-config");
+	if (!cJSON_IsObject(notifConfig))
+	{
+		printf("Configuration JSON is not as expected: notification-config is not an object");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *faultNotifDelay = cJSON_GetObjectItemCaseSensitive(notifConfig, "fault-notification-delay-period");
+	if (!cJSON_IsNumber(faultNotifDelay))
+	{
+		printf("Configuration JSON is not as expected: fault-notification-delay-period is not an object");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	//we set the value of the fault-notification-delay-period object
+	cJSON_SetNumberValue(faultNotifDelay, period);
+
+	//writing the new JSON to the configuration file
+	stringConfiguration = cJSON_Print(jsonConfig);
+	writeConfigFile(stringConfiguration);
+
+	free(jsonConfig);
+
+	return SR_ERR_OK;
+}
+
+int ves_heartbeat_period_changed(int period)
+{
+	char *stringConfiguration = readConfigFileInString();
+
+	if (stringConfiguration == NULL)
+	{
+		printf("Could not read configuration file!\n");
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *jsonConfig = cJSON_Parse(stringConfiguration);
+	if (jsonConfig == NULL)
+	{
+		free(stringConfiguration);
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL)
+		{
+			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+		}
+		return SR_ERR_OPERATION_FAILED;
+	}
+	//we don't need the string anymore
+	free(stringConfiguration);
+	stringConfiguration = NULL;
+
+	cJSON *notifConfig = cJSON_GetObjectItemCaseSensitive(jsonConfig, "notification-config");
+	if (!cJSON_IsObject(notifConfig))
+	{
+		printf("Configuration JSON is not as expected: notification-config is not an object");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *vesHeartbeatPeriod = cJSON_GetObjectItemCaseSensitive(notifConfig, "ves-heartbeat-period");
+	if (!cJSON_IsNumber(vesHeartbeatPeriod))
+	{
+		printf("Configuration JSON is not as expected: ves-heartbeat-period is not an object");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	//we set the value of the fault-notification-delay-period object
+	cJSON_SetNumberValue(vesHeartbeatPeriod, period);
+
+	//writing the new JSON to the configuration file
+	stringConfiguration = cJSON_Print(jsonConfig);
+	writeConfigFile(stringConfiguration);
+
+	free(jsonConfig);
 
 	return SR_ERR_OK;
 }
@@ -1322,6 +1369,271 @@ int add_key_pair_to_odl(controller_t *controller_list, int controller_list_size)
 	{
 		printf("Failed to add trusted CA entry to ODL.\n");
 	}
+
+	return SR_ERR_OK;
+}
+
+int ves_ip_changed(char *new_ip)
+{
+	char *stringConfiguration = readConfigFileInString();
+
+	if (stringConfiguration == NULL)
+	{
+		printf("Could not read configuration file!\n");
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *jsonConfig = cJSON_Parse(stringConfiguration);
+	if (jsonConfig == NULL)
+	{
+		free(stringConfiguration);
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL)
+		{
+			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+		}
+		return SR_ERR_OPERATION_FAILED;
+	}
+	//we don't need the string anymore
+	free(stringConfiguration);
+	stringConfiguration = NULL;
+
+	cJSON *vesDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "ves-endpoint-details");
+	if (!cJSON_IsObject(vesDetails))
+	{
+		printf("Configuration JSON is not as expected: ves-endpoint-details is not an object");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *vesIp = cJSON_GetObjectItemCaseSensitive(vesDetails, "ves-endpoint-ip");
+	if (!cJSON_IsString(vesIp))
+	{
+		printf("Configuration JSON is not as expected: ves-endpoint-ip is not a string");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	//we set the value of the fault-notification-delay-period object
+	cJSON_ReplaceItemInObject(vesDetails, "ves-endpoint-ip", cJSON_CreateString(new_ip));
+
+	//writing the new JSON to the configuration file
+	stringConfiguration = cJSON_Print(jsonConfig);
+	writeConfigFile(stringConfiguration);
+
+	free(jsonConfig);
+
+	return SR_ERR_OK;
+}
+
+int ves_port_changed(int new_port)
+{
+	char *stringConfiguration = readConfigFileInString();
+
+	if (stringConfiguration == NULL)
+	{
+		printf("Could not read configuration file!\n");
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *jsonConfig = cJSON_Parse(stringConfiguration);
+	if (jsonConfig == NULL)
+	{
+		free(stringConfiguration);
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL)
+		{
+			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+		}
+		return SR_ERR_OPERATION_FAILED;
+	}
+	//we don't need the string anymore
+	free(stringConfiguration);
+	stringConfiguration = NULL;
+
+	cJSON *vesDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "ves-endpoint-details");
+	if (!cJSON_IsObject(vesDetails))
+	{
+		printf("Configuration JSON is not as expected: ves-endpoint-details is not an object");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *vesPort = cJSON_GetObjectItemCaseSensitive(vesDetails, "ves-endpoint-port");
+	if (!cJSON_IsNumber(vesPort))
+	{
+		printf("Configuration JSON is not as expected: ves-endpoint-port is not a number.");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	//we set the value of the fault-notification-delay-period object
+	cJSON_SetNumberValue(vesPort, new_port);
+
+	//writing the new JSON to the configuration file
+	stringConfiguration = cJSON_Print(jsonConfig);
+	writeConfigFile(stringConfiguration);
+
+	free(jsonConfig);
+
+	return SR_ERR_OK;
+}
+
+int ves_registration_changed(cJSON_bool new_bool)
+{
+	char *stringConfiguration = readConfigFileInString();
+
+	if (stringConfiguration == NULL)
+	{
+		printf("Could not read configuration file!\n");
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *jsonConfig = cJSON_Parse(stringConfiguration);
+	if (jsonConfig == NULL)
+	{
+		free(stringConfiguration);
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL)
+		{
+			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+		}
+		return SR_ERR_OPERATION_FAILED;
+	}
+	//we don't need the string anymore
+	free(stringConfiguration);
+	stringConfiguration = NULL;
+
+	cJSON *vesDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "ves-endpoint-details");
+	if (!cJSON_IsObject(vesDetails))
+	{
+		printf("Configuration JSON is not as expected: ves-endpoint-details is not an object");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *vesRegistration = cJSON_GetObjectItemCaseSensitive(vesDetails, "ves-registration");
+	if (!cJSON_IsBool(vesRegistration))
+	{
+		printf("Configuration JSON is not as expected: ves-registration is not a bool.");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	//we set the value of the ves-registration object
+	cJSON_ReplaceItemInObject(vesDetails, "ves-registration", cJSON_CreateBool(new_bool));
+
+	//writing the new JSON to the configuration file
+	stringConfiguration = cJSON_Print(jsonConfig);
+	writeConfigFile(stringConfiguration);
+
+	free(jsonConfig);
+
+	return SR_ERR_OK;
+}
+
+int is_netconf_available_changed(cJSON_bool new_bool)
+{
+	char *stringConfiguration = readConfigFileInString();
+
+	if (stringConfiguration == NULL)
+	{
+		printf("Could not read configuration file!\n");
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *jsonConfig = cJSON_Parse(stringConfiguration);
+	if (jsonConfig == NULL)
+	{
+		free(stringConfiguration);
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL)
+		{
+			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+		}
+		return SR_ERR_OPERATION_FAILED;
+	}
+	//we don't need the string anymore
+	free(stringConfiguration);
+	stringConfiguration = NULL;
+
+	cJSON *notifConfig = cJSON_GetObjectItemCaseSensitive(jsonConfig, "notification-config");
+	if (!cJSON_IsObject(notifConfig))
+	{
+		printf("Configuration JSON is not as expected: notification-config is not an object");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *isNetconfAvailable = cJSON_GetObjectItemCaseSensitive(notifConfig, "is-netconf-available");
+	if (!cJSON_IsBool(isNetconfAvailable))
+	{
+		printf("Configuration JSON is not as expected: is-netconf-available is not a bool.");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	//we set the value of the ves-registration object
+	cJSON_ReplaceItemInObject(notifConfig, "is-netconf-available", cJSON_CreateBool(new_bool));
+
+	//writing the new JSON to the configuration file
+	stringConfiguration = cJSON_Print(jsonConfig);
+	writeConfigFile(stringConfiguration);
+
+	free(jsonConfig);
+
+	return SR_ERR_OK;
+}
+
+int is_ves_available_changed(cJSON_bool new_bool)
+{
+	char *stringConfiguration = readConfigFileInString();
+
+	if (stringConfiguration == NULL)
+	{
+		printf("Could not read configuration file!\n");
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *jsonConfig = cJSON_Parse(stringConfiguration);
+	if (jsonConfig == NULL)
+	{
+		free(stringConfiguration);
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL)
+		{
+			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+		}
+		return SR_ERR_OPERATION_FAILED;
+	}
+	//we don't need the string anymore
+	free(stringConfiguration);
+	stringConfiguration = NULL;
+
+	cJSON *notifConfig = cJSON_GetObjectItemCaseSensitive(jsonConfig, "notification-config");
+	if (!cJSON_IsObject(notifConfig))
+	{
+		printf("Configuration JSON is not as expected: notification-config is not an object");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *isVesAvailable = cJSON_GetObjectItemCaseSensitive(notifConfig, "is-ves-available");
+	if (!cJSON_IsBool(isVesAvailable))
+	{
+		printf("Configuration JSON is not as expected: is-ves-available is not a bool.");
+		free(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	//we set the value of the ves-registration object
+	cJSON_ReplaceItemInObject(notifConfig, "is-ves-available", cJSON_CreateBool(new_bool));
+
+	//writing the new JSON to the configuration file
+	stringConfiguration = cJSON_Print(jsonConfig);
+	writeConfigFile(stringConfiguration);
+
+	free(jsonConfig);
 
 	return SR_ERR_OK;
 }

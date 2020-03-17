@@ -1,0 +1,22 @@
+<simulator-config xmlns="urn:onf:params:xml:ns:yang:network-topology-simulator">
+	<simulated-devices>0</simulated-devices>
+	<mounted-devices>0</mounted-devices>
+	<notification-config>
+		<fault-notification-delay-period>0</fault-notification-delay-period>
+		<ves-heartbeat-period>0</ves-heartbeat-period>
+		<is-netconf-available>true</is-netconf-available>
+		<is-ves-available>true</is-ves-available>
+	</notification-config>
+	<controller-details>
+		<controller-ip>172.17.0.1</controller-ip>
+		<controller-port>8181</controller-port>
+		<controller-username>admin</controller-username>
+		<controller-password>admin</controller-password>
+	</controller-details>
+	<ves-endpoint-details>
+		<ves-endpoint-ip>172.17.0.1</ves-endpoint-ip>
+		<ves-endpoint-port>30007</ves-endpoint-port>
+		<ves-endpoint-auth-method>no-auth</ves-endpoint-auth-method>
+		<ves-registration>false</ves-registration>
+	</ves-endpoint-details>
+</simulator-config>

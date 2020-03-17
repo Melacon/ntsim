@@ -7,8 +7,7 @@ shopt -s failglob
 : ${SYSREPOCTL:=sysrepoctl}
 : ${SYSREPOCFG:=sysrepocfg}
 : ${SYSREPOCTL_ROOT_PERMS:=-o root:root -p 600}
-: ${YANG_DIR:=@CMAKE_CURRENT_SOURCE_DIR@/yang/manager}
-: ${STARTUP_DIR:=@CMAKE_CURRENT_SOURCE_DIR@/yang/startup}
+: ${YANG_DIR:=@CMAKE_CURRENT_SOURCE_DIR@/yang/nts-manager}
 
 is_yang_module_installed() {
     module=$1

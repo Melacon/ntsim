@@ -3,9 +3,6 @@ FROM ubuntu:18.04
 MAINTAINER alexandru.stancu@highstreet-technologies.com
 LABEL maintainer="alexandru.stancu@highstreet-technologies.com"
 
-ARG BUILD_DATE
-LABEL build-date=$BUILD_DATE
-
 ENV NETCONF_BASE=40000
 ENV NTS_IP="127.0.0.1"
 ENV SCRIPTS_DIR=/opt/dev/scripts
@@ -123,6 +120,7 @@ RUN \
 
 #NTSimulator Manager
 COPY ./ntsimulator /opt/dev/ntsimulator
+COPY ./ntsimulator/deploy/nts-manager/CMakeLists.txt /opt/dev/ntsimulator/CMakeLists.txt
 RUN \
       cd /opt/dev && \
       cd ntsimulator && mkdir build  && cd build && \
@@ -130,8 +128,11 @@ RUN \
       make -j2 && \
       make install
 
-COPY ntsimulator/deploy/manager/supervisord.conf.manager /etc/supervisord.conf
+COPY ntsimulator/deploy/nts-manager/supervisord.conf /etc/supervisord.conf
 	  
+ARG BUILD_DATE
+LABEL build-date=$BUILD_DATE
+
 ENV EDITOR vim
 EXPOSE 830
 

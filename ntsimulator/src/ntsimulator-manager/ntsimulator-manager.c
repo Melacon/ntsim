@@ -1,9 +1,19 @@
-/*
- * core-model.c
- *
- *  Created on: Feb 19, 2019
- *      Author: parallels
- */
+/*************************************************************************
+*
+* Copyright 2019 highstreet technologies GmbH and others
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+***************************************************************************/
 
 
 #include <stdio.h>
@@ -138,123 +148,9 @@ static int simulated_devices_changed(int new_value)
     return rc;
 }
 
-//void get_controller_details_list(sr_session_ctx_t *session, controller_t *controller_list, int *controller_list_size)
-//{
-//	int rc = SR_ERR_OK;
-//	sr_val_t *odl_list_keys = NULL;
-//	size_t count = 0;
-//
-//	char *xpath = "/network-topology-simulator:simulator-config/controller-details-list";
-//
-//	rc = sr_get_items(session, xpath, &odl_list_keys, &count);
-//	if (SR_ERR_OK != rc) {
-//	   printf("Error by sr_get_items: %s\n", sr_strerror(rc));
-//	   return;
-//	}
-//
-//	printf("Getting controller details list from session=%p\n", session);
-//
-//	if (count > CONTROLLER_LIST_MAX_LEN)
-//	{
-//		printf("Cannot register to more than %d controllers! Proceeding mount/unmount operations only for the first %d elements in the list\n",
-//				CONTROLLER_LIST_MAX_LEN, CONTROLLER_LIST_MAX_LEN);
-//		count = CONTROLLER_LIST_MAX_LEN;
-//	}
-//
-//	*controller_list_size = count;
-//
-//	for (size_t i = 0; i < count; i++)
-//	{
-//	   char xpath_next[XPATH_MAX_LEN] = {0};
-//	   snprintf(xpath_next, XPATH_MAX_LEN, "%s/controller-ip", odl_list_keys[i].xpath);
-//
-//	   sr_val_t *odl_ip = NULL;
-//	   rc = sr_get_item(session, xpath_next, &odl_ip);
-//	   if (SR_ERR_OK != rc) {
-//		  printf("Error by sr_get_item: %s\n", sr_strerror(rc));
-//		  return;
-//	   }
-//
-//	   snprintf(xpath_next, XPATH_MAX_LEN, "%s/controller-port", odl_list_keys[i].xpath);
-//
-//	   sr_val_t *odl_port = NULL;
-//	   rc = sr_get_item(session, xpath_next, &odl_port);
-//	   if (SR_ERR_OK != rc) {
-//		  printf("Error by sr_get_item: %s\n", sr_strerror(rc));
-//		  return;
-//	   }
-//
-//	   snprintf(xpath_next, XPATH_MAX_LEN, "%s/controller-username", odl_list_keys[i].xpath);
-//
-//	   sr_val_t *odl_username = NULL;
-//	   rc = sr_get_item(session, xpath_next, &odl_username);
-//	   if (SR_ERR_OK != rc) {
-//		  printf("Error by sr_get_item: %s\n", sr_strerror(rc));
-//		  return;
-//	   }
-//
-//	   snprintf(xpath_next, XPATH_MAX_LEN, "%s/controller-password", odl_list_keys[i].xpath);
-//
-//	   sr_val_t *odl_password = NULL;
-//	   rc = sr_get_item(session, xpath_next, &odl_password);
-//	   if (SR_ERR_OK != rc) {
-//		  printf("Error by sr_get_item: %s\n", sr_strerror(rc));
-//		  return;
-//	   }
-//
-//	   //URL used for mounting/unmounting a device; the device name needs to be appended
-//	   char url[URL_AND_CREDENTIALS_MAX_LEN];
-//	   sprintf(url, "http://%s:%d/restconf/config/network-topology:network-topology/topology/"
-//			 "topology-netconf/node/",
-//			 odl_ip->data.string_val, odl_port->data.uint32_val);
-//	   char credentials[URL_AND_CREDENTIALS_MAX_LEN];
-//	   sprintf(credentials, "%s:%s", odl_username->data.string_val, odl_password->data.string_val);
-//
-//	   //URLs used for adding key pair to ODL, for TLS connections
-//	   char url_for_keystore_add[URL_AND_CREDENTIALS_MAX_LEN];
-//	   sprintf(url_for_keystore_add, "http://%s:%d/restconf/operations/netconf-keystore:add-keystore-entry",
-//	   			 odl_ip->data.string_val, odl_port->data.uint32_val);
-//
-//	   char url_for_private_key_add[URL_AND_CREDENTIALS_MAX_LEN];
-//	   sprintf(url_for_private_key_add, "http://%s:%d/restconf/operations/netconf-keystore:add-private-key",
-//				 odl_ip->data.string_val, odl_port->data.uint32_val);
-//
-//	   char url_for_trusted_ca_add[URL_AND_CREDENTIALS_MAX_LEN];
-//	   sprintf(url_for_trusted_ca_add, "http://%s:%d/restconf/operations/netconf-keystore:add-trusted-certificate",
-//				 odl_ip->data.string_val, odl_port->data.uint32_val);
-//
-//	   controller_t controller_element;
-//
-//	   controller_element.url = strdup(url);
-//	   controller_element.credentials = strdup(credentials);
-//	   controller_element.url_for_keystore_add = strdup(url_for_keystore_add);
-//	   controller_element.url_for_private_key_add = strdup(url_for_private_key_add);
-//	   controller_element.url_for_trusted_ca_add = strdup(url_for_trusted_ca_add);
-//
-//	   controller_list[i] = controller_element;
-//
-//	   sr_free_val(odl_ip);
-//	   sr_free_val(odl_port);
-//	   sr_free_val(odl_username);
-//	   sr_free_val(odl_password);
-//	}
-//}
-
 int mounted_devices_changed(sr_session_ctx_t *session, int new_value)
 {
 	int rc = SR_ERR_OK;
-
-	controller_t controller_list[CONTROLLER_LIST_MAX_LEN];
-	int controller_list_size = 0;
-
-//	get_controller_details_list(session, controller_list, &controller_list_size);
-	controller_list[0] = controller_details;
-	controller_list_size++;
-
-	for (int i = 0; i < controller_list_size; ++i)
-	{
-		printf("%d iteration: Got back url=%s and credentials=%s\n", i, controller_list[i].url, controller_list[i].credentials);
-	}
 
 	if (mounted_devices_config > new_value)
 	{
@@ -262,7 +158,7 @@ int mounted_devices_changed(sr_session_ctx_t *session, int new_value)
 	  for (int i = 0; i < mounted_devices_config - new_value; ++i)
 	  {
 		  printf("Sending unmount device...\n");
-		  rc = unmount_device(device_list, controller_list, controller_list_size);
+		  rc = unmount_device(device_list, controller_details);
 	  }
 	}
 	else if (mounted_devices_config < new_value)
@@ -271,15 +167,9 @@ int mounted_devices_changed(sr_session_ctx_t *session, int new_value)
 	  for (int i = 0; i < new_value - mounted_devices_config; ++i)
 	  {
 		  printf("Sending mount device...\n");
-		  rc = mount_device(device_list, controller_list, controller_list_size);
+		  rc = mount_device(device_list, controller_details);
 	  }
 	}
-
-//	for (int i = 0; i < controller_list_size; ++i)
-//	{
-//		free(controller_list[i].url);
-//		free(controller_list[i].credentials);
-//	}
 
 	mounted_devices_config = new_value;
 
@@ -333,7 +223,7 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
     sr_free_val(val);
 
     /* get the value from sysrepo, we do not care if the value did not change in our case */
-    rc = sr_get_item(session, "/network-topology-simulator:simulator-config/notification-delay-period", &val);
+    rc = sr_get_item(session, "/network-topology-simulator:simulator-config/notification-config/fault-notification-delay-period", &val);
     if (rc != SR_ERR_OK) {
         goto sr_error;
     }
@@ -344,6 +234,84 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
     }
 
     sr_free_val(val);
+
+    /* get the value from sysrepo, we do not care if the value did not change in our case */
+	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/notification-config/ves-heartbeat-period", &val);
+	if (rc != SR_ERR_OK) {
+		goto sr_error;
+	}
+
+	rc = ves_heartbeat_period_changed(val->data.uint32_val);
+	if (rc != SR_ERR_OK) {
+		goto sr_error;
+	}
+
+	sr_free_val(val);
+
+	/* get the value from sysrepo, we do not care if the value did not change in our case */
+	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-ip", &val);
+	if (rc != SR_ERR_OK) {
+		goto sr_error;
+	}
+
+	rc = ves_ip_changed(val->data.string_val);
+	if (rc != SR_ERR_OK) {
+		goto sr_error;
+	}
+
+	sr_free_val(val);
+
+	/* get the value from sysrepo, we do not care if the value did not change in our case */
+	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-port", &val);
+	if (rc != SR_ERR_OK) {
+		goto sr_error;
+	}
+
+	rc = ves_port_changed(val->data.uint16_val);
+	if (rc != SR_ERR_OK) {
+		goto sr_error;
+	}
+
+	sr_free_val(val);
+
+	/* get the value from sysrepo, we do not care if the value did not change in our case */
+	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-registration", &val);
+	if (rc != SR_ERR_OK) {
+		goto sr_error;
+	}
+
+	rc = ves_registration_changed(val->data.bool_val);
+	if (rc != SR_ERR_OK) {
+		goto sr_error;
+	}
+
+	sr_free_val(val);
+
+	/* get the value from sysrepo, we do not care if the value did not change in our case */
+	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/notification-config/is-netconf-available", &val);
+	if (rc != SR_ERR_OK) {
+		goto sr_error;
+	}
+
+	rc = is_netconf_available_changed(val->data.bool_val);
+	if (rc != SR_ERR_OK) {
+		goto sr_error;
+	}
+
+	sr_free_val(val);
+
+	/* get the value from sysrepo, we do not care if the value did not change in our case */
+	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/notification-config/is-ves-available", &val);
+	if (rc != SR_ERR_OK) {
+		goto sr_error;
+	}
+
+	rc = is_ves_available_changed(val->data.bool_val);
+	if (rc != SR_ERR_OK) {
+		goto sr_error;
+	}
+
+	sr_free_val(val);
 
     return SR_ERR_OK;
 
@@ -481,7 +449,6 @@ int odl_add_key_pair_cb(const char *xpath, const sr_val_t *input, const size_t i
 	controller_t controller_list[CONTROLLER_LIST_MAX_LEN];
 	int controller_list_size = 0;
 
-//	get_controller_details_list(session, controller_list, &controller_list_size);
 	controller_list[0] = controller_details;
 	controller_list_size++;
 

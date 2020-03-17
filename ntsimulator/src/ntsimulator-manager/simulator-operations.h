@@ -1,9 +1,19 @@
-/*
- * simulator-operations.h
- *
- *  Created on: Mar 9, 2019
- *      Author: parallels
- */
+/*************************************************************************
+*
+* Copyright 2019 highstreet technologies GmbH and others
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+***************************************************************************/
 
 #ifndef SRC_NTSIMULATOR_MANAGER_SIMULATOR_OPERATIONS_H_
 #define SRC_NTSIMULATOR_MANAGER_SIMULATOR_OPERATIONS_H_
@@ -19,7 +29,6 @@
 #include <cjson/cJSON.h>
 
 #define CURL_MEM_SIZE 2048
-#define NETCONF_CONNECTIONS_PER_DEVICE 10
 
 
 /**
@@ -79,8 +88,8 @@ int cleanup_curl_odl(void);
 int start_device(device_stack_t *theStack);
 int stop_device(device_stack_t *theStack);
 
-int mount_device(device_stack_t *theStack, controller_t *controller_list, int controller_list_size);
-int unmount_device(device_stack_t *theStack, controller_t *controller_list, int controller_list_size);
+int mount_device(device_stack_t *theStack, controller_t controller_details);
+int unmount_device(device_stack_t *theStack, controller_t controller_details);
 
 char* get_docker_container_operational_state(device_stack_t *theStack, char *container_id);
 int get_docker_containers_operational_state_curl(device_stack_t *theStack);
@@ -88,6 +97,14 @@ int get_docker_containers_operational_state_curl(device_stack_t *theStack);
 char* get_docker_container_resource_stats();
 
 int notification_delay_period_changed(int period);
+int ves_heartbeat_period_changed(int period);
+int ves_ip_changed(char *new_ip);
+int ves_port_changed(int new_port);
+int ves_registration_changed(cJSON_bool new_bool);
+int is_netconf_available_changed(cJSON_bool new_bool);
+int is_ves_available_changed(cJSON_bool new_bool);
+
+
 
 int add_key_pair_to_odl(controller_t *controller_list, int controller_list_size);
 

@@ -1,12 +1,7 @@
 FROM ubuntu:18.04
 
 MAINTAINER alexandru.stancu@highstreet-technologies.com
-
 LABEL maintainer="alexandru.stancu@highstreet-technologies.com"
-
-ARG BUILD_DATE
-
-LABEL build-date=$BUILD_DATE
 
 RUN \
       apt-get update && apt-get install -y \
@@ -36,6 +31,12 @@ RUN \
       bc \
       python-setuptools \
       python-pip
+
+# pyang dependencies
+RUN pip install rstr && \
+    pip install exrex && \
+    pip install ipaddress && \
+    pip install lxml
 
 # add netconf user
 RUN \
@@ -106,7 +107,7 @@ RUN \
       ldconfig
 
 # overwrite number of endpoints exposed by the NETCONF server
-COPY ./ntsimulator/scripts/stock_config.xml /opt/dev/Netopeer2/server/stock_config.xml
+COPY ./ntsimulator/deploy/o-ran/stock_config.xml /opt/dev/Netopeer2/server/stock_config.xml
 # netopeer2
 RUN \
       cd /opt/dev && \
@@ -119,22 +120,39 @@ RUN \
       make -j2 && \
       make install
 
-RUN pip install rstr && pip install exrex && pip install ipaddress
-	  
+# pyang
 COPY ./pyang /opt/dev/pyang
 RUN \
 	  cd /opt/dev && \
 	  cd pyang && python setup.py build && python setup.py install
 
-COPY ntsimulator/deploy/supervisord.conf /etc/supervisord.conf
+# NTSimulator device
+COPY ./ntsimulator /opt/dev/ntsimulator
+COPY ./ntsimulator/deploy/o-ran/CMakeLists.txt /opt/dev/ntsimulator/src/CMakeLists.txt
+RUN \
+      cd /opt/dev && \
+      cd ntsimulator && mkdir build  && cd build && \
+      cmake .. && \
+      make -j2 && \
+      make install
 
-COPY ./ntsimulator/scripts/tls /home/netconf/.ssh
+# run only specific programs in this image
+COPY ./ntsimulator/deploy/o-ran/supervisord.conf /etc/supervisord.conf
 
-COPY ./ntsimulator/yang /opt/dev/yang
+# tls configuratoin
+COPY ./ntsimulator/deploy/tls /home/netconf/.ssh
+
+# YANG models and related scripts
+COPY ./ntsimulator/yang/o-ran /opt/dev/yang
+COPY ./ntsimulator/yang/auto-load-yangs.sh /opt/dev/yang
+COPY ./ntsimulator/yang/sysrepo-configuration-load.sh /opt/dev/yang
 WORKDIR /opt/dev
 RUN \
 	  cd yang && \
 	  ./auto-load-yangs.sh
+
+ARG BUILD_DATE
+LABEL build-date=$BUILD_DATE
 	  
 ENV EDITOR vim
 EXPOSE 830
