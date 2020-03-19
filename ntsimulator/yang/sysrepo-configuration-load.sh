@@ -37,6 +37,11 @@ do
 END
 )
 done
-echo "Finished loading data into sysrepo..."
+
+echo "Finished loading data into sysrepo. Removing edit-config XML..."
+rm -f /opt/dev/yang/edit_config_operation.xml
+
+echo "Done..."
+
 
 exit 0

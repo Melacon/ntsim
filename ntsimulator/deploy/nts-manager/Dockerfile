@@ -1,6 +1,5 @@
-FROM ubuntu:18.04
+FROM ubuntu:18.04 AS builder
 
-MAINTAINER alexandru.stancu@highstreet-technologies.com
 LABEL maintainer="alexandru.stancu@highstreet-technologies.com"
 
 ENV NETCONF_BASE=40000
@@ -127,6 +126,82 @@ RUN \
       cmake .. && \
       make -j2 && \
       make install
+
+
+# Second stage
+FROM ubuntu:18.04  
+
+LABEL maintainer="alexandru.stancu@highstreet-technologies.com"
+
+ENV NETCONF_BASE=40000
+ENV NTS_IP="127.0.0.1"
+ENV SCRIPTS_DIR=/opt/dev/scripts
+ENV DOCKER_ENGINE_VERSION="1.40"
+ENV MODELS_IMAGE="ntsim_oran"
+
+RUN \
+      apt-get update && apt-get install -y supervisor
+
+# add netconf user
+RUN \
+      adduser --system netconf && \
+      echo "netconf:netconf" | chpasswd
+
+# generate ssh keys for netconf user
+RUN \
+      mkdir -p /home/netconf/.ssh
+
+COPY --from=builder /home/netconf/.ssh /home/netconf/.ssh
+COPY --from=builder /usr/local/lib /usr/local/lib
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /usr/local/include /usr/local/include
+COPY --from=builder /usr/lib/libavl.so /usr/lib/libavl.so
+COPY --from=builder /usr/lib/libavl.so.1 /usr/lib/libavl.so.1
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libev.so /usr/lib/x86_64-linux-gnu/libev.so
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libev.so.4 /usr/lib/x86_64-linux-gnu/libev.so.4
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libcurl.so.4 /usr/lib/x86_64-linux-gnu/libcurl.so.4
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libcurl.so /usr/lib/x86_64-linux-gnu/libcurl.so
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libcurl-gnutls.so.4 /usr/lib/x86_64-linux-gnu/libcurl-gnutls.so.4
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libcjson_utils.so.1 /usr/lib/x86_64-linux-gnu/libcjson_utils.so.1
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libcjson_utils.so /usr/lib/x86_64-linux-gnu/libcjson_utils.so
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libcjson.so.1 /usr/lib/x86_64-linux-gnu/libcjson.so.1 
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libcjson.so /usr/lib/x86_64-linux-gnu/libcjson.so
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libprotobuf.so.10 /usr/lib/x86_64-linux-gnu/libprotobuf.so.10
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libprotobuf-c.so.1 /usr/lib/x86_64-linux-gnu/libprotobuf-c.so.1
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libprotobuf-c.so /usr/lib/x86_64-linux-gnu/libprotobuf-c.so
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libssh_threads.so.4 /usr/lib/x86_64-linux-gnu/libssh_threads.so.4
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libssh_threads.so /usr/lib/x86_64-linux-gnu/libssh_threads.so
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libssh.so.4 /usr/lib/x86_64-linux-gnu/libssh.so.4
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libssh.so /usr/lib/x86_64-linux-gnu/libssh.so
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libnghttp2.so.14 /usr/lib/x86_64-linux-gnu/libnghttp2.so.14
+COPY --from=builder /usr/lib/x86_64-linux-gnu/librtmp.so.1 /usr/lib/x86_64-linux-gnu/librtmp.so.1
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libpsl.so.5 /usr/lib/x86_64-linux-gnu/libpsl.so.5
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libgssapi_krb5.so.2 /usr/lib/x86_64-linux-gnu/libgssapi_krb5.so.2
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libldap_r-2.4.so.2 /usr/lib/x86_64-linux-gnu/libldap_r-2.4.so.2
+COPY --from=builder /usr/lib/x86_64-linux-gnu/liblber-2.4.so.2 /usr/lib/x86_64-linux-gnu/liblber-2.4.so.2
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libkrb5.so.3 /usr/lib/x86_64-linux-gnu/libkrb5.so.3
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libk5crypto.so.3 /usr/lib/x86_64-linux-gnu/libk5crypto.so.3
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libkrb5support.so.0 /usr/lib/x86_64-linux-gnu/libkrb5support.so.0
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libsasl2.so.2 /usr/lib/x86_64-linux-gnu/libsasl2.so.2
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libgssapi.so.3 /usr/lib/x86_64-linux-gnu/libgssapi.so.3
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libheimntlm.so.0 /usr/lib/x86_64-linux-gnu/libheimntlm.so.0
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libkrb5.so.26 /usr/lib/x86_64-linux-gnu/libkrb5.so.26
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libasn1.so.8 /usr/lib/x86_64-linux-gnu/libasn1.so.8
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libhcrypto.so.4 /usr/lib/x86_64-linux-gnu/libhcrypto.so.4
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libroken.so.18 /usr/lib/x86_64-linux-gnu/libroken.so.18
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libwind.so.0 /usr/lib/x86_64-linux-gnu/libwind.so.0
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libheimbase.so.1 /usr/lib/x86_64-linux-gnu/libheimbase.so.1
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libhx509.so.5 /usr/lib/x86_64-linux-gnu/libhx509.so.5
+
+COPY --from=builder /lib/x86_64-linux-gnu/libkeyutils.so.1 /lib/x86_64-linux-gnu/libkeyutils.so.1
+COPY --from=builder /etc/sysrepo /etc/sysrepo
+COPY --from=builder /var/run /var/run
+
+COPY --from=builder /usr/local/etc/keystored/keys/ssh_host_rsa_key.pem /usr/local/etc/keystored/keys/ssh_host_rsa_key.pem
+COPY --from=builder /usr/local/etc/keystored/keys/ssh_host_rsa_key.pem.pub /usr/local/etc/keystored/keys/ssh_host_rsa_key.pem.pub
+COPY --from=builder /usr/local/share/libnetconf2 /usr/local/share/libnetconf2
+
+RUN ldconfig
 
 COPY ntsimulator/deploy/nts-manager/supervisord.conf /etc/supervisord.conf
 	  

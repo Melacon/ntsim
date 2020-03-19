@@ -1,1 +1,1 @@
-docker build --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') -t ntsim_manager -f ntsimulator/deploy/nts-manager/Dockerfile .
+docker build --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') -t ntsim_manager_light -f ntsimulator/deploy/nts-manager/Dockerfile .
