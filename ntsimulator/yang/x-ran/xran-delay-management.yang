@@ -1,0 +1,264 @@
+module xran-delay-management {
+  yang-version 1.1;
+  namespace "urn:xran:delay:1.0";
+  prefix "xran-delay";
+
+  organization "xRAN Forum";
+
+  contact
+    "www.xran.org";
+
+  description
+    "This module covers off aspects of lls-CU to RU delay management,
+    including config data related to RU transmission and reception
+    windows.
+
+    Copyright 2018 the xRAN Forum.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS'
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the above disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the above disclaimer in the documentation
+    and/or other materials provided with the distribution.
+    * Neither the Members of the xRAN Forum nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.";
+
+  revision "2018-07-20" {
+    description
+      "version 1.0.0 - First release of the xRAN YANG M-Plane models.
+
+      This version of the model supports v01.00 of the corrsponding xRAN
+      M-Plane Specification.";
+    reference "XRAN-FH.MP.0-v01.00";
+  }
+
+  feature ADAPTIVE-RU-PROFILE {
+    description
+      "This feature indicates that the RU supports adaptive RU delay profile
+      based on information provided by the NETCONF client.";
+  }
+
+  container delay-management {
+    description "top level tree covering off lls-CU to RU delay management";
+
+    list bandwidth-scs-delay-state {
+      key "bandwidth subcarrier-spacing";
+      description
+        "Array of structures containing sets of parameters for delay management.";
+
+      leaf bandwidth {
+        type uint32 {
+          range "200 | 1400 | 3000 | 5000 | 10000 | 15000 | 20000 | 25000 |
+                30000 | 40000 | 50000 | 60000 | 70000 | 80000 | 90000 | 100000
+                | 200000 | 400000" ;
+        }
+        units kilohertz;
+        description
+          "transmission bandwidth configuration in units of kHz -
+          covering NBIoT through to New Radio - see 38.104";
+      }
+      leaf subcarrier-spacing {
+        type uint32 {
+          range "0 .. 240000 ";
+        }
+        units Hertz;
+        description "subcarrier spacing in Hz";
+      }
+
+      container ru-delay-profile {
+        config false;
+        description "container for RU delay parameters";
+        leaf t2a-min-up {
+          type uint32;
+          units nanoseconds;
+          mandatory true;
+          description
+            "the minimum RU data processing delay between receiving IQ data
+            message over the fronthaul interface and transmitting
+            the corresponding first IQ sample at the antenna";
+        }
+        leaf t2a-max-up {
+          type uint32;
+          units nanoseconds;
+          mandatory true;
+          description
+            "the earliest allowable time when a data packet is received before
+            the corresponding first IQ sample is transmitted at the antenna";
+        }
+        leaf t2a-min-cp-dl {
+          type uint32;
+          units nanoseconds;
+          mandatory true;
+          description
+            "the minimum RU data processing delay between receiving downlink
+            real time control plane message over the fronthaul interface and
+            transmitting the corresponding first IQ sample at the antenna";
+        }
+        leaf t2a-max-cp-dl {
+          type uint32;
+          units nanoseconds;
+          mandatory true;
+          description
+            "the earliest allowable time when a downlink real time control message
+            is received before the corresponding first IQ sample is transmitted at
+            the antenna";
+        }
+        leaf tadv-cp-dl {
+          type uint32;
+          units nanoseconds;
+          mandatory true;
+          description
+            "the time difference (advance) between the reception window for
+            downlink real time Control messages and reception window for the
+            corresponding IQ data messages.";
+        }
+        leaf ta3-min {
+          type uint32;
+          units nanoseconds;
+          mandatory true;
+          description
+            "the minimum RU data processing delay between receiving an IQ sample
+            at the antenna and transmitting the last data sample over the
+            fronthaul interface";
+        }
+        leaf ta3-max {
+          type uint32;
+          units nanoseconds;
+          mandatory true;
+          description
+            "the maximum RU data processing delay between receiving an IQ sample
+            at the antenna and transmitting the first data sample over the
+            fronthaul interface";
+        }
+        leaf t2a-min-cp-ul {
+          type uint32;
+          units nanoseconds;
+          mandatory true;
+          description
+            "the minimum RU data processing delay between receiving real time
+            up-link control plane message over the fronthaul interface and
+            recieving the first IQ sample at the antenna";
+        }
+        leaf t2a-max-cp-ul {
+          type uint32;
+          units nanoseconds;
+          mandatory true;
+          description
+            "the earliest allowable time when a real time up-link control message
+            is received before the corresponding first IQ sample is received  at
+            the antenna";
+        }
+      }
+    }
+
+    container adaptive-delay-configuration {
+      if-feature ADAPTIVE-RU-PROFILE;
+      description "container for adaptive delay parameters";
+      list bandwidth-scs-delay-state {
+        key "bandwidth subcarrier-spacing";
+        description
+          "Array of structures containing sets of parameters for delay management.";
+
+        leaf bandwidth {
+          type uint32 {
+            range "200 | 1400 | 3000 | 5000 | 10000 | 15000 | 20000 | 25000 |
+                  30000 | 40000 | 50000 | 60000 | 70000 | 80000 | 90000 | 100000
+                  | 200000 | 400000" ;
+          }
+          units kilohertz;
+          description
+            "transmission bandwidth configuration in units of kHz -
+            covering NBIoT through to New Radio - see 38.104";
+        }
+        leaf subcarrier-spacing {
+          type uint32 {
+            range "0 .. 240000 ";
+          }
+          units Hertz;
+          description "subcarrier spacing in Hz";
+        }
+        container lls-cu-delay-profile {
+          description
+            "lls-CU provided delay profile for adaptive delay configuration";
+          leaf t1a-max-up-lls-cu {
+            type uint32;
+            units nanoseconds;
+            description
+              "the earliest possible time which the lls-CU can support transmiting
+              an IQ data message prior to transmission of the corresponding IQ
+              samples at the antenna";
+          }
+          leaf tx-max-lls-cu {
+            type uint32;
+            units nanoseconds;
+            description
+              "The maximum amount of time which the lls-CU requires to transmit
+              all downlink user plane IQ data message for a symbol";
+          }
+          leaf ta4-max-lls-cu {
+            type uint32;
+            units nanoseconds;
+            description
+              "the latest possible time which the lls-CU can support receiving the
+              last uplink user plane IQ data message for a symbol.";
+          }
+          leaf rx-max-lls-cu {
+            type uint32;
+            units nanoseconds;
+            description
+              "The maximum time difference the lls-CU can support between
+              receiving the first user plane IQ data message for a symbol and
+              receiving the last user plane IQ data message for the same symbol";
+          }
+        }
+      }
+
+      container transport-delay {
+        description
+          "lls-CU provided transport-delay parameters";
+        leaf t12-min {
+          type uint32;
+          units nanoseconds;
+          description
+            "the minimum measured delay between CU port-ID and RU port-ID";
+        }
+        leaf t34-min {
+          type uint32;
+          units nanoseconds;
+          description
+            "the minimum measured delay between RU port-ID and CU port-ID";
+        }
+// additional leaf added by Samsung
+        leaf t12-max {
+          type uint32;
+          units nanoseconds;
+          description
+            "the maximum measured delay between CU port-ID and RU port-ID";
+        }
+// additional leaf added by Samsung
+        leaf t34-max {
+          type uint32;
+          units nanoseconds;
+          description
+            "the maximum measured delay between RU port-ID and CU port-ID";
+        }
+      }
+    }
+  }
+}

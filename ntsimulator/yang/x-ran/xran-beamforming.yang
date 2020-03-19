@@ -1,0 +1,325 @@
+module xran-beamforming {
+  yang-version 1.1;
+  namespace "urn:xran:beamforming:1.0";
+  prefix "xran-bf";
+
+  import xran-uplane-conf {
+    prefix up;
+  }
+
+  import xran-module-cap {
+    prefix "mcap";
+  }
+
+  organization "xRAN Forum";
+
+  contact
+    "www.xran.org";
+
+  description
+    "This module defines the beamforming capabilitites of an RU.
+    Only RUs that support beamforming shall support this module.
+
+    Copyright 2018 the xRAN Forum.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS'
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the above disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the above disclaimer in the documentation
+    and/or other materials provided with the distribution.
+    * Neither the Members of the xRAN Forum nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.";
+
+  revision "2018-07-20" {
+    description
+      "version 1.0.0 - First release of the xRAN YANG M-Plane models.
+
+      This version of the model supports v01.00 of the corrsponding xRAN
+      M-Plane Specification.";
+    reference "XRAN-FH.MP.0-v01.00";
+  }
+
+  feature MODIFY-BF-CONFIG {
+    description
+      "This feature indicates that the RU supports an optional feature to
+      modify beamforming configuration information";
+  }
+
+  typedef beam-reference {
+    type leafref {
+      path "/xran-bf:beamforming-config/xran-bf:per-band-config/xran-bf:beam-information/xran-bf:beamforming-properties/xran-bf:beam-id";
+    }
+    description
+      "This type is used by data models that need to reference a beam.";
+  }
+  container beamforming-config {
+    config false;
+    description
+      "A set of configuration data for the RU's beam forming functionality";
+
+    list per-band-config {
+      key band-number;
+      description "beamforming information per band";
+      leaf band-number {
+        type leafref {
+          path "/mcap:module-capability/mcap:band-capabilities/mcap:band-number";
+        }
+        description
+          "band information for the beamforming information
+           related to the band number of module capabilities";
+      }
+
+      leaf-list tx-array {
+        type leafref {
+          path "/up:user-plane-configuration/up:tx-arrays/up:name";
+        }
+        description "tx arrays belonging to this band number";
+      }
+      leaf-list rx-array {
+        type leafref {
+          path "/up:user-plane-configuration/up:rx-arrays/up:name";
+        }
+        description "rx arrays belonging to this band number";
+      }
+      container static-properties {
+        description
+          "the static beamforming related information";
+        leaf beamforming-type {
+          type enumeration {
+            enum COMMON {
+              description "A common beam ID is used for entire band";
+            }
+            enum DIFFERENT {
+              description "Different beam IDs can be assigned for each PRB/RE";
+            }
+          }
+          description
+            "This value indicates supporting beamforming type in RU";
+        }
+
+        leaf number-of-beams {
+          type uint16;
+          description
+            "This value indicates the number of beam patterns RU can generate
+            and apply to the signal of each RU port (both DL and UL).
+            This value is equivalent to the maximum number of used beam IDs.";
+        }
+
+        leaf number-of-polarizations {
+          type uint8;
+          description
+            "This value indicates the number of polarizations supported at RU.";
+        }
+
+        leaf number-of-panels {
+          type uint8;
+          description
+            "This value indicates the number of antenna panels supported at RU.";
+        }
+      }
+
+      container beam-information {
+        description
+          "beam information which relates to the current beamforming configuration";
+        leaf number-of-beamforming-properties {
+          type uint16;
+          description
+            "This parameter indicates the number of beamFormingProperties entries.";
+        }
+
+        list beamforming-properties {
+          key beam-id;
+          description
+            "Array for the beamforming properties at RU.
+            These parameters can be used by the beamforming control by the NETCONF client.
+            'numberOfBeamformingProperties' indicaets the size of the array.";
+
+
+          leaf beam-id {
+            type uint16;
+            description
+              "This value indicates the beam ID whose beamforming properties are
+              described in the container.";
+          }
+
+          container beamforming-property {
+            description
+              "Structure containing single set of beamforming properties.";
+
+            leaf coarse-fine {
+              type enumeration {
+                enum COARSE-BEAM {
+                  description "the beam-id corresponds to a coarse beam";
+                }
+                enum FINE-BEAM {
+                  description "the beam-id corresponds to a fine beam";
+                }
+              }
+              description
+                "This value indicates the beam resolution.";
+            }
+
+            leaf beam-groups-id {
+              type uint16;
+              description
+                "Beams with same beamGroupsID can be transmitted simultaneously.";
+            }
+
+            leaf-list coarse-fine-beam-relation {
+              type beam-reference;
+              description
+                "list of related coarse/fine beam.";
+
+            }
+
+            leaf-list neighbor-beam {
+              type beam-reference;
+              description
+                "A list of neighbor beams which might restrict co-scheduling due
+                to interference.";
+            }
+          }
+        }
+      }
+    }
+    container ue-specific-beamforming {
+      presence
+        "Indicates that the RU supports optional Section Type '6' Fields
+        (used for sending channel information for a specific UE";
+      config false;
+      description
+        "Information related to supput by the RU of Section Type 6 for
+        signalling UE-specific channel information to the RU";
+      leaf max-number-of-ues {
+        type uint8;
+        description
+          "Indicates tha maximum number of UE -specific channel information
+          data sets supported by the RU";
+      }
+    }
+    container operational-properties {
+      if-feature MODIFY-BF-CONFIG;
+      description "properties for dynamic beam weight/attribute support";
+
+      leaf number-of-writeable-beamforming-files {
+        type uint8  {
+          range "1 .. max";
+        }
+        mandatory true;
+        description
+          "This leaf indicates the maximum number of writeable beamforming files
+          containing beamweights and/or attributes that the RU can store, taking
+          into account the maximum number of beam-IDs as defined by 3GPP
+          TS38.214 v15.x.x";
+      }
+
+      leaf update-bf-non-delete {
+        type boolean;
+        default false;
+        description
+          "When set to TRUE, indicates that an RU supports the capability
+          to apply the modified beamforming weight information by using rpc
+          activate-beamforming-weight without deletion of tx-array-carriers and
+          rx-array-carriers in advance, i.e., to a deactivated carrier";
+      }
+
+      leaf persistent-bf-files {
+        type boolean;
+        default false;
+        description
+          "When set to TRUE, indicates that the RU supports the capability
+           to store the modified beamforming weight information file in the
+           reset persistent memory";
+      }
+    }
+
+	  leaf beamforming-trough-attributes-supported {
+	    type boolean;
+	    description
+	      "Informs if beamforming can be controlled providing attributes to RU
+		    (like angles, beamwidth).";
+	  }
+
+	  leaf beamforming-trough-ue-channel-info-supported {
+	    type boolean;
+	    description
+	      "Informs if beamforming can be controlled by UE information.";
+	  }
+  }
+
+  rpc activate-beamforming-config {
+    if-feature MODIFY-BF-CONFIG;
+    description
+      "rpc to activate beamforming config information by indicating the file
+      stored in the folder xRAN/beam-weights in advance";
+    input {
+      leaf beamforming-config-file {
+        type string;
+        mandatory true;
+        description
+          "file name stored in xRAN/beamforming/ folder is indicated";
+      }
+      leaf band-number {
+        type leafref {
+          path "/mcap:module-capability/mcap:band-capabilities/mcap:band-number";
+        }
+        description
+          "The band to which the beam configuration applies";
+      }
+    }
+    output {
+      leaf status {
+        type enumeration {
+          enum ACCEPTED {
+            description "RU has accepted the beamforming weight/attribute file";
+          }
+          enum REJECTED {
+            description
+              "RU has rejected the beamforming weight/attribute file. The RU
+              should then use the default beamforming file.";
+          }
+        }
+        mandatory true;
+        description "Status of activation of beamforming config information";
+      }
+      leaf error-message {
+        when "../status='REJECTED'";
+        type string;
+        description
+          "Detailed error Message when the status is rejected, e.g.,
+           because new beam forming file is attempted to be applied to a
+           carrier which is still active, or the beam-id does not exist.";
+      }
+    }
+  }
+
+  //notification statement
+  notification beamforming-information-update {
+    leaf band-number {
+      type leafref {
+        path "/mcap:module-capability/mcap:band-capabilities/mcap:band-number";
+      }
+      description
+        "The band to which the beamforming information is updated";
+    }
+    description
+      "this notification indicates that the beamforming properties are updated";
+
+  }
+}

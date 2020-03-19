@@ -1,0 +1,174 @@
+module xran-file-management {
+  yang-version 1.1;
+  namespace "urn:xran:file-management:1.0";
+  prefix "xran-file-mgmt";
+
+
+  organization "xRAN Forum";
+
+  contact
+    "www.xran.org";
+
+  description
+    "This module defines the configuration and operations for handling upload.
+
+    Copyright 2018 the xRAN Forum.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS'
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the above disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the above disclaimer in the documentation
+    and/or other materials provided with the distribution.
+    * Neither the Members of the xRAN Forum nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.";
+
+  revision "2018-07-20" {
+    description
+      "version 1.0.0 - First release of the xRAN YANG M-Plane models.
+
+      This version of the model supports v01.00 of the corrsponding xRAN
+      M-Plane Specification.";
+    reference "XRAN-FH.MP.0-v01.00";
+  }
+
+  grouping file-path-grouping {
+    description "Complete logical path of the file on the RU to upload/download
+	(no wildcard is allowed) ex : /xRAN/log/syslog.1";
+
+    leaf local-logical-file-path {
+      type string;
+      mandatory true;
+	  description "Local logical file path";
+    }
+
+    leaf remote-file-path {
+      type string;
+      mandatory true;
+	  description "URI specifying the remote-file-path on lls-CU/NMS.
+      Format:sftp://user[:password]@host[:port]/path";
+    }
+  }
+
+  grouping output-status-grouping {
+    description "Status grouping";
+
+    leaf status {
+      type enumeration {
+        enum SUCCESS {
+			description "";}
+        enum FAILURE {
+			description "";}
+      }
+      description "Operation status";
+	  }
+
+    leaf reject-reason {
+      when "../status = 'FAILURE'";
+	  type string;
+	  description "";
+	}
+  }
+
+  grouping credential-information{
+    description "Type of authentication to use for SFTP upload or download.";
+    choice credentials {
+      case password {
+        container password {
+          presence true;
+          leaf password {
+            type string;
+            mandatory true;
+            description
+              "password needed for authentication.";
+          }
+          description
+          "password authentication method in use";
+        }
+      }
+      case certificate {
+        container certificate {
+          presence true;
+          description
+            "certificate authentication method in use";
+        }
+      }
+	 description "";
+    }
+  }
+
+  rpc file-upload {
+    description "File upload over SFTP from RU to NETCONF client";
+    input {
+      uses file-path-grouping;
+      uses credential-information;
+    }
+    output {
+      uses output-status-grouping;
+    }
+  }
+
+  rpc retrieve-file-list {
+    description "List all the files in the logical xRAN unit (* is allowed as wild-card).";
+    input {
+      leaf logical-path {
+        type string;
+        mandatory true;
+		description "xRAN unit of which the files are to be listed.
+        ex :  xRAN/log, xRAN/PM, xRAN/transceiver";
+      }
+      leaf file-name-filter {
+        type string;
+		description "Filter which are to be applied on the result list of file names (* is allowed as wild-card).";
+      }
+
+    }
+    output {
+      uses output-status-grouping;
+      leaf-list file-list {
+        when "../status = 'SUCCESS'";
+        type string;
+		description "List of files in the xRAN unit with the filter applied.";
+      }
+    }
+  }
+
+  notification file-upload-notification {
+    uses file-path-grouping;
+    uses output-status-grouping;
+	description "";
+  }
+
+  rpc file-download {
+    description
+      "Management plane triggered to generate the download file of RU.";
+    input {
+      uses file-path-grouping;
+      uses credential-information;
+    }
+    output {
+      uses output-status-grouping;
+    }
+  }
+
+  notification file-download-event {
+    uses file-path-grouping;
+    uses output-status-grouping;
+	description "";
+  }
+}

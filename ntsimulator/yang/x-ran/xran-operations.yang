@@ -1,0 +1,151 @@
+module xran-operations {
+  yang-version 1.1;
+  namespace "urn:xran:operations:1.0";
+  prefix "xran-ops";
+
+  organization "xRAN Forum";
+
+  contact
+    "www.xran.org";
+
+  description
+    "This module defines the YANG model used for RU operations.
+
+    Copyright 2018 the xRAN Forum.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS'
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the above disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the above disclaimer in the documentation
+    and/or other materials provided with the distribution.
+    * Neither the Members of the xRAN Forum nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.";
+
+  revision "2018-07-20" {
+    description
+      "version 1.0.0 - First release of the xRAN YANG M-Plane models.
+
+      This version of the model supports v01.00 of the corrsponding xRAN
+      M-Plane Specification.";
+    reference "XRAN-FH.MP.0-v01.00";
+  }
+
+  typedef xran-version {
+    type string {
+      pattern '[0-9]+(\.[0-9]+)';
+    }
+    description
+      "this type definition is used to represent the version of the xRAN
+      fronthaul interface.";
+  }
+
+  container operational-info{
+    config false;
+    description
+      "a collection of operational infor for the RU";
+
+    container xran-split {
+      description
+        "details about the xran split ";
+      leaf interface-version {
+        type xran-version;
+        default "1.0";
+        description "current version of the xRAN split sdupported by the RU";
+      }
+      leaf optional-header-support {
+        type enumeration {
+          enum NONE {
+            description
+              "Indicates that an RU only supports eCPRI C/U plane headers";
+          }
+          enum 1914POINT3 {
+            description
+              "Indicates that an RU supports the optional 1914.3 header format
+               for the C/U plane";
+          }
+        }
+        default NONE;
+        description
+          "Placeholder to enable future management plane aspects of 1914.3
+           headers to be included.";
+      }
+      leaf ecpri-concatenation-support {
+        type boolean;
+        default false;
+        description
+          "This leaf is used to indicate whether the RU supports the optional
+          eCPRI concatenation capability";
+      }
+    }
+
+    container operational-state {
+      description
+        "Operational state for the Radio Unit";
+      leaf restart-cause {
+        type enumeration {
+          enum POWER-ON {
+            description
+              "RU restarted because it was powered on";
+          }
+          enum SUPERVISION-WATCHDOG {
+            description
+              "RU restarted because it's supervision wathcdog timer wasn't reset
+              by a NETCONF client (inferring loss of NETCONF connectivity)";
+          }
+          enum MPLANE-TRIGGERED-RESTART {
+            description
+              "RU restarted because of an M-plane issued  rpc";
+          }
+          enum SOFTWARE-FAILURE {
+            description
+              "RU restarted because of software failure";
+          }
+          enum OTHER-WATCHDOG-TIMER {
+            description
+              "RU restarted because of some other non NETCONF watchdog timer";
+          }
+          enum UNKNOWN {
+            description
+              "The restart reason for the RU is unknown";
+          }
+        }
+        description "the cause for the last restart of the RU";
+      }
+    }
+
+    leaf re-call-home-no-ssh-timer {
+      type uint16;
+      units seconds;
+      default 60;
+      description
+        "The timer used by the xRAN Radio Unit to repeatedley call home to
+        identified call home servers if it has not already an established SSH
+        connection to the identified server.";
+    }
+  }
+
+  rpc reset {
+    // TODO add nacm statement, e.g., nacm:default-deny-all;
+    description
+      "Management plane triggered restart of the radio unit.
+       A server SHOULD send an rpc reply to the client before
+       restarting the system.";
+
+  }
+}

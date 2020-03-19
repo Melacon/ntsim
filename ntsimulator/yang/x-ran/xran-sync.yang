@@ -1,0 +1,662 @@
+module xran-sync {
+  yang-version 1.1;
+  namespace "urn:xran:sync:1.0";
+  prefix "xran-sync";
+
+
+  organization "xRAN Forum";
+
+  contact
+    "www.xran.org";
+
+  description
+    "This module defines synchronization mechanism for the xRAN Radio Unit.
+
+    Copyright 2018 the xRAN Forum.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS'
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the above disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the above disclaimer in the documentation
+    and/or other materials provided with the distribution.
+    * Neither the Members of the xRAN Forum nor the names of its
+    contributors may be used to endorse or promote products derived from
+    this software without specific prior written permission.";
+
+  revision "2018-07-20" {
+    description
+      "version 1.0.0 - First release of the xRAN YANG M-Plane models.
+
+      This version of the model supports v01.00 of the corrsponding xRAN
+      M-Plane Specification.";
+    reference "XRAN-FH.MP.0-v01.00";
+  }
+
+  typedef geographic-coordinate-degree {
+           type decimal64 {
+             fraction-digits 8;
+           }
+           description
+             "Decimal degree (DD) used to express latitude and longitude
+              geographic coordinates.";
+       }
+
+  feature GNSS {
+    description
+      "This feature indicates that the RU supports integrated GNSS functionality.";
+  }
+
+  container sync {
+    description
+      "Main containter for sync related parameters";
+
+    container sync-status {
+      config false;
+
+      description
+        "Object of this class provides synchronization state of the module.";
+
+      leaf sync-state {
+        type enumeration {
+          enum LOCKED {
+            description
+              "RU is in the locked mode, as defined in ITU-T G.810";
+          }
+          enum HOLDOVER {
+            description
+              "RU clock is in holdover mode";
+          }
+          enum FREERUN {
+            description
+              "RU clock isn’t locked to an input reference, and is not in the holdover mode";
+          }
+        }
+        mandatory true;
+        description
+          "State of DU synchronization";
+      }
+
+      list supported-reference-types {
+        key item;
+        min-elements 1;
+        description
+          "Type of a synchronization supported source.";
+        leaf item {
+          type enumeration {
+            enum GNSS {
+              description
+                "GPS can be taken as a synchronization source";
+            }
+            enum PTP {
+              description
+                "Precision Time Protocol can be taken as a synchronization source";
+            }
+            enum SYNCE {
+              description
+                "Synchronous Ethernet can be taken as a synchronization source";
+            }
+          }
+          mandatory true;
+
+          description
+            "supported reference-type";
+        }
+      }
+    }
+
+    container sync-capability {
+      config false;
+
+      description
+        "Object of this class provides synchronization capabilities of the module.";
+
+      leaf sync-t-tsc {
+        type enumeration {
+          enum STANDARD {
+            description
+              "Standard accuracy for synchronization is supported by the device";
+          }
+          enum ENCHANCED {
+            description
+              "Enchanced accuracy for synchronization is supported by the device";
+          }
+        }
+        mandatory true;
+        description
+          "This will provide information about T-TSC capability";
+
+        reference "T-TSC: ITU-T G.8275.1/Y.1369.1";
+      }
+    }
+
+    container ptp-config {
+      description
+        "This MO defines configuration of Precise Time Protocol.";
+      leaf domain-number {
+        type uint8;
+        default 24;
+        description
+          "This parameter indicates Domain Number for PTP announce messages.";
+      }
+
+      leaf multicast-mac-address {
+        type enumeration {
+          enum FORWARDABLE {
+            description
+              "means, that PTP shall use 01-80-C2-00-00-0E destination MAC address";
+          }
+          enum NONFORWARDABLE {
+            description
+              "means, that PTP shall use 01-1B-19-00-00-00 destination MAC address";
+          }
+        }
+        default FORWARDABLE;
+        description
+          "The parameter defines destination MAC address, used by the DU in the egress PTP messages.";
+      }
+
+      list accepted-clock-classes {
+        key clock-classes;
+        leaf clock-classes {
+          type uint8;
+          description
+            "PTP Clock Class accepted by the RU";
+        }
+        description
+          "Contains list of PTP acceptable Clock Classes, sorted in the descending order.";
+      }
+
+      leaf delay-asymmetry {
+        type int16 {
+          range -10000..10000;
+        }
+        default 0;
+        description
+          "Defines static phase error in the recovered PTP timing signal to be compensated at the RU.
+          The error is defined in units of nanoseconds in the range ±10 000 ns.";
+      }
+    }
+
+    container ptp-status {
+      description
+        "ptp status container";
+      leaf reporting-period {
+        type uint8;
+        default 10;
+        description
+          "This parameter defines minimum period in seconds between reports,
+          sent by the NETCONF Client, for parameters in this container.";
+      }
+      leaf lock-state {
+        type enumeration {
+          enum LOCKED {
+            description
+              "The integrated ordinary clock is synchronizing to the reference, recovered from PTP flow";
+          }
+          enum UNLOCKED {
+            description
+              "The integrated ordinary clock is not synchronizing to the reference, recovered from PTP flow";
+          }
+        }
+        config false;
+        description
+          "This parameter indicates, whether the integrated ordinary clock is
+          synchronizing to the reference, recovered from PTP signal.
+          The exact definition when to indicate locked or unlocked is up to specific
+          implementation.";
+      }
+
+      leaf clock-class {
+        type uint8;
+        config false;
+        description
+          "This parameter contains the clock class of the clock, controlled by the RU";
+      }
+
+      leaf clock-identity {
+        type string {
+          length 18;
+          pattern "0[xX][0-9a-fA-F]{16}";
+        }
+        config false;
+        description
+          "This parameter contains identity of the clock,
+            according to IEEE 1588-2008 defintion, controlled by the RU.
+          The string shall be formatted as an 8-octet hex value with the “0x” prefix.";
+      }
+
+  	  leaf partial-timing-supported {
+  	    type boolean;
+
+    		description
+    		  "Provides information wheter G.8275.2 (partial timing support from network) is supported.";
+  	  }
+
+      list sources {
+        key local-port-number;
+        config false;
+
+        description
+          "Synchronisation sources";
+
+        leaf local-port-number {
+          type uint16;
+      // fixme - change to a leafref once interface design is agreed
+          description
+            "This is reference to portNumber of ExternalEthernetPort to identify the port,
+            where the PTP signal is located.";
+        }
+
+        leaf state {
+          type enumeration {
+            enum PARENT {
+              description
+                "Indicates that this source is the current master clock, i.e. the clock,
+                which the clock, controlled by the Netconf Server, is synchronized to";
+            }
+            enum OK {
+              description
+                "Indicates that this source is an alternate master, which the clock,
+                controlled by the Netconf Server, can potentially synchronize to,
+                i.e. clock class and priority, announced by the master clock is lower,
+                compared to those of the clock, controlled by the Netconf Server,
+                and and the clock class is accepted";
+            }
+            enum NOK {
+              description
+                "Indicates that this source is an alternate master, which the clock,
+                controlled by the Netconf Server, has an operational connection to,
+                but the class or priority of the master clock is higher or equal
+                to those of the clock, controlled by the Netconf Server,
+                or the clock class is not accepted";
+            }
+            enum DISABLED {
+              description
+                "Indicates that this source is an alternate master, which the clock,
+                controlled by the Netconf Server, has no operational connection to";
+            }
+          }
+          description
+            "This parameter indicates status of the PTP source";
+        }
+
+        leaf two-step-flag {
+          type boolean;
+          description
+            "This parameter reflects status of the twoStepFlag attribute in Sync messages,
+            received from the PTP source.";
+        }
+
+        leaf leap61 {
+          type boolean;
+          description
+            "This parameter reflects status of the leap61 flag in Announce messages,
+            received from the PTP source.
+            When true, the last minute of the current UTC day contains 61 seconds.";
+        }
+
+        leaf leap59 {
+          type boolean;
+          description
+            "This parameter reflects status of the leap59 flag in Announce messages,
+            received from the PTP source.
+            When true, the last minute of the current UTC day contains 59 seconds.";
+        }
+
+        leaf current-utc-offset-valid {
+          type boolean;
+          description
+            "This parameter reflects status of the currentUtcOffsetValid flag in
+            Announce messages, received from the PTP source.
+            When true, the current UTC offset is valid.";
+        }
+
+        leaf ptp-timescale {
+          type boolean;
+          description
+            "This parameter reflects status of the ptpTimescale flag in Announce
+            messages, received from the PTP source.
+
+            When set, the clock timescale of the grandmaster clock is PTP;
+            otherwise, the timescale is ARB (arbitrary)";
+        }
+
+        leaf time-traceable {
+          type boolean;
+          description
+            "This parameter reflects status of the timeTraceable flag in Announce
+            messages, received from the PTP source.
+
+            When true, the timescale and the currentUtcOffset are traceable to a
+            primary reference";
+        }
+
+        leaf frequency-traceable {
+          type boolean;
+          description
+            "This parameter reflects status of the frequencyTraceable flag in
+            Announce messages, received from the PTP source.
+
+            When true, the frequency determining the timescale is traceable to a
+            primary reference";
+        }
+
+        leaf source-clock-identity {
+          type string {
+            length 18;
+            pattern "0[xX][0-9a-fA-F]{16}";
+          }
+          description
+            "This parameter reflects value of the sourceClockIdentity attribute in
+            Announce messages, received from the PTP source.
+
+            The string shall be formatted as an 8-octet hex value with the “0x”
+            prefix.";
+        }
+
+        leaf source-port-number {
+          type uint16;
+          description
+            "This parameter reflects value of the sourcePortNumber attribute in
+            Announce messages, received from the PTP source.";
+        }
+
+        leaf current-utc-offset {
+          type int16;
+          description
+            "The offset between TAI and UTC when the epoch of the PTP system is
+            the PTP epoch, i.e., when ptp-timescale is TRUE; otherwise, the value
+            has no meaning";
+        }
+
+        leaf priority1 {
+          type int8;
+          description
+            "This parameter reflects value of the priority1 attribute in Announce
+            messages, received from the PTP source.";
+        }
+
+        leaf clock-class {
+          type int8;
+          description
+            "This parameter reflects value of the clockClass attribute in
+            Announce messages, received from the PTP source.";
+        }
+
+        leaf clock-accuracy {
+          type int8;
+          description
+            "This parameter reflects value of the clockAccuracy attribute in
+            Announce messages, received from the PTP source.";
+        }
+
+        leaf offset-scaled-log-variance {
+          type uint16;
+          description
+            "This parameter reflects value of the offsetScaledLogVariance
+            attribute in Announce messages, received from the PTP source.";
+        }
+
+        leaf priority2 {
+          type uint8;
+          description
+            "This parameter reflects value of the priority2 attribute in Announce
+            messages, received from the PTP source.";
+        }
+
+        leaf grandmaster-clock-identity {
+          type string;
+          description
+            "This parameter reflects value of the grandmasterClockIdentity
+            attribute in Announce messages, received from the PTP source.
+
+            The string shall be formatted as an 8-octet hex value with the “0x”
+            prefix.";
+        }
+
+        leaf steps-removed {
+          type uint16;
+          description
+            "This parameter reflects value of the stepsRemoved attribute in
+            Announce messages, received from the PTP source.
+
+            It indicates the number of communication paths traversed
+            between the local clock and the grandmaster clock.";
+        }
+
+        leaf time-source {
+          type uint8;
+          description
+            "This parameter reflects value of the timeSource attribute in
+            Announce messages, received from the PTP source.";
+        }
+      }
+    }
+
+    container synce-status {
+      description
+        "SyncE status container";
+
+      leaf reporting-period {
+          type uint8;
+          default 10;
+          description
+            "This parameter defines minimum period in seconds between reports,
+             sent by the NETCONF client, for parameters in this container.";
+      }
+
+      leaf lock-state {
+        type enumeration {
+          enum LOCKED {
+            description
+              "The integrated ordinary clock is synchronizing to the reference, recovered from SyncE signal";
+          }
+          enum UNLOCKED {
+            description
+              "The integrated ordinary clock is not synchronizing to the reference, recovered from SyncE signal";
+          }
+        }
+        config false;
+        description
+          "This parameter indicates, whether the integrated ordinary clock is
+          synchronizing to the reference, recovered from SyncE signal.
+
+          The exact definition when to indicate locked or unlocked is up to
+          specific implementation.";
+      }
+
+      list sources {
+        key local-port-number;
+        config false;
+        leaf local-port-number {
+          type uint16;
+      //fixme - change to leafref once interfaces ae agreed
+          description
+            "This is reference to portNumber of ExternalEthernetPort to identify
+            the port, where the SyncE signal is located.";
+        }
+
+        leaf state {
+          type enumeration {
+            enum PARENT {
+              description
+                "Indicates that this source is the current master clock, i.e. the clock,
+                which the clock, controlled by the Netconf Server, is synchronized to";
+            }
+            enum OK {
+              description
+                "Indicates that this source is an alternate master, which the clock,
+                controlled by the Netconf Server, can potentially synchronize to,
+                i.e. clock class and priority, announced by the master clock is lower,
+                compared to those of the clock, controlled by the Netconf Server,
+                and and the clock class is accepted";
+            }
+            enum NOK {
+              description
+                "Indicates that this source is an alternate master, which the clock,
+                controlled by the Netconf Server, has an operational connection to,
+                but the class or priority of the master clock is higher or equal
+                to those of the clock, controlled by the Netconf Server,
+                or the clock class is not accepted";
+            }
+            enum DISABLED {
+              description
+                "Indicates that this source is an alternate master, which the clock,
+                controlled by the Netconf Server, has no operational connection to";
+            }
+          }
+          description
+            "This parameter indicates status of the SyncE source";
+        }
+
+        leaf quality-level {
+          type uint8 {
+            range 0..15;
+          }
+          description
+            "This parameter contains value of the SSM clock quality level,
+            received in SSM messages from the SyncE source.";
+        }
+        min-elements 1;
+        description
+          "This parameter contains characteristics of SyncE sources of the clock, controlled by the RU.";
+      }
+    }
+    container gnss-state {
+      if-feature GNSS;
+      config false;
+      description
+        "Provides information about state of gps receiver";
+      leaf name {
+        type string {
+          length "1..255";
+        }
+        description
+        "A name that is unique across the RU that identifies a GNSS instance.
+        This name may be used in fault management to refer to a
+        fault source or affected object";
+      }
+      leaf gnss-status {
+        type enumeration {
+          enum SYNCHRONIZED {
+            description "GNSS functionality is synchronized";
+          }
+          enum ACQUIRING-SYNC {
+            description "GNSS functionality is acquiring sync";
+          }
+          enum ANTENNA-DISCONNECTED {
+            description "GNSS functionality has its antenna disconnected";
+          }
+          enum BOOTING {
+            description "GNSS functionality is booting";
+          }
+          enum ANTENNA-SHORT-CIRCUIT {
+            description "GNSS functionality has an antenna short circuit";
+          }
+        }
+        description "when available, indicates the status of the gnss receiver.";
+      }
+      container gnss-data {
+        when "../gnss-status='SYNCHRONIZED'";
+        description
+          "GPS data contained";
+        leaf satellites-tracked {
+          type uint8;
+          description "Number of satellites tracked";
+        }
+        container location {
+          description
+            "Containes information about geo location";
+          leaf altitude {
+            type int64;
+            units millimeter;
+            description
+              "Distance above the sea level.";
+          }
+          leaf latitude {
+            type geographic-coordinate-degree {
+              range "-90..90";
+            }
+            description
+              "Relative position north or south on the Earth's surface.";
+          }
+          leaf longitude {
+            type geographic-coordinate-degree {
+              range "-180..180";
+            }
+            description
+              "Angular distance east or west on the Earth's surface.";
+          }
+        }
+      }
+    }
+  }
+
+  //notification statement
+  notification synchronization-state-change {
+    description
+	  "Notification used to inform about synchronization state change";
+
+    leaf sync-state {
+      type leafref {
+        path "/sync/sync-status/sync-state";
+      }
+      description
+        "State of RU synchronization is notified at state change";
+    }
+  }
+
+  notification ptp-state-change {
+    description
+	  "Notification used to inform about ptp synchronization state change";
+
+    leaf ptp-state{
+      type leafref{
+        path "/sync/ptp-status/lock-state";
+      }
+      description
+        "ptp-state-change notification is signalled from RU at state change";
+    }
+  }
+  notification synce-state-change {
+    description
+	  "Notification used to inform about synce synchronization state change";
+
+    leaf synce-state{
+      type leafref{
+        path "/sync/synce-status/lock-state";
+      }
+      description
+        "synce-state change notification is signalled from RU at state change";
+    }
+  }
+  notification gnss-state-change {
+    if-feature GNSS;
+    description
+	  "Notification used to inform about gnss synchronization state change";
+
+    leaf gnss-state{
+      type leafref{
+        path "/sync/gnss-state/gnss-status";
+      }
+      description
+        "gnss-state-change notification is signalled from RU at state change";
+    }
+  }
+
+}
