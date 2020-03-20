@@ -1,0 +1,285 @@
+module co-channel-profile-1-0 {
+  yang-version 1.1;
+  namespace "urn:onf:yang:co-channel-profile-1-0";
+  prefix co-channel-profile;
+
+  import ietf-yang-types {
+    prefix yang;
+  }
+  import core-model-1-4 {
+    prefix core-model;
+  }
+
+  organization
+    "openBackhaul.com proposal to Open Networking Foundation (ONF)";
+  contact
+    "WG Web : https://github.com/openBackhaul/Overview
+     WG List: CoChannelProfile@openBackhaul.com
+     Editor : Thorsten Heinze
+     Email  : Thorsten.Heinze@openBackhaul.com";
+  description
+    "Technology specific definition for groups of microwave radio interfaces, which are using the same frequency channel (XPIC, MIMO and ALIC).
+
+     Copyright 2019 openBackhaul.com
+
+     Licensed under the Apache License, Version 2.0 (the 'License');
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+     http://www.apache.org/licenses/LICENSE-2.0
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an 'AS IS' BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.";
+
+  revision 2020-01-27 {
+    description
+      "Model for the Transport SDN Pilot at Telefonica Germany.
+       Please view https://github.com/openBackhaul/coChannelProfile/issues for changes.";
+    reference
+      "https://github.com/openBackhaul/coChannelProfile/tree/tsp: Model definition
+       https://github.com/openBackhaul/onfCoreIm/tree/tsp: ONF TR-512 Core IM incl. Profile and enhanced Equipment definition";
+  }
+  revision 2019-11-02 {
+    description
+      "Model for the Transport SDN Pilot at Telefonica Germany.
+       Please view https://github.com/openBackhaul/coChannelProfile/issues for changes.";
+    reference
+      "https://github.com/openBackhaul/coChannelProfile/tree/tsp: Model definition
+       https://github.com/openBackhaul/onfCoreIm/tree/tsp: ONF TR-512 Core IM incl. Profile and enhanced Equipment definition";
+  }
+  revision 2019-07-17 {
+    description
+      "Model for the Transport SDN Pilot at Telefonica Germany.
+       Please view https://github.com/openBackhaul/coChannelProfile/issues for changes.";
+    reference
+      "https://github.com/openBackhaul/coChannelProfile/tree/tsp: Model definition
+       https://github.com/openBackhaul/onfCoreIm/tree/tsp: ONF TR-512 Core IM incl. Profile and enhanced Equipment definition";
+  }
+
+  identity PROFILE_NAME_TYPE_CO_CHANNEL_PROFILE {
+    base core-model:PROFILE_NAME_TYPE;
+    description
+      "none";
+  }
+
+  augment "/core-model:control-construct/core-model:profile-collection/core-model:profile" {
+    when "derived-from-or-self(./core-model:profile-name, 'co-channel-profile:PROFILE_NAME_TYPE_CO_CHANNEL_PROFILE')";
+    uses co-channel-profile-spec;
+    description
+      "none";
+  }
+
+  /****************************************
+   * package notifications
+   **************************************/ 
+
+  notification object-creation-notification {
+    uses object-creation-notification;
+    description
+      "none";
+  }
+
+  grouping object-creation-notification {
+    leaf counter {
+      type int32;
+      default "-1";
+      config false;
+      description
+        "Counts object creation notifications.";
+    }
+    leaf timestamp {
+      type yang:date-and-time;
+      default "2010-11-20T14:00:00+01:00";
+      config false;
+      description
+        "none";
+    }
+    leaf object-id-ref {
+      type leafref {
+        path "/core-model:control-construct/core-model:profile-collection/core-model:profile/core-model:uuid";
+        require-instance false;
+      }
+      config false;
+      description
+        "none";
+    }
+    leaf object-type {
+      type string;
+      default "Type of created object not specified.";
+      config false;
+      description
+        "none";
+    }
+    description
+      "none";
+  }
+
+  notification object-deletion-notification {
+    uses object-deletion-notification;
+    description
+      "none";
+  }
+
+  grouping object-deletion-notification {
+    leaf counter {
+      type int32;
+      default "-1";
+      config false;
+      description
+        "Counts object deletion notifications.";
+    }
+    leaf timestamp {
+      type yang:date-and-time;
+      default "2010-11-20T14:00:00+01:00";
+      config false;
+      description
+        "none";
+    }
+    leaf object-id-ref {
+      type leafref {
+        path "/core-model:control-construct/core-model:profile-collection/core-model:profile/core-model:uuid";
+        require-instance false;
+      }
+      config false;
+      description
+        "none";
+    }
+    description
+      "none";
+  }
+
+  /****************************************
+   * grouping statements for object classes
+   **************************************/ 
+
+  grouping co-channel-profile-spec {
+    container co-channel-profile-pac {
+      uses co-channel-profile-pac;
+      description
+        "none";
+    }
+    description
+      "none";
+  }
+
+  grouping co-channel-profile-pac {
+    container co-channel-profile-capability {
+      config false;
+      uses co-channel-profile-capability;
+      description
+        "none";
+    }
+    container co-channel-profile-configuration {
+      uses co-channel-profile-configuration;
+      description
+        "none";
+    }
+    description
+      "none";
+  }
+
+  grouping co-channel-profile-capability {
+    leaf xpic-is-avail {
+      type boolean;
+      default "false";
+      config false;
+      description
+        "In case this device is in general capable of XPIC, this field shall contain a 'true'. This information shall purely relate to capabilities of the equipment type, but not to the operational capability of a specific hardware composition on site. Means for example that this attribute might contain a 'true' statement, even if an additional cable would have been required to actually operate XPIC in a specific case.";
+    }
+    leaf mimo-is-avail {
+      type boolean;
+      default "false";
+      config false;
+      description
+        "In case the device is capable of MIMO, this field shall contain a 'true'.";
+    }
+    leaf number-of-mimo-channels-max {
+      type int8;
+      units "channels";
+      default "1";
+      config false;
+      description
+        "Maximum number (n) of spatial multiplexing streams that can be conveyed by an n x n MIMO configuration.";
+    }
+    leaf alic-is-avail {
+      type boolean;
+      default "false";
+      config false;
+      description
+        "In case the device is capable of Adjacent Link Interference Cancelation (canceling of interference cause by transmitters located at the same site), this field shall contain a 'true'.";
+    }
+    description
+      "none";
+  }
+
+  grouping co-channel-profile-configuration {
+    leaf profile-name {
+      type string;
+      default "Name of profile not yet defined.";
+      description
+        "Identifier of the profile. Could be a name, could be a number. Free text field to be filled by the operator.";
+    }
+    leaf kind-of-co-channel-group {
+      type kind-of-co-channel-group-type;
+      default "KIND_OF_CO_CHANNEL_GROUP_TYPE_NOT_YET_DEFINED";
+      description
+        "Type of group (XPIC, MIMO, ALIC) of air interfaces with the same transmit and receive frequency.";
+    }
+    leaf-list logical-termination-point-list {
+      type leafref {
+        path "/core-model:control-construct/core-model:logical-termination-point/core-model:uuid";
+        require-instance false;
+      }
+      description
+        "List of AirInterfaces, which are part of the co-channel group. Referenced LTP must associate a LayerProtocol class with layerProtocolName attribute having LAYER_PROTOCOL_NAME_TYPE_AIR_LAYER as value.";
+    }
+    description
+      "none";
+  }
+
+  /****************************************
+   * typedef statements
+   **************************************/ 
+
+  typedef kind-of-co-channel-group-type {
+    type identityref {
+      base KIND_OF_CO_CHANNEL_GROUP_TYPE;
+    }
+    description
+      "none";
+  }
+
+  /*********************************************
+   * grouping statements for complex data types
+   *******************************************/ 
+
+  identity KIND_OF_CO_CHANNEL_GROUP_TYPE {
+    description
+      "none";
+  }
+
+  identity KIND_OF_CO_CHANNEL_GROUP_TYPE_XPIC {
+    base KIND_OF_CO_CHANNEL_GROUP_TYPE;
+    description
+      "Cross Polarization Interference Cancellation";
+  }
+
+  identity KIND_OF_CO_CHANNEL_GROUP_TYPE_MIMO {
+    base KIND_OF_CO_CHANNEL_GROUP_TYPE;
+    description
+      "Multiple Input Multiple Output";
+  }
+
+  identity KIND_OF_CO_CHANNEL_GROUP_TYPE_ALIC {
+    base KIND_OF_CO_CHANNEL_GROUP_TYPE;
+    description
+      "Adjacent Link Interference Cancellation";
+  }
+
+  identity KIND_OF_CO_CHANNEL_GROUP_TYPE_NOT_YET_DEFINED {
+    base KIND_OF_CO_CHANNEL_GROUP_TYPE;
+    description
+      "none";
+  }
+}
