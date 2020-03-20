@@ -1,0 +1,64 @@
+module o-ran-sc-ru-v1 {
+  yang-version 1.1;
+  namespace "urn:o-ran:sc:radio-unit:1.0";
+  prefix oru;
+
+  import o-ran-sc-root-v1 {
+    prefix root;
+  }
+  import o-ran-sc-types-v1 {
+    prefix ot;
+  }
+
+  organization
+    "O-RAN Software Community";
+  contact
+    "www.o-ran.org";
+  description
+    "This module contains the O-RAN Software Community RadioUnit specific
+     O1 interface APIs.
+
+     Copyright 2020 the O-RAN Alliance.
+
+     Licensed under the Apache License, Version 2.0 (the 'License');
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an 'AS IS' BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.";
+
+  revision 2020-02-20 {
+    description
+      "initial revision";
+    reference
+      "O-RAN-OAM-Interface-Specification (O1)";
+  }
+
+  // identity
+
+  identity o-ru {
+    base ot:control-function-type;
+    description
+      "TODO: Nice description";
+  }
+
+  // grouping
+
+  grouping o-ru-specific-grp {
+    description
+      "TODO: add your specific leafs, lists, containers here.";
+  }
+
+  // Inherit from controlled-function
+  augment "/root:controlled-element/root:controlled-function" {
+    when "derived-from-or-self(./root:function-type, 'oru:o-ru')";
+    uses o-ru-specific-grp;
+    description
+      "TODO: Nice description";
+  }
+}
