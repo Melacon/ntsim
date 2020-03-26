@@ -5,6 +5,8 @@ include_directories(
     "/usr/include"
 )
 
+add_subdirectory(onf-notifications)
+
 # sources
 set (UTILS_SOURCES
     ${UTILS_DIR}/utils.c
