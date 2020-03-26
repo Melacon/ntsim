@@ -33,11 +33,41 @@
 
 #include "utils.h"
 
+#define LINE_BUFSIZE 128
+
 volatile int exit_application = 0;
 
 pthread_mutex_t lock;
 
 static int sw_download_error_count, sw_install_error_count, sw_activate_error_count;
+
+void call_software_management_script(char *script_name)
+{
+    char line[LINE_BUFSIZE];
+	int linenr;
+	FILE *pipe;
+
+	/* Get a pipe where the output from the scripts comes in */
+	char script[200];
+	sprintf(script, "/opt/dev/%s", script_name);
+
+	pipe = popen(script, "r");
+	if (pipe == NULL) {  /* check for errors */
+		printf("Could not open script.\n");
+		return;        /* return with exit code indicating error */
+	}
+
+	/* Read script output from the pipe line by line */
+	linenr = 1;
+	while (fgets(line, LINE_BUFSIZE, pipe) != NULL) {
+		printf("Script output line %d: %s", linenr, line);
+		++linenr;
+	}
+
+	/* Once here, out of the loop, the script has ended. */
+	pclose(pipe); /* Close the pipe */
+	return;     /* return with exit code indicating success. */
+}
 
 struct sw_download_struct
 {
@@ -65,10 +95,27 @@ void* sw_download_notification_send(void *arguments)
     if (trunc_filename != NULL)
     {
         sr_val_set_str_data(&notif[current_num_of_values_notif - 1], SR_STRING_T, trunc_filename + 1);
+
+        if (strcmp(trunc_filename+1, "reset") == 0)
+        {
+            call_software_management_script("edit-config-demo-start.sh");
+        }
+        else
+        {
+            call_software_management_script("edit-config-after-download.sh");
+        }
     }
     else
     {
         sr_val_set_str_data(&notif[current_num_of_values_notif - 1], SR_STRING_T, args->filename);
+        if (strcmp(args->filename, "reset") == 0)
+        {
+            call_software_management_script("edit-config-demo-start.sh");
+        }
+        else
+        {
+            call_software_management_script("edit-config-after-download.sh");
+        }
     }
 
     if (args->filename != NULL)
@@ -197,6 +244,8 @@ void* sw_activate_notification_send(void *arguments)
     else
     {
         sr_val_set_str_data(&notif[current_num_of_values_notif - 1], SR_ENUM_T, "COMPLETED");
+
+        call_software_management_script("edit-config-after-activate.sh");
     }
 
     CREATE_NEW_VALUE(rc, notif, current_num_of_values_notif);

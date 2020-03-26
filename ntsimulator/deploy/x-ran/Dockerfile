@@ -232,6 +232,14 @@ COPY --from=builder /opt/dev/sysrepo/build/examples/application_example /opt/dev
 COPY ./ntsimulator/yang/x-ran /opt/dev/yang
 COPY ./ntsimulator/yang/auto-load-yangs.sh /opt/dev/yang
 COPY ./ntsimulator/yang/sysrepo-configuration-load.sh /opt/dev/yang
+
+COPY ./ntsimulator/deploy/x-ran/edit-config-after-activate.sh /opt/dev
+COPY ./ntsimulator/deploy/x-ran/edit-config-after-activate.xml /opt/dev
+COPY ./ntsimulator/deploy/x-ran/edit-config-after-download.sh /opt/dev
+COPY ./ntsimulator/deploy/x-ran/edit-config-after-download.xml /opt/dev
+COPY ./ntsimulator/deploy/x-ran/edit-config-demo-start.sh /opt/dev
+COPY ./ntsimulator/deploy/x-ran/edit-config-demo-start.xml /opt/dev
+
 WORKDIR /opt/dev
 RUN \
 	  cd yang && \

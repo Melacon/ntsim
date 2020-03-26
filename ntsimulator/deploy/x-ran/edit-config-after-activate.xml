@@ -1,0 +1,21 @@
+<edit-config xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <target>
+    <running/>
+  </target>
+  <config>
+    <software-inventory xmlns="urn:xran:software-management:1.0" xmlns:xc="urn:ietf:params:xml:ns:netconf:base:1.0" xc:operation="merge">
+  <software-slot>
+    <name>Slot1</name>
+    <active>false</active>
+    <running>false</running>
+    <access>READ_WRITE</access>
+  </software-slot>
+  <software-slot>
+    <name>Slot2</name>
+    <active>true</active>
+    <running>true</running>
+    <access>READ_ONLY</access>
+  </software-slot>
+</software-inventory>
+  </config>
+</edit-config>
