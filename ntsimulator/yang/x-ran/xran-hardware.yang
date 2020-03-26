@@ -121,21 +121,7 @@ module xran-hardware {
        to serve traffic.";
   }
 
-  deviation /hw:hardware/hw:component/hw:name {
-    description
-      "Deviations for oryginal ietf-hardware/component/name to check if its pattern
-      and length mathes xRAN limitation
 
-      A name that is unique across the RU that identifies the RU instance.
-      This name may be used in fault management to refer to a fault source or
-      affected object corresponding to the generic RU.";
-
-      deviate add {
-      must "re-match(current(),'[a-zA-Z0-9]{1,255}')" {
-        error-message "Name must match pattern and length.";
-	  }
-    }
-  }
 
   augment "/hw:hardware/hw:component" {
     when "derived-from-or-self(hw:class, 'XRAN-RADIO')";

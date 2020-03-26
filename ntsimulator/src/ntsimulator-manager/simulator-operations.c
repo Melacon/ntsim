@@ -1027,6 +1027,7 @@ int get_docker_containers_operational_state_curl(device_stack_t *theStack)
 					if (rc != SR_ERR_OK)
 					{
 						printf("Could not set the operational state for the device with uuid=\"%s\"\n", container_id_short);
+						return SR_ERR_OPERATION_FAILED;
 					}
 				}
 			}
@@ -1098,7 +1099,7 @@ int notification_delay_period_changed(int period)
 	if (!cJSON_IsObject(notifConfig))
 	{
 		printf("Configuration JSON is not as expected: notification-config is not an object");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -1106,7 +1107,7 @@ int notification_delay_period_changed(int period)
 	if (!cJSON_IsNumber(faultNotifDelay))
 	{
 		printf("Configuration JSON is not as expected: fault-notification-delay-period is not an object");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -1117,7 +1118,7 @@ int notification_delay_period_changed(int period)
 	stringConfiguration = cJSON_Print(jsonConfig);
 	writeConfigFile(stringConfiguration);
 
-	free(jsonConfig);
+	cJSON_Delete(jsonConfig);
 
 	return SR_ERR_OK;
 }
@@ -1151,7 +1152,7 @@ int ves_heartbeat_period_changed(int period)
 	if (!cJSON_IsObject(notifConfig))
 	{
 		printf("Configuration JSON is not as expected: notification-config is not an object");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -1159,7 +1160,7 @@ int ves_heartbeat_period_changed(int period)
 	if (!cJSON_IsNumber(vesHeartbeatPeriod))
 	{
 		printf("Configuration JSON is not as expected: ves-heartbeat-period is not an object");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -1170,7 +1171,7 @@ int ves_heartbeat_period_changed(int period)
 	stringConfiguration = cJSON_Print(jsonConfig);
 	writeConfigFile(stringConfiguration);
 
-	free(jsonConfig);
+	cJSON_Delete(jsonConfig);
 
 	return SR_ERR_OK;
 }
@@ -1402,7 +1403,7 @@ int ves_ip_changed(char *new_ip)
 	if (!cJSON_IsObject(vesDetails))
 	{
 		printf("Configuration JSON is not as expected: ves-endpoint-details is not an object");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -1410,7 +1411,7 @@ int ves_ip_changed(char *new_ip)
 	if (!cJSON_IsString(vesIp))
 	{
 		printf("Configuration JSON is not as expected: ves-endpoint-ip is not a string");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -1421,7 +1422,7 @@ int ves_ip_changed(char *new_ip)
 	stringConfiguration = cJSON_Print(jsonConfig);
 	writeConfigFile(stringConfiguration);
 
-	free(jsonConfig);
+	cJSON_Delete(jsonConfig);
 
 	return SR_ERR_OK;
 }
@@ -1455,7 +1456,7 @@ int ves_port_changed(int new_port)
 	if (!cJSON_IsObject(vesDetails))
 	{
 		printf("Configuration JSON is not as expected: ves-endpoint-details is not an object");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -1463,7 +1464,7 @@ int ves_port_changed(int new_port)
 	if (!cJSON_IsNumber(vesPort))
 	{
 		printf("Configuration JSON is not as expected: ves-endpoint-port is not a number.");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -1474,7 +1475,7 @@ int ves_port_changed(int new_port)
 	stringConfiguration = cJSON_Print(jsonConfig);
 	writeConfigFile(stringConfiguration);
 
-	free(jsonConfig);
+	cJSON_Delete(jsonConfig);
 
 	return SR_ERR_OK;
 }
@@ -1508,7 +1509,7 @@ int ves_registration_changed(cJSON_bool new_bool)
 	if (!cJSON_IsObject(vesDetails))
 	{
 		printf("Configuration JSON is not as expected: ves-endpoint-details is not an object");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -1516,7 +1517,7 @@ int ves_registration_changed(cJSON_bool new_bool)
 	if (!cJSON_IsBool(vesRegistration))
 	{
 		printf("Configuration JSON is not as expected: ves-registration is not a bool.");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -1527,7 +1528,7 @@ int ves_registration_changed(cJSON_bool new_bool)
 	stringConfiguration = cJSON_Print(jsonConfig);
 	writeConfigFile(stringConfiguration);
 
-	free(jsonConfig);
+	cJSON_Delete(jsonConfig);
 
 	return SR_ERR_OK;
 }
@@ -1561,7 +1562,7 @@ int is_netconf_available_changed(cJSON_bool new_bool)
 	if (!cJSON_IsObject(notifConfig))
 	{
 		printf("Configuration JSON is not as expected: notification-config is not an object");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -1569,7 +1570,7 @@ int is_netconf_available_changed(cJSON_bool new_bool)
 	if (!cJSON_IsBool(isNetconfAvailable))
 	{
 		printf("Configuration JSON is not as expected: is-netconf-available is not a bool.");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -1580,7 +1581,7 @@ int is_netconf_available_changed(cJSON_bool new_bool)
 	stringConfiguration = cJSON_Print(jsonConfig);
 	writeConfigFile(stringConfiguration);
 
-	free(jsonConfig);
+	cJSON_Delete(jsonConfig);
 
 	return SR_ERR_OK;
 }
@@ -1614,7 +1615,7 @@ int is_ves_available_changed(cJSON_bool new_bool)
 	if (!cJSON_IsObject(notifConfig))
 	{
 		printf("Configuration JSON is not as expected: notification-config is not an object");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -1622,7 +1623,7 @@ int is_ves_available_changed(cJSON_bool new_bool)
 	if (!cJSON_IsBool(isVesAvailable))
 	{
 		printf("Configuration JSON is not as expected: is-ves-available is not a bool.");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -1633,7 +1634,7 @@ int is_ves_available_changed(cJSON_bool new_bool)
 	stringConfiguration = cJSON_Print(jsonConfig);
 	writeConfigFile(stringConfiguration);
 
-	free(jsonConfig);
+	cJSON_Delete(jsonConfig);
 
 	return SR_ERR_OK;
 }

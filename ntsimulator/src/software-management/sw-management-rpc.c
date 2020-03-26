@@ -250,7 +250,7 @@ sw_download_rpc_cb(const char *xpath, const sr_val_t *input, const size_t input_
         return rc;
     }
     (*output)[1].type = SR_INT32_T;
-    (*output)[1].data.int32_val = 30;
+    (*output)[1].data.int32_val = 10;
 
     /* inform sysrepo about the number of output values */
     *output_cnt = 2;
@@ -349,7 +349,7 @@ sw_activate_rpc_cb(const char *xpath, const sr_val_t *input, const size_t input_
         return rc;
     }
     (*output)[1].type = SR_INT32_T;
-    (*output)[1].data.int32_val = 30;
+    (*output)[1].data.int32_val = 10;
 
     /* inform sysrepo about the number of output values */
     *output_cnt = 2;

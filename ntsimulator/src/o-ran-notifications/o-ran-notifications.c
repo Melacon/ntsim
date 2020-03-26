@@ -85,7 +85,7 @@ static int send_fault_ves_message(char *alarm_condition, char *alarm_object, cha
 {
 	int rc = SR_ERR_OK;
 	CURLcode res;
-	static sequence_id = 0;
+	static int sequence_id = 0;
 	int netconf_port_base = 0;
 
 	prepare_ves_message_curl(curl);
@@ -129,6 +129,10 @@ static int send_fault_ves_message(char *alarm_condition, char *alarm_object, cha
 	if (faultFields == NULL)
 	{
 		printf("Could not create JSON object: faultFields\n");
+		if (postDataJson != NULL)
+		{
+			cJSON_Delete(postDataJson);
+		}
 		return 1;
 	}
 	cJSON_AddItemToObject(event, "faultFields", faultFields);
@@ -153,41 +157,6 @@ static int send_fault_ves_message(char *alarm_condition, char *alarm_object, cha
 		printf("Failed to send cURL...\n");
 		return SR_ERR_OPERATION_FAILED;
 	}
-
-	return SR_ERR_OK;
-}
-
-static int send_dummy_notif_file_mgmt(sr_session_ctx_t *sess)
-{
-	int rc;
-
-	sr_val_t *vnotif;
-	size_t current_num_of_values= 0;
-
-	CREATE_NEW_VALUE(rc, vnotif, current_num_of_values);
-
-	sr_val_build_xpath(&vnotif[current_num_of_values - 1], "%s", "/o-ran-file-management:file-upload-notification/local-logical-file-path");
-	sr_val_set_str_data(&vnotif[current_num_of_values - 1], SR_STRING_T, "odsanzucjsdoj");
-
-	CREATE_NEW_VALUE(rc, vnotif, current_num_of_values);
-
-	sr_val_build_xpath(&vnotif[current_num_of_values - 1], "%s", "/o-ran-file-management:file-upload-notification/remote-file-path");
-	sr_val_set_str_data(&vnotif[current_num_of_values - 1], SR_STRING_T, "jsdknvjnkfd");
-
-	CREATE_NEW_VALUE(rc, vnotif, current_num_of_values);
-
-	sr_val_build_xpath(&vnotif[current_num_of_values - 1], "%s", "/o-ran-file-management:file-upload-notification/status");
-	sr_val_set_str_data(&vnotif[current_num_of_values - 1], SR_ENUM_T, "SUCCESS");
-
-	rc = sr_event_notif_send(sess, "/o-ran-file-management:file-upload-notification", vnotif, current_num_of_values, SR_EV_NOTIF_DEFAULT);
-	if (rc != SR_ERR_OK) {
-		printf("Failed to send notification send_dummy_notif_file_mgmt\n");
-		return SR_ERR_OPERATION_FAILED;
-	}
-
-	printf("Successfully sent notification...\n");
-
-	sr_free_values(vnotif, current_num_of_values);
 
 	return SR_ERR_OK;
 }
@@ -358,7 +327,6 @@ main(int argc, char **argv)
         if (notification_delay_period > 0)
         {
         	send_dummy_notif(session);
-//        	send_dummy_notif_file_mgmt(session);
 
             sleep(notification_delay_period);
         }

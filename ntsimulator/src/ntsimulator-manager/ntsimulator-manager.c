@@ -117,7 +117,7 @@ print_current_config(sr_session_ctx_t *session, const char *module_name)
    sr_free_val(odl_username);
    sr_free_val(odl_password);
 
-    sr_free_values(values, count);
+   sr_free_values(values, count);
 }
 
 static void clean_current_docker_configuration(void);
@@ -184,7 +184,7 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
     printf("\n\n ========== CONFIG HAS CHANGED, CURRENT RUNNING CONFIG %s: ==========\n\n", module_name);
     print_current_config(session, module_name);
 
-    sr_val_t *val;
+    sr_val_t *val = NULL;
 
     /* get the value from sysrepo, we do not care if the value did not change in our case */
     rc = sr_get_item(session, "/network-topology-simulator:simulator-config/simulated-devices", &val);
@@ -198,6 +198,7 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
     }
 
     sr_free_val(val);
+	val = NULL;
 
     /* get the value from sysrepo, we do not care if the value did not change in our case */
     rc = sr_get_item(session, "/network-topology-simulator:simulator-config/mounted-devices", &val);
@@ -211,6 +212,7 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
     	{
     		printf("Cannot set mount value greater than number of simulated devices.\n");
     		sr_free_val(val);
+			val = NULL;
     		return SR_ERR_OK;
     	}
 
@@ -221,6 +223,7 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
     }
 
     sr_free_val(val);
+	val = NULL;
 
     /* get the value from sysrepo, we do not care if the value did not change in our case */
     rc = sr_get_item(session, "/network-topology-simulator:simulator-config/notification-config/fault-notification-delay-period", &val);
@@ -234,6 +237,7 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
     }
 
     sr_free_val(val);
+	val = NULL;
 
     /* get the value from sysrepo, we do not care if the value did not change in our case */
 	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/notification-config/ves-heartbeat-period", &val);
@@ -247,6 +251,7 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
 	}
 
 	sr_free_val(val);
+	val = NULL;
 
 	/* get the value from sysrepo, we do not care if the value did not change in our case */
 	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-ip", &val);
@@ -260,6 +265,7 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
 	}
 
 	sr_free_val(val);
+	val = NULL;
 
 	/* get the value from sysrepo, we do not care if the value did not change in our case */
 	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-port", &val);
@@ -273,6 +279,7 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
 	}
 
 	sr_free_val(val);
+	val = NULL;
 
 	/* get the value from sysrepo, we do not care if the value did not change in our case */
 	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-registration", &val);
@@ -286,6 +293,7 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
 	}
 
 	sr_free_val(val);
+	val = NULL;
 
 	/* get the value from sysrepo, we do not care if the value did not change in our case */
 	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/notification-config/is-netconf-available", &val);
@@ -299,6 +307,7 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
 	}
 
 	sr_free_val(val);
+	val = NULL;
 
 	/* get the value from sysrepo, we do not care if the value did not change in our case */
 	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/notification-config/is-ves-available", &val);
@@ -312,11 +321,17 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
 	}
 
 	sr_free_val(val);
+	val = NULL;
 
     return SR_ERR_OK;
 
 sr_error:
 	printf("NTSimulator config change callback failed: %s.", sr_strerror(rc));
+	if (val != NULL)
+	{
+		sr_free_val(val);
+		val = NULL;
+	}
 	return rc;
 }
 
@@ -344,6 +359,7 @@ simulator_status_cb(const char *xpath, sr_val_t **values, size_t *values_cnt,
 		if (rc != SR_ERR_OK)
 		{
 			printf("Could not get the operational state for the devices simulated.\n");
+			return SR_ERR_OPERATION_FAILED;
 		}
 
 		device_t *current_device = device_list->head;
@@ -445,7 +461,6 @@ int odl_add_key_pair_cb(const char *xpath, const sr_val_t *input, const size_t i
 		sr_val_t **output, size_t *output_cnt, void *private_ctx)
 {
 	int rc = SR_ERR_OK;
-    sr_session_ctx_t *session = (sr_session_ctx_t *)private_ctx;
 	controller_t controller_list[CONTROLLER_LIST_MAX_LEN];
 	int controller_list_size = 0;
 
@@ -461,6 +476,7 @@ int odl_add_key_pair_cb(const char *xpath, const sr_val_t *input, const size_t i
 	if (rc != SR_ERR_OK)
 	{
 		printf("Failed to add key pair to ODL.\n");
+		return SR_ERR_OPERATION_FAILED;
 	}
 
 	return rc;

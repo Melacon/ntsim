@@ -65,24 +65,6 @@ int cleanup_curl()
 	return SR_ERR_OK;
 }
 
-//static void prepare_ves_message_curl(void)
-//{
-//	curl_easy_reset(curl);
-//	set_curl_common_info();
-//
-//	char *ves_ip = getVesIpFromConfigJson();
-//	int ves_port = getVesPortFromConfigJson();
-//
-//	char url[100];
-//	sprintf(url, "http://%s:%d/eventListener/v7", ves_ip, ves_port);
-//	curl_easy_setopt(curl, CURLOPT_URL, url);
-//
-//	free(ves_ip);
-//
-////	curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-//
-//	return;
-//}
 /*
  * Heartbeat payload example
  *
@@ -127,6 +109,11 @@ static int send_heartbeat(int heartbeat_interval)
 	prepare_ves_message_curl(curl);
 
 	cJSON *postDataJson = cJSON_CreateObject();
+	if (postDataJson == NULL)
+	{
+		printf("Could not create JSON object: postDataJson\n");
+		return 1;
+	}
 
 	cJSON *event = cJSON_CreateObject();
 	if (event == NULL)
@@ -143,6 +130,7 @@ static int send_heartbeat(int heartbeat_interval)
 	if (commonEventHeader == NULL)
 	{
 		printf("Could not create JSON object: commonEventHeader\n");
+		cJSON_Delete(postDataJson);
 		return 1;
 	}
 	cJSON_AddItemToObject(event, "commonEventHeader", commonEventHeader);
@@ -151,6 +139,7 @@ static int send_heartbeat(int heartbeat_interval)
 	if (heartbeatFields == NULL)
 	{
 		printf("Could not create JSON object: heartbeatFields\n");
+		cJSON_Delete(postDataJson);
 		return 1;
 	}
 	cJSON_AddItemToObject(event, "heartbeatFields", heartbeatFields);
@@ -172,7 +161,6 @@ static int send_heartbeat(int heartbeat_interval)
 
 	if (res != CURLE_OK)
 	{
-		printf("Failed to send cURL...\n");
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -193,11 +181,17 @@ static int send_pnf_registration_instance(char *hostname, int port, bool is_tls)
 	prepare_ves_message_curl(curl);
 
 	cJSON *postDataJson = cJSON_CreateObject();
+	if (postDataJson == NULL)
+	{
+		printf("Could not create JSON object: postDataJson\n");
+		return 1;
+	}
 
 	cJSON *event = cJSON_CreateObject();
 	if (event == NULL)
 	{
 		printf("Could not create JSON object: event\n");
+		cJSON_Delete(postDataJson);
 		return 1;
 	}
 	cJSON_AddItemToObject(postDataJson, "event", event);
@@ -209,6 +203,7 @@ static int send_pnf_registration_instance(char *hostname, int port, bool is_tls)
 	if (commonEventHeader == NULL)
 	{
 		printf("Could not create JSON object: commonEventHeader\n");
+		cJSON_Delete(postDataJson);
 		return 1;
 	}
 	cJSON_AddItemToObject(event, "commonEventHeader", commonEventHeader);
@@ -217,6 +212,7 @@ static int send_pnf_registration_instance(char *hostname, int port, bool is_tls)
 	if (pnfRegistrationFields == NULL)
 	{
 		printf("Could not create JSON object: pnfRegistrationFields\n");
+		cJSON_Delete(postDataJson);
 		return 1;
 	}
 	cJSON_AddItemToObject(event, "pnfRegistrationFields", pnfRegistrationFields);

@@ -21,6 +21,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <stdio.h>
+#include <string.h>
 
 void set_curl_common_info_ves(CURL *curl)
 {
@@ -167,7 +168,6 @@ void getPreviousDayPmTimestamp(int number_of_intervals, char *date_and_time)
 long int getMicrosecondsSinceEpoch(void)
 {
 	time_t t = time(NULL);
-	struct tm tm = *localtime(&t);
 	struct timeval tv;
 	long int useconds;
 
@@ -192,17 +192,20 @@ void prepare_ves_message_curl(CURL *curl)
 
 	free(ves_ip);
 
-//	curl_easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
-
 	return;
 }
 
+/*
+ * Dynamically allocated memory;
+ * Caller needs to free the memory after it uses the value.
+ *
+*/
 cJSON*	vesCreateCommonEventHeader(char *domain, char *event_type, char *source_name, int seq_id)
 {
 	char dateAndTime[50];
 	getCurrentDateAndTime(dateAndTime);
 
-	long int useconds = getMicrosecondsSinceEpoch;
+	long useconds = getMicrosecondsSinceEpoch();
 
 	cJSON *commonEventHeader = cJSON_CreateObject();
 	if (commonEventHeader == NULL)
@@ -214,6 +217,7 @@ cJSON*	vesCreateCommonEventHeader(char *domain, char *event_type, char *source_n
 	if (cJSON_AddStringToObject(commonEventHeader, "domain", domain) == NULL)
 	{
 		printf("Could not create JSON object: domain\n");
+		cJSON_Delete(commonEventHeader);
 		return NULL;
 	}
 
@@ -223,6 +227,7 @@ cJSON*	vesCreateCommonEventHeader(char *domain, char *event_type, char *source_n
 	if (cJSON_AddStringToObject(commonEventHeader, "eventId", eventId) == NULL)
 	{
 		printf("Could not create JSON object: eventId\n");
+		cJSON_Delete(commonEventHeader);
 		return NULL;
 	}
 
@@ -232,96 +237,116 @@ cJSON*	vesCreateCommonEventHeader(char *domain, char *event_type, char *source_n
 	if (cJSON_AddStringToObject(commonEventHeader, "eventName", event_name) == NULL)
 	{
 		printf("Could not create JSON object: eventName\n");
+		cJSON_Delete(commonEventHeader);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(commonEventHeader, "eventType", event_type) == NULL)
 	{
 		printf("Could not create JSON object: eventType\n");
+		cJSON_Delete(commonEventHeader);
 		return NULL;
 	}
 
 	if (cJSON_AddNumberToObject(commonEventHeader, "sequence", (double)(seq_id)) == NULL)
 	{
 		printf("Could not create JSON object: sequence\n");
+		cJSON_Delete(commonEventHeader);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(commonEventHeader, "priority", "Low") == NULL)
 	{
 		printf("Could not create JSON object: priority\n");
+		cJSON_Delete(commonEventHeader);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(commonEventHeader, "reportingEntityId", "") == NULL)
 	{
 		printf("Could not create JSON object: reportingEntityId\n");
+		cJSON_Delete(commonEventHeader);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(commonEventHeader, "reportingEntityName", source_name) == NULL)
 	{
 		printf("Could not create JSON object: reportingEntityName\n");
+		cJSON_Delete(commonEventHeader);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(commonEventHeader, "sourceId", "") == NULL)
 	{
 		printf("Could not create JSON object: sourceId\n");
+		cJSON_Delete(commonEventHeader);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(commonEventHeader, "sourceName", source_name) == NULL)
 	{
 		printf("Could not create JSON object: sourceName\n");
+		cJSON_Delete(commonEventHeader);
 		return NULL;
 	}
 
 	if (cJSON_AddNumberToObject(commonEventHeader, "startEpochMicrosec", (double)(useconds)) == NULL)
 	{
 		printf("Could not create JSON object: startEpochMicrosec\n");
+		cJSON_Delete(commonEventHeader);
 		return NULL;
 	}
 
 	if (cJSON_AddNumberToObject(commonEventHeader, "lastEpochMicrosec", (double)(useconds)) == NULL)
 	{
 		printf("Could not create JSON object: lastEpochMicrosec\n");
+		cJSON_Delete(commonEventHeader);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(commonEventHeader, "nfNamingCode", "sdn controller") == NULL)
 	{
 		printf("Could not create JSON object: nfNamingCode\n");
+		cJSON_Delete(commonEventHeader);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(commonEventHeader, "nfVendorName", "sdn") == NULL)
 	{
 		printf("Could not create JSON object: nfVendorName\n");
+		cJSON_Delete(commonEventHeader);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(commonEventHeader, "timeZoneOffset", "+00:00") == NULL)
 	{
 		printf("Could not create JSON object: timeZoneOffset\n");
+		cJSON_Delete(commonEventHeader);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(commonEventHeader, "version", "4.0.1") == NULL)
 	{
 		printf("Could not create JSON object: version\n");
+		cJSON_Delete(commonEventHeader);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(commonEventHeader, "vesEventListenerVersion", "7.0.1") == NULL)
 	{
 		printf("Could not create JSON object: vesEventListenerVersion\n");
+		cJSON_Delete(commonEventHeader);
 		return NULL;
 	}
 
 	return commonEventHeader;
 }
 
+/*
+ * Dynamically allocated memory;
+ * Caller needs to free the memory after it uses the value.
+ *
+*/
 cJSON*	vesCreateHeartbeatFields(int heartbeat_interval)
 {
 	char dateAndTime[50];
@@ -337,12 +362,14 @@ cJSON*	vesCreateHeartbeatFields(int heartbeat_interval)
 	if (cJSON_AddStringToObject(heartbeatFields, "heartbeatFieldsVersion", "3.0") == NULL)
 	{
 		printf("Could not create JSON object: heartbeatFieldsVersion\n");
+		cJSON_Delete(heartbeatFields);
 		return NULL;
 	}
 
 	if (cJSON_AddNumberToObject(heartbeatFields, "heartbeatInterval", (double)(heartbeat_interval)) == NULL)
 	{
 		printf("Could not create JSON object: heartbeatInterval\n");
+		cJSON_Delete(heartbeatFields);
 		return NULL;
 	}
 
@@ -350,6 +377,7 @@ cJSON*	vesCreateHeartbeatFields(int heartbeat_interval)
 	if (additionalFields == NULL)
 	{
 		printf("Could not create JSON object: additionalFields\n");
+		cJSON_Delete(heartbeatFields);
 		return NULL;
 	}
 	cJSON_AddItemToObject(heartbeatFields, "additionalFields", additionalFields);
@@ -357,12 +385,18 @@ cJSON*	vesCreateHeartbeatFields(int heartbeat_interval)
 	if (cJSON_AddStringToObject(additionalFields, "eventTime", dateAndTime) == NULL)
 	{
 		printf("Could not create JSON object: eventTime\n");
+		cJSON_Delete(heartbeatFields);
 		return NULL;
 	}
 
 	return heartbeatFields;
 }
 
+/*
+ * Dynamically allocated memory;
+ * Caller needs to free the memory after it uses the value.
+ *
+*/
 char* 	readConfigFileInString(void)
 {
 	char * buffer = 0;
@@ -395,8 +429,6 @@ char* 	readConfigFileInString(void)
 
 void 	writeConfigFile(char *config)
 {
-	char * buffer = 0;
-	long length;
 	char config_file[200];
 	sprintf(config_file, "%s/configuration.json", getenv("SCRIPTS_DIR"));
 	FILE * f = fopen (config_file, "w");
@@ -436,12 +468,13 @@ int 	getFaultNotificationDelayPeriodFromConfigJson(void)
 	}
 	//we don't need the string anymore
 	free(stringConfig);
+	stringConfig = NULL;
 
 	cJSON *notifConfig = cJSON_GetObjectItemCaseSensitive(jsonConfig, "notification-config");
 	if (!cJSON_IsObject(notifConfig))
 	{
 		printf("Configuration JSON is not as expected: notification-config is not an object");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -449,13 +482,13 @@ int 	getFaultNotificationDelayPeriodFromConfigJson(void)
 	if (!cJSON_IsNumber(faultNotifDelay))
 	{
 		printf("Configuration JSON is not as expected: fault-notification-delay-period is not a number");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
 	notificationDelay = (int)(faultNotifDelay->valuedouble);
 
-	free(jsonConfig);
+	cJSON_Delete(jsonConfig);
 
 	return notificationDelay;
 }
@@ -484,12 +517,13 @@ int 	getVesHeartbeatPeriodFromConfigJson(void)
 	}
 	//we don't need the string anymore
 	free(stringConfig);
+	stringConfig = NULL;
 
 	cJSON *notifConfig = cJSON_GetObjectItemCaseSensitive(jsonConfig, "notification-config");
 	if (!cJSON_IsObject(notifConfig))
 	{
 		printf("Configuration JSON is not as expected: notification-config is not an object");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -497,13 +531,13 @@ int 	getVesHeartbeatPeriodFromConfigJson(void)
 	if (!cJSON_IsNumber(vesHeartbeatPeriod))
 	{
 		printf("Configuration JSON is not as expected: ves-heartbeat-period is not a number");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
 	vesHeartbeat = (int)(vesHeartbeatPeriod->valuedouble);
 
-	free(jsonConfig);
+	cJSON_Delete(jsonConfig);
 
 	return vesHeartbeat;
 }
@@ -533,30 +567,31 @@ char* 	getVesAuthMethodFromConfigJson(void)
 		{
 			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
 		}
-		return SR_ERR_OPERATION_FAILED;
+		return NULL;
 	}
 	//we don't need the string anymore
 	free(stringConfig);
+	stringConfig = NULL;
 
 	cJSON *vesDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "ves-endpoint-details");
 	if (!cJSON_IsObject(vesDetails))
 	{
 		printf("Configuration JSON is not as expected: ves-endpoint-details is not an object");
-		free(jsonConfig);
-		return SR_ERR_OPERATION_FAILED;
+		cJSON_Delete(jsonConfig);
+		return NULL;
 	}
 
 	cJSON *vesAuthMethod = cJSON_GetObjectItemCaseSensitive(vesDetails, "ves-endpoint-auth-method");
 	if (!cJSON_IsString(vesAuthMethod))
 	{
 		printf("Configuration JSON is not as expected: ves-endpoint-auth-method is not an object");
-		free(jsonConfig);
-		return SR_ERR_OPERATION_FAILED;
+		cJSON_Delete(jsonConfig);
+		return NULL;
 	}
 
 	char *auth_method_string = strdup(cJSON_GetStringValue(vesAuthMethod));
 
-	free(jsonConfig);
+	cJSON_Delete(jsonConfig);
 
 	return auth_method_string;
 }
@@ -585,30 +620,31 @@ char* 	getVesIpFromConfigJson(void)
 		{
 			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
 		}
-		return SR_ERR_OPERATION_FAILED;
+		return NULL;
 	}
 	//we don't need the string anymore
 	free(stringConfig);
+	stringConfig = NULL;
 
 	cJSON *vesDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "ves-endpoint-details");
 	if (!cJSON_IsObject(vesDetails))
 	{
 		printf("Configuration JSON is not as expected: ves-endpoint-details is not an object");
-		free(jsonConfig);
-		return SR_ERR_OPERATION_FAILED;
+		cJSON_Delete(jsonConfig);
+		return NULL;
 	}
 
 	cJSON *vesIp = cJSON_GetObjectItemCaseSensitive(vesDetails, "ves-endpoint-ip");
 	if (!cJSON_IsString(vesIp))
 	{
 		printf("Configuration JSON is not as expected: ves-endpoint-ip is not an object");
-		free(jsonConfig);
-		return SR_ERR_OPERATION_FAILED;
+		cJSON_Delete(jsonConfig);
+		return NULL;
 	}
 
 	char *ves_ip = strdup(cJSON_GetStringValue(vesIp));
 
-	free(jsonConfig);
+	cJSON_Delete(jsonConfig);
 
 	return ves_ip;
 }
@@ -636,12 +672,13 @@ int 	getVesPortFromConfigJson(void)
 	}
 	//we don't need the string anymore
 	free(stringConfig);
+	stringConfig = NULL;
 
 	cJSON *vesDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "ves-endpoint-details");
 	if (!cJSON_IsObject(vesDetails))
 	{
 		printf("Configuration JSON is not as expected: ves-endpoint-details is not an object");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -649,13 +686,13 @@ int 	getVesPortFromConfigJson(void)
 	if (!cJSON_IsNumber(vesPort))
 	{
 		printf("Configuration JSON is not as expected: ves-endpoint-port is not an object");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
 	int port = (int)(vesPort->valuedouble);
 
-	free(jsonConfig);
+	cJSON_Delete(jsonConfig);
 
 	return port;
 }
@@ -683,12 +720,13 @@ int 	getVesRegistrationFromConfigJson(void)
 	}
 	//we don't need the string anymore
 	free(stringConfig);
+	stringConfig = NULL;
 
 	cJSON *vesDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "ves-endpoint-details");
 	if (!cJSON_IsObject(vesDetails))
 	{
 		printf("Configuration JSON is not as expected: ves-endpoint-details is not an object");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -696,17 +734,22 @@ int 	getVesRegistrationFromConfigJson(void)
 	if (!cJSON_IsBool(vesReg))
 	{
 		printf("Configuration JSON is not as expected: ves-registration is not an object");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
 	int is_ves_reg = (cJSON_IsTrue(vesReg)) ? TRUE : FALSE;
 
-	free(jsonConfig);
+	cJSON_Delete(jsonConfig);
 
 	return is_ves_reg;
 }
 
+/*
+ * Dynamically allocated memory;
+ * Caller needs to free the memory after it uses the value.
+ *
+*/
 cJSON*	vesCreatePnfRegistrationFields(int port, bool is_tls)
 {
 	cJSON *pnfRegistrationFields = cJSON_CreateObject();
@@ -719,12 +762,14 @@ cJSON*	vesCreatePnfRegistrationFields(int port, bool is_tls)
 	if (cJSON_AddStringToObject(pnfRegistrationFields, "pnfRegistrationFieldsVersion", "2.0") == NULL)
 	{
 		printf("Could not create JSON object: pnfRegistrationFieldsVersion\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(pnfRegistrationFields, "lastServiceDate", "2019-08-16") == NULL)
 	{
 		printf("Could not create JSON object: lastServiceDate\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 
@@ -734,30 +779,35 @@ cJSON*	vesCreatePnfRegistrationFields(int port, bool is_tls)
 	if (cJSON_AddStringToObject(pnfRegistrationFields, "macAddress", mac_addr) == NULL)
 	{
 		printf("Could not create JSON object: macAddress\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(pnfRegistrationFields, "manufactureDate", "2019-08-16") == NULL)
 	{
 		printf("Could not create JSON object: manufactureDate\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(pnfRegistrationFields, "modelNumber", "Simulated Device Melacon") == NULL)
 	{
 		printf("Could not create JSON object: manufactureDate\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(pnfRegistrationFields, "oamV4IpAddress", getenv("NTS_IP")) == NULL)
 	{
 		printf("Could not create JSON object: oamV4IpAddress\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(pnfRegistrationFields, "oamV6IpAddress", "0:0:0:0:0:ffff:a0a:011") == NULL)
 	{
 		printf("Could not create JSON object: oamV6IpAddress\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 
@@ -767,30 +817,35 @@ cJSON*	vesCreatePnfRegistrationFields(int port, bool is_tls)
 	if (cJSON_AddStringToObject(pnfRegistrationFields, "serialNumber", serial_number) == NULL)
 	{
 		printf("Could not create JSON object: serialNumber\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(pnfRegistrationFields, "softwareVersion", "2.3.5") == NULL)
 	{
 		printf("Could not create JSON object: softwareVersion\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(pnfRegistrationFields, "unitFamily", "Simulated Device") == NULL)
 	{
 		printf("Could not create JSON object: unitFamily\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(pnfRegistrationFields, "unitType", "O-RAN-sim") == NULL)
 	{
 		printf("Could not create JSON object: unitType\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(pnfRegistrationFields, "vendorName", "Melacon") == NULL)
 	{
 		printf("Could not create JSON object: vendorName\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 
@@ -798,6 +853,7 @@ cJSON*	vesCreatePnfRegistrationFields(int port, bool is_tls)
 	if (additionalFields == NULL)
 	{
 		printf("Could not create JSON object: additionalFields\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 	cJSON_AddItemToObject(pnfRegistrationFields, "additionalFields", additionalFields);
@@ -808,6 +864,7 @@ cJSON*	vesCreatePnfRegistrationFields(int port, bool is_tls)
 	if (cJSON_AddStringToObject(additionalFields, "oamPort", portString) == NULL)
 	{
 		printf("Could not create JSON object: oamPort\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 
@@ -817,6 +874,7 @@ cJSON*	vesCreatePnfRegistrationFields(int port, bool is_tls)
 		if (cJSON_AddStringToObject(additionalFields, "protocol", "TLS") == NULL)
 		{
 			printf("Could not create JSON object: protocol\n");
+			cJSON_Delete(pnfRegistrationFields);
 			return NULL;
 		}
 
@@ -824,12 +882,14 @@ cJSON*	vesCreatePnfRegistrationFields(int port, bool is_tls)
 		if (cJSON_AddStringToObject(additionalFields, "username", "netconf") == NULL)
 		{
 			printf("Could not create JSON object: username\n");
+			cJSON_Delete(pnfRegistrationFields);
 			return NULL;
 		}
 
 		if (cJSON_AddStringToObject(additionalFields, "keyId", "device-key") == NULL)
 		{
 			printf("Could not create JSON object: keyId\n");
+			cJSON_Delete(pnfRegistrationFields);
 			return NULL;
 		}
 	}
@@ -839,6 +899,7 @@ cJSON*	vesCreatePnfRegistrationFields(int port, bool is_tls)
 		if (cJSON_AddStringToObject(additionalFields, "protocol", "SSH") == NULL)
 		{
 			printf("Could not create JSON object: protocol\n");
+			cJSON_Delete(pnfRegistrationFields);
 			return NULL;
 		}
 
@@ -846,6 +907,7 @@ cJSON*	vesCreatePnfRegistrationFields(int port, bool is_tls)
 		if (cJSON_AddStringToObject(additionalFields, "username", "netconf") == NULL)
 		{
 			printf("Could not create JSON object: username\n");
+			cJSON_Delete(pnfRegistrationFields);
 			return NULL;
 		}
 
@@ -853,6 +915,7 @@ cJSON*	vesCreatePnfRegistrationFields(int port, bool is_tls)
 		if (cJSON_AddStringToObject(additionalFields, "password", "netconf") == NULL)
 		{
 			printf("Could not create JSON object: password\n");
+			cJSON_Delete(pnfRegistrationFields);
 			return NULL;
 		}
 	}
@@ -860,42 +923,49 @@ cJSON*	vesCreatePnfRegistrationFields(int port, bool is_tls)
 	if (cJSON_AddStringToObject(additionalFields, "reconnectOnChangedSchema", "false") == NULL)
 	{
 		printf("Could not create JSON object: reconnectOnChangedSchema\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(additionalFields, "sleep-factor", "1.5") == NULL)
 	{
 		printf("Could not create JSON object: sleep-factor\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(additionalFields, "tcpOnly", "false") == NULL)
 	{
 		printf("Could not create JSON object: tcpOnly\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(additionalFields, "connectionTimeout", "20000") == NULL)
 	{
 		printf("Could not create JSON object: connectionTimeout\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(additionalFields, "maxConnectionAttempts", "100") == NULL)
 	{
 		printf("Could not create JSON object: maxConnectionAttempts\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(additionalFields, "betweenAttemptsTimeout", "2000") == NULL)
 	{
 		printf("Could not create JSON object: betweenAttemptsTimeout\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(additionalFields, "keepaliveDelay", "120") == NULL)
 	{
 		printf("Could not create JSON object: keepaliveDelay\n");
+		cJSON_Delete(pnfRegistrationFields);
 		return NULL;
 	}
 
@@ -925,12 +995,13 @@ int 	getNetconfAvailableFromConfigJson(void)
 	}
 	//we don't need the string anymore
 	free(stringConfig);
+	stringConfig = NULL;
 
 	cJSON *notifDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "notification-config");
 	if (!cJSON_IsObject(notifDetails))
 	{
 		printf("Configuration JSON is not as expected: notification-config is not an object");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -938,13 +1009,13 @@ int 	getNetconfAvailableFromConfigJson(void)
 	if (!cJSON_IsBool(isNetconfAvailable))
 	{
 		printf("Configuration JSON is not as expected: is-netconf-available is not an object");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
 	int is_netconf_available = (cJSON_IsTrue(isNetconfAvailable)) ? TRUE : FALSE;
 
-	free(jsonConfig);
+	cJSON_Delete(jsonConfig);
 
 	return is_netconf_available;
 }
@@ -972,12 +1043,13 @@ int 	getVesAvailableFromConfigJson(void)
 	}
 	//we don't need the string anymore
 	free(stringConfig);
+	stringConfig = NULL;
 
 	cJSON *notifDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "notification-config");
 	if (!cJSON_IsObject(notifDetails))
 	{
 		printf("Configuration JSON is not as expected: notification-config is not an object");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
@@ -985,17 +1057,22 @@ int 	getVesAvailableFromConfigJson(void)
 	if (!cJSON_IsBool(isVesAvailable))
 	{
 		printf("Configuration JSON is not as expected: is-ves-available is not an object");
-		free(jsonConfig);
+		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
 	int is_netconf_available = (cJSON_IsTrue(isVesAvailable)) ? TRUE : FALSE;
 
-	free(jsonConfig);
+	cJSON_Delete(jsonConfig);
 
 	return is_netconf_available;
 }
 
+/*
+ * Dynamically allocated memory;
+ * Caller needs to free the memory after it uses the value.
+ *
+*/
 cJSON*	vesCreateFaultFields(char *alarm_condition, char *alarm_object, char *severity, char *date_time, char *specific_problem)
 {
 	cJSON *faultFields = cJSON_CreateObject();
@@ -1008,42 +1085,49 @@ cJSON*	vesCreateFaultFields(char *alarm_condition, char *alarm_object, char *sev
 	if (cJSON_AddStringToObject(faultFields, "faultFieldsVersion", "4.0") == NULL)
 	{
 		printf("Could not create JSON object: faultFieldsVersion\n");
+		cJSON_Delete(faultFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(faultFields, "alarmCondition", alarm_condition) == NULL)
 	{
 		printf("Could not create JSON object: alarmCondition\n");
+		cJSON_Delete(faultFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(faultFields, "alarmInterfaceA", alarm_object) == NULL)
 	{
 		printf("Could not create JSON object: alarmInterfaceA\n");
+		cJSON_Delete(faultFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(faultFields, "eventSourceType", "O_RAN_COMPONENT") == NULL)
 	{
 		printf("Could not create JSON object: eventSourceType\n");
+		cJSON_Delete(faultFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(faultFields, "specificProblem", specific_problem) == NULL)
 	{
 		printf("Could not create JSON object: specificProblem\n");
+		cJSON_Delete(faultFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(faultFields, "eventSeverity", severity) == NULL)
 	{
 		printf("Could not create JSON object: eventSeverity\n");
+		cJSON_Delete(faultFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(faultFields, "vfStatus", "Active") == NULL)
 	{
 		printf("Could not create JSON object: vfStatus\n");
+		cJSON_Delete(faultFields);
 		return NULL;
 	}
 
@@ -1051,6 +1135,7 @@ cJSON*	vesCreateFaultFields(char *alarm_condition, char *alarm_object, char *sev
 	if (alarmAdditionalInformation == NULL)
 	{
 		printf("Could not create JSON object: alarmAdditionalInformation\n");
+		cJSON_Delete(faultFields);
 		return NULL;
 	}
 	cJSON_AddItemToObject(faultFields, "alarmAdditionalInformation", alarmAdditionalInformation);
@@ -1058,24 +1143,28 @@ cJSON*	vesCreateFaultFields(char *alarm_condition, char *alarm_object, char *sev
 	if (cJSON_AddStringToObject(alarmAdditionalInformation, "eventTime", date_time) == NULL)
 	{
 		printf("Could not create JSON object: eventTime\n");
+		cJSON_Delete(faultFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(alarmAdditionalInformation, "equipType", "O-RAN-sim") == NULL)
 	{
 		printf("Could not create JSON object: equipType\n");
+		cJSON_Delete(faultFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(alarmAdditionalInformation, "vendor", "Melacon") == NULL)
 	{
 		printf("Could not create JSON object: vendor\n");
+		cJSON_Delete(faultFields);
 		return NULL;
 	}
 
 	if (cJSON_AddStringToObject(alarmAdditionalInformation, "model", "Simulated Device") == NULL)
 	{
 		printf("Could not create JSON object: model\n");
+		cJSON_Delete(faultFields);
 		return NULL;
 	}
 
