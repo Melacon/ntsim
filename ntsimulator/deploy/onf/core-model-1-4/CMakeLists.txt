@@ -5,7 +5,7 @@ include_directories(
     "/usr/include"
 )
 
-add_subdirectory(onf-notifications)
+add_subdirectory(onf-notifications-1-4)
 
 # sources
 set (UTILS_SOURCES
