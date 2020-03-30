@@ -6,7 +6,7 @@ include_directories(
 )
 
 add_subdirectory(ves-messages)
-add_subdirectory(software-management)
+add_subdirectory(software-management-xran)
 
 # sources
 set (UTILS_SOURCES

@@ -1,0 +1,117 @@
+<edit-config xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <target>
+    <running/>
+  </target>
+  <config>
+	  <performance-measurement-objects xmlns="urn:o-ran:performance-management:1.0" xmlns:xc="urn:ietf:params:xml:ns:netconf:base:1.0" xc:operation="replace">
+	  </performance-measurement-objects>
+  <hardware xmlns="urn:ietf:params:xml:ns:yang:ietf-hardware" xmlns:xc="urn:ietf:params:xml:ns:netconf:base:1.0" xc:operation="merge">
+  <component>
+  <name>softwareSlot1</name>
+  <class xmlns:ianahw="urn:ietf:params:xml:ns:yang:iana-hardware">ianahw:storage-drive</class>
+  <physical-index>4207123</physical-index>
+  <description>ddesdvlkmvdfkvf</description>
+  <parent>xAxAxxAxA</parent>
+  <parent-rel-pos>33250247</parent-rel-pos>
+  <hardware-rev>12.2.3</hardware-rev>
+  <firmware-rev>7.1.2</firmware-rev>
+  <software-rev>19.7.123</software-rev>
+  <serial-num>35VU5</serial-num>
+  <mfg-name>xqxSSJSqJ</mfg-name>
+  <model-name>trttrttttrtrtttt</model-name>
+  <alias>btsWtsWstBFFWs</alias>
+  <asset-id>Q446g</asset-id>
+  <is-fru>true</is-fru>
+  <mfg-date>2020-02-06T06:06:32.3Z</mfg-date>
+  <uri>JJuaJa</uri>
+  <uri>6cc66c66cZc6</uri>
+  <uuid>d8de752d-a6ee-74ed-fdac-2c8a9c88afba</uuid>
+  <state>
+    <state-last-changed>2020-02-11T11:02:45.3Z</state-last-changed>
+    <admin-state>locked</admin-state>
+    <oper-state>disabled</oper-state>
+    <usage-state>active</usage-state>
+    <alarm-state>critical major minor warning</alarm-state>
+    <standby-state>hot-standby</standby-state>
+  </state>
+</component>
+<component>
+  <name>softwareSlot2</name>
+  <class xmlns:ianahw="urn:ietf:params:xml:ns:yang:iana-hardware">ianahw:storage-drive</class>
+  <physical-index>4207123</physical-index>
+  <description>ddesdvlkmvdfkvf</description>
+  <parent>xAxAxxAxA</parent>
+  <parent-rel-pos>12350247</parent-rel-pos>
+  <hardware-rev>12.2.3</hardware-rev>
+  <firmware-rev>7.1.2</firmware-rev>
+  <software-rev>19.2.33</software-rev>
+  <serial-num>35VU5</serial-num>
+  <mfg-name>xqxSSJSqJ</mfg-name>
+  <model-name>trttrttttrtrtttt</model-name>
+  <alias>btsWtsWstBFFWs</alias>
+  <asset-id>Q446g</asset-id>
+  <is-fru>true</is-fru>
+  <mfg-date>2020-02-06T06:06:32.3Z</mfg-date>
+  <uri>JJuaJa</uri>
+  <uri>6cc66c66cZc6</uri>
+  <uuid>d8de752d-a6ee-74ed-fdac-2c8a9c88afba</uuid>
+  <state>
+    <state-last-changed>2020-02-11T11:02:45.3Z</state-last-changed>
+    <admin-state>locked</admin-state>
+    <oper-state>disabled</oper-state>
+    <usage-state>active</usage-state>
+    <alarm-state>critical major minor warning</alarm-state>
+    <standby-state>hot-standby</standby-state>
+  </state>
+</component>
+</hardware>
+<software-inventory xmlns="urn:o-ran:software-management:1.0" xmlns:xc="urn:ietf:params:xml:ns:netconf:base:1.0" xc:operation="replace">
+  <software-slot>
+    <name>Slot1</name>
+    <status>VALID</status>
+    <active>true</active>
+    <running>true</running>
+    <access>READ_ONLY</access>
+    <vendor-code>SA</vendor-code>
+    <build-id>2020-01-23T14:04:23</build-id>
+    <build-name>SAMSUNG-XRAN-FH-2349-5645-32</build-name>
+    <build-version>19.7.123</build-version>
+    <files>
+      <name>manifest-v1.0.1.cfg</name>
+      <version>2349-5645-32</version>
+      <local-path>/home/system/slot1</local-path>
+      <integrity>OK</integrity>
+    </files>
+    <files>
+      <name>image-v1.0.1.swm</name>
+      <version>2349-5645-32</version>
+      <local-path>/home/system/slot1</local-path>
+      <integrity>OK</integrity>
+    </files>
+  </software-slot>
+  <software-slot>
+    <name>Slot2</name>
+    <status>VALID</status>
+    <active>false</active>
+    <running>false</running>
+    <access>READ_WRITE</access>
+    <vendor-code>SA</vendor-code>
+    <build-id>2019-07-02T14:04:23</build-id>
+    <build-name>SAMSUNG-XRAN-FH-2349-2345-44</build-name>
+    <build-version>19.2.33</build-version>
+    <files>
+      <name>manifest-v1.0.0.cfg</name>
+      <version>2349-2345-44</version>
+      <local-path>/home/system/slot2</local-path>
+      <integrity>OK</integrity>
+    </files>
+    <files>
+      <name>image-v1.0.0.swm</name>
+      <version>2349-2345-44</version>
+      <local-path>/home/system/slot2</local-path>
+      <integrity>OK</integrity>
+    </files>
+  </software-slot>
+</software-inventory>  
+</config>
+</edit-config>

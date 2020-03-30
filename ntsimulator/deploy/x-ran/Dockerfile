@@ -233,6 +233,7 @@ COPY ./ntsimulator/yang/x-ran /opt/dev/yang
 COPY ./ntsimulator/yang/auto-load-yangs.sh /opt/dev/yang
 COPY ./ntsimulator/yang/sysrepo-configuration-load.sh /opt/dev/yang
 
+# scripts for Software Management RPCs
 COPY ./ntsimulator/deploy/x-ran/edit-config-after-activate.sh /opt/dev
 COPY ./ntsimulator/deploy/x-ran/edit-config-after-activate.xml /opt/dev
 COPY ./ntsimulator/deploy/x-ran/edit-config-after-download.sh /opt/dev

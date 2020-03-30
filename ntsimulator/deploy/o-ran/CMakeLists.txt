@@ -7,6 +7,7 @@ include_directories(
 
 add_subdirectory(o-ran-notifications)
 add_subdirectory(ves-messages)
+add_subdirectory(software-management-oran)
 
 # sources
 set (UTILS_SOURCES
