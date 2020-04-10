@@ -16,6 +16,13 @@ module network-topology-simulator {
   description
     "This module contains a collection of YANG definitions for managing the Network Topology Simulator.";
 
+  
+  revision 2020-04-10 {
+    description
+      "Add notification count in status.";
+    reference
+      "O-RAN SC SIM project";
+  }
   revision 2019-10-25 {
     description
       "Modify notifications. Add VES message configuration options.";
@@ -140,6 +147,36 @@ module network-topology-simulator {
       type operational-state-type;
       description
         "Specifies the operational state of the simulated device.";
+    }
+    description
+      "none";
+  }
+
+  grouping notification-count-per-severity-g {
+    leaf normal {
+    type uint32;
+    description
+    "The number of normal notifications.";
+    }
+    leaf warning {
+    type uint32;
+    description
+    "The number of warning notifications.";
+    }
+    leaf minor {
+    type uint32;
+    description
+    "The number of minor notifications.";
+    }
+    leaf major {
+    type uint32;
+    description
+    "The number of major notifications.";
+    }
+    leaf critical {
+    type uint32;
+    description
+    "The number of normal notifications.";
     }
     description
       "none";
@@ -274,10 +311,46 @@ module network-topology-simulator {
       description
         "The details about the simulation, including resources consumed.";
     }
+    container notification-count {
+        config false;
+        container total-ves-notifications {
+            config false;
+            uses  notification-count-per-severity-g;
+            description
+              "The total number of VES notifications that were sent by all the simulated devices managed by this NTS Manager instance.";
+        }
+        container total-netconf-notifications {
+            config false;
+            uses  notification-count-per-severity-g;
+            description
+              "The total number of NETCONF notifications that were sent by all the simulated devices managed by this NTS Manager instance.";
+        }
+        description 
+          "The total number of notifications sent by the devices managed by this NTS Manager instance.";
+        
+    }
     list simulated-devices-list {
       key "uuid";
       config false;
       uses simulated-devices-type-g;
+      container notification-count {
+        config false;
+        container ves-notifications {
+            config false;
+            uses  notification-count-per-severity-g;
+            description
+              "The total number of VES notifications that were sent by this simulated device.";
+        }
+        container netconf-notifications {
+            config false;
+            uses  notification-count-per-severity-g;
+            description
+              "The total number of NETCONF notifications that were sent by this simulated device.";
+        }
+        description 
+          "The total number of notifications sent by this simulated device.";
+        
+    }
       description
         "The list of the devices that are currently simulated.";
     }

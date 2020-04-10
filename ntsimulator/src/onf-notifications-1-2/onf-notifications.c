@@ -23,6 +23,7 @@
 #include <time.h>
 #include <math.h>
 #include <sys/time.h>
+#include <string.h>
 
 #include "sysrepo.h"
 #include "sysrepo/values.h"
@@ -33,6 +34,21 @@
 #define ONF_PROBLEM_NOTIFICATION_NUMBER 10
 
 volatile int exit_application = 0;
+
+static counterAlarms netconf_alarm_counter = {
+    .normal = 0,
+    .warning = 0,
+    .minor = 0,
+    .major = 0,
+    .critical = 0
+};
+static counterAlarms ves_alarm_counter= {
+    .normal = 0,
+    .warning = 0,
+    .minor = 0,
+    .major = 0,
+    .critical = 0
+};
 
 struct faultAlarms
 {
@@ -158,8 +174,38 @@ static int send_dummy_notif(sr_session_ctx_t *sess)
 			printf("Failed to send notification send_dummy_notif\n");
 			return SR_ERR_OPERATION_FAILED;
 		}
+        if (onf_problem_notifications[ran].cleared == 1)
+        {
+            netconf_alarm_counter.normal++;
+        }
+        else
+        {
+            if (strcmp(onf_problem_notifications[ran].severity, "warning") == 0)
+            {
+                netconf_alarm_counter.warning++;
+            }
+            else if (strcmp(onf_problem_notifications[ran].severity, "minor") == 0)
+            {
+                netconf_alarm_counter.minor++;
+            }
+            else if (strcmp(onf_problem_notifications[ran].severity, "major") == 0)
+            {
+                netconf_alarm_counter.major++;
+            }
+            else if (strcmp(onf_problem_notifications[ran].severity, "critical") == 0)
+            {
+                netconf_alarm_counter.critical++;
+            }
+		}
 		printf("Successfully sent notification with timestamp=\"%s\"\n", dateAndTime);
 	}
+
+    printf("Writing counters to file...\n");
+    rc = writeStatusNotificationCounters(ves_alarm_counter, netconf_alarm_counter);
+    if (rc != SR_ERR_OK)
+    {
+        printf("Could not write status to file...\n");
+    }
 
 	sr_free_values(vnotif, current_num_of_values);
 
@@ -214,6 +260,14 @@ main(int argc, char **argv)
         else
         {
         	sleep(1);
+            // reset the counters when the notifciation delay period is switched back to 0
+            netconf_alarm_counter.normal = netconf_alarm_counter.warning = \
+            netconf_alarm_counter.minor = netconf_alarm_counter.major = \
+            netconf_alarm_counter.critical = 0;
+            
+            ves_alarm_counter.normal = ves_alarm_counter.warning = \
+            ves_alarm_counter.minor = ves_alarm_counter.major = \
+            ves_alarm_counter.critical = 0;
         }
 
     }

@@ -45,6 +45,15 @@
 										num++;\
 										}
 
+typedef struct
+{
+	int normal;
+	int warning;
+	int minor;
+	int major;
+	int critical;
+} counterAlarms;
+
 void 		set_curl_common_info_ves(CURL *curl);
 
 long 		random_at_most(long max);
@@ -74,5 +83,16 @@ int 	getNetconfAvailableFromConfigJson(void);
 int 	getVesAvailableFromConfigJson(void);
 
 void	generateRandomMacAddress(char *mac_address);
+
+int 	writeSkeletonStatusFile(void);
+char* 	readStatusFileInString(void);
+
+int     writeStatusNotificationCounters(counterAlarms ves_counter, counterAlarms netconf_counter);
+void    writeStatusFile(char *status);
+int     removeDeviceEntryFromStatusFile(char *deviceName);
+
+cJSON*  getDeviceListFromStatusFile(void);
+int     compute_notifications_count(counterAlarms *ves_counter, counterAlarms *netconf_counter);
+int     getDeviceCounters(char *containerId, counterAlarms *ves_counter, counterAlarms *netconf_counter);
 
 #endif /* EXAMPLES_NTSIMULATOR_UTILS_H_ */

@@ -341,7 +341,14 @@ simulator_status_cb(const char *xpath, sr_val_t **values, size_t *values_cnt,
 {
 	int rc;
 
-	printf("\n\n ========== Called simulator_status_cb for xpath: %s ==========\n\n", xpath);
+	// printf("\n\n ========== Called simulator_status_cb for xpath: %s ==========\n\n", xpath);
+
+    counterAlarms ves_counter, netconf_counter;
+    rc = compute_notifications_count(&ves_counter, &netconf_counter);
+    if (rc != SR_ERR_OK)
+    {
+        printf("Could not compute the total number of notification count.\n");
+    }
 
 	if (sr_xpath_node_name_eq(xpath, "simulated-devices-list")) {
 		sr_val_t *v;
@@ -366,6 +373,13 @@ simulator_status_cb(const char *xpath, sr_val_t **values, size_t *values_cnt,
 
 		while (current_device != NULL)
 		{
+            counterAlarms vesCount, netconfCount;
+            rc = getDeviceCounters(current_device->device_id, &vesCount, &netconfCount);
+            if (rc != SR_ERR_OK)
+            {
+                printf("Could not get Notification Counters for device with uuid=\"%s\"", current_device->device_id);
+            }            
+
 			CREATE_NEW_VALUE(rc, v, current_num_of_values);
 
 			sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/%s", xpath, current_device->device_id, "device-ip");
@@ -393,6 +407,66 @@ simulator_status_cb(const char *xpath, sr_val_t **values, size_t *values_cnt,
 
 			sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/%s", xpath, current_device->device_id, "operational-state");
 			sr_val_build_str_data(&v[current_num_of_values - 1], SR_ENUM_T, "%s", operational_state);
+
+            CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/ves-notifications/%s", xpath, current_device->device_id, "normal");
+            v[current_num_of_values - 1].type = SR_UINT32_T;
+            v[current_num_of_values - 1].data.uint32_val = vesCount.normal;
+
+            CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/ves-notifications/%s", xpath, current_device->device_id, "warning");
+            v[current_num_of_values - 1].type = SR_UINT32_T;
+            v[current_num_of_values - 1].data.uint32_val = vesCount.warning;
+
+            CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/ves-notifications/%s", xpath, current_device->device_id, "minor");
+            v[current_num_of_values - 1].type = SR_UINT32_T;
+            v[current_num_of_values - 1].data.uint32_val = vesCount.minor;
+
+            CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/ves-notifications/%s", xpath, current_device->device_id, "major");
+            v[current_num_of_values - 1].type = SR_UINT32_T;
+            v[current_num_of_values - 1].data.uint32_val = vesCount.major;
+
+            CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/ves-notifications/%s", xpath, current_device->device_id, "critical");
+            v[current_num_of_values - 1].type = SR_UINT32_T;
+            v[current_num_of_values - 1].data.uint32_val = vesCount.critical;
+
+            CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/netconf-notifications/%s", xpath, current_device->device_id, "normal");
+            v[current_num_of_values - 1].type = SR_UINT32_T;
+            v[current_num_of_values - 1].data.uint32_val = netconfCount.normal;
+
+            CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/netconf-notifications/%s", xpath, current_device->device_id, "warning");
+            v[current_num_of_values - 1].type = SR_UINT32_T;
+            v[current_num_of_values - 1].data.uint32_val = netconfCount.warning;
+
+            CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/netconf-notifications/%s", xpath, current_device->device_id, "minor");
+            v[current_num_of_values - 1].type = SR_UINT32_T;
+            v[current_num_of_values - 1].data.uint32_val = netconfCount.minor;
+
+            CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/netconf-notifications/%s", xpath, current_device->device_id, "major");
+            v[current_num_of_values - 1].type = SR_UINT32_T;
+            v[current_num_of_values - 1].data.uint32_val = netconfCount.major;
+
+            CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/netconf-notifications/%s", xpath, current_device->device_id, "critical");
+            v[current_num_of_values - 1].type = SR_UINT32_T;
+            v[current_num_of_values - 1].data.uint32_val = netconfCount.critical;
 
 			current_device = current_device->next;
 		}
@@ -453,6 +527,86 @@ simulator_status_cb(const char *xpath, sr_val_t **values, size_t *values_cnt,
 		*values = v;
 		*values_cnt = current_num_of_values;
 	 }
+     else if (sr_xpath_node_name_eq(xpath, "total-ves-notifications"))
+     {
+        sr_val_t *v;
+        /* convenient functions such as this can be found in sysrepo/values.h */
+        size_t current_num_of_values= 0;
+
+        CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+        sr_val_build_xpath(&v[current_num_of_values - 1], "%s/%s", xpath, "normal");
+        v[current_num_of_values - 1].type = SR_UINT32_T;
+        v[current_num_of_values - 1].data.uint32_val = ves_counter.normal;
+
+        CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+        sr_val_build_xpath(&v[current_num_of_values - 1], "%s/%s", xpath, "warning");
+        v[current_num_of_values - 1].type = SR_UINT32_T;
+        v[current_num_of_values - 1].data.uint32_val = ves_counter.warning;
+
+        CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+        sr_val_build_xpath(&v[current_num_of_values - 1], "%s/%s", xpath, "minor");
+        v[current_num_of_values - 1].type = SR_UINT32_T;
+        v[current_num_of_values - 1].data.uint32_val = ves_counter.minor;
+
+        CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+        sr_val_build_xpath(&v[current_num_of_values - 1], "%s/%s", xpath, "major");
+        v[current_num_of_values - 1].type = SR_UINT32_T;
+        v[current_num_of_values - 1].data.uint32_val = ves_counter.major;
+
+        CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+        sr_val_build_xpath(&v[current_num_of_values - 1], "%s/%s", xpath, "critical");
+        v[current_num_of_values - 1].type = SR_UINT32_T;
+        v[current_num_of_values - 1].data.uint32_val = ves_counter.critical;
+
+        //return the values that we have just created
+        *values = v;
+        *values_cnt = current_num_of_values;
+     }
+     else if (sr_xpath_node_name_eq(xpath, "total-netconf-notifications"))
+     {
+        sr_val_t *v;
+        /* convenient functions such as this can be found in sysrepo/values.h */
+        size_t current_num_of_values= 0;
+
+        CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+        sr_val_build_xpath(&v[current_num_of_values - 1], "%s/%s", xpath, "normal");
+        v[current_num_of_values - 1].type = SR_UINT32_T;
+        v[current_num_of_values - 1].data.uint32_val = netconf_counter.normal;
+
+        CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+        sr_val_build_xpath(&v[current_num_of_values - 1], "%s/%s", xpath, "warning");
+        v[current_num_of_values - 1].type = SR_UINT32_T;
+        v[current_num_of_values - 1].data.uint32_val = netconf_counter.warning;
+
+        CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+        sr_val_build_xpath(&v[current_num_of_values - 1], "%s/%s", xpath, "minor");
+        v[current_num_of_values - 1].type = SR_UINT32_T;
+        v[current_num_of_values - 1].data.uint32_val = netconf_counter.minor;
+
+        CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+        sr_val_build_xpath(&v[current_num_of_values - 1], "%s/%s", xpath, "major");
+        v[current_num_of_values - 1].type = SR_UINT32_T;
+        v[current_num_of_values - 1].data.uint32_val = netconf_counter.major;
+
+        CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+        sr_val_build_xpath(&v[current_num_of_values - 1], "%s/%s", xpath, "critical");
+        v[current_num_of_values - 1].type = SR_UINT32_T;
+        v[current_num_of_values - 1].data.uint32_val = netconf_counter.critical;
+
+        //return the values that we have just created
+        *values = v;
+        *values_cnt = current_num_of_values;
+     }
 
     return SR_ERR_OK;
 }
@@ -555,6 +709,12 @@ main(int argc, char **argv)
     		SR_SUBSCR_CTX_REUSE, &subscription);
 
 	printf("\n\n ========== STARTUP CONFIG network-topology-simulator APPLIED AS RUNNING ==========\n\n");
+
+    rc = writeSkeletonStatusFile();
+    if (rc != SR_ERR_OK)
+    {
+        fprintf(stderr, "Could not initialize status JSON file: %s\n", sr_strerror(rc));
+    }
 
     /* loop until ctrl-c is pressed / SIGINT is received */
     signal(SIGINT, sigint_handler);
