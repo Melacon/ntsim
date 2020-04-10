@@ -1,0 +1,111 @@
+module ht-ptp-telecom-profile {
+    yang-version 1.1;
+    namespace "urn:ht:params:xml:ns:yang:ptp-telecom-profile";
+    prefix tp;
+
+    import ietf-yang-types {
+        prefix yang;
+    }
+    import ietf-ptp {
+        prefix ptp;
+    }
+
+    organization "highstreet technologies";
+    contact "Editors:  Alfons Mittermaier
+                       <mailto:alfons.mittermaier@@highstreet-technologies.com>
+                       Martin Skorupski
+                       <mailto:martin.skorupski@highstreet-technologies.com>
+                       Alex Stancu
+                       <mailto:alexandru.stancu@@highstreet-technologies.com>";
+    description "This module contains a collection of YANG definitions to extent ietf-ptp.";
+    revision 2020-04-02 {
+        description "Initial version";
+        reference "A YANG Data Model extending ietf-ptp.";
+    }
+
+    augment "/ptp:ptp/ptp:instance-list/ptp:default-ds" {
+        description
+            "Addition of data nodes for the default data set of the clock.";
+
+        leaf local-priority {
+            type uint8;
+            default 128;
+            description
+                "none";
+            reference
+                "ITU-T G.8275.1 Precision time protocol telecom profile for phase/time 
+                 synchronization with full timing support from the network
+                 Chapter 6.3.2";
+        }
+
+        leaf max-steps-removed {
+            type uint8;
+            default 128;
+            description
+                "none";
+            reference
+                "ITU-T G.8275.1 Precision time protocol telecom profile for phase/time 
+                 synchronization with full timing support from the network
+                 Chapter 6.3";
+        }
+
+        leaf multicast-mac-address {
+            type yang:mac-address;
+            description
+                "none";
+        }
+
+        leaf designated-enabled {
+            type boolean;
+            default true;
+            description
+                "A PTP Clock needs to be enabled by management.";
+        }
+    }
+
+    augment "/ptp:ptp/ptp:instance-list/ptp:port-ds-list" {
+        description
+            "Addition of data nodes for the default data set of the clock.";
+
+        leaf master-only {
+            type boolean;
+            default true;
+            description
+                "Indicates that port can only be a master.";
+        }
+
+        leaf local-priority {
+            type uint8;
+            default 128;
+            description
+                "Local priority as used for alternate BMCA";
+            reference
+                "ITU-T G.8275.1 Precision time protocol telecom profile for phase/time 
+                 synchronization with full timing support from the network
+                 Chapter 6.3.2";
+        }
+
+        leaf designated-enabled {
+            type boolean;
+            default true;
+            description
+                "A PTP Port needs to be enabled by management.";
+            reference
+                "IEEE 1588-2008 IEEE Standard for a Precision Clock Synchronization Protocol 
+                 for Networked Measurement and Control Systems
+                 Chapter 9.2";
+        }
+
+        leaf delay-asymmetry {
+            type int64;
+            default 0;
+            description
+                "As per PTP	Known path asymmetry in ns.";
+            reference
+                "ITU-T G.8275.1 Precision time protocol telecom profile for phase/time 
+                 synchronization with full timing support from the network
+                 Chapter 7.4.2";
+        }
+    }
+
+}

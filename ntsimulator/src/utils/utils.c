@@ -74,23 +74,31 @@ void	generateRandomMacAddress(char *mac_address)
 	return;
 }
 
-long random_at_most(long max) {
-  unsigned long
-    // max <= RAND_MAX < ULONG_MAX, so this is okay.
-    num_bins = (unsigned long) max + 1,
-    num_rand = (unsigned long) RAND_MAX + 1,
-    bin_size = num_rand / num_bins,
-    defect   = num_rand % num_bins;
+long random_at_most(long max) 
+{
+    unsigned long
+        // max <= RAND_MAX < ULONG_MAX, so this is okay.
+        num_bins = (unsigned long) max + 1,
+        num_rand = (unsigned long) RAND_MAX + 1,
+        bin_size = num_rand / num_bins,
+        defect   = num_rand % num_bins;
 
-  long x;
-  do {
-   x = random();
-  }
-  // This is carefully written not to overflow
-  while (num_rand - defect <= (unsigned long)x);
+    unsigned int seed;
+    FILE* urandom = fopen("/dev/urandom", "r");
+    fread(&seed, sizeof(int), 1, urandom);
+    fclose(urandom);
+    srandom(seed);
 
-  // Truncated division is intentional
-  return x/bin_size;
+    long x;
+    do 
+    {
+        x = random();
+    }
+    // This is carefully written not to overflow
+    while (num_rand - defect <= (unsigned long)x);
+
+    // Truncated division is intentional
+    return x/bin_size;
 }
 
 int getSecondsFromLastQuarterInterval(void)
@@ -1169,4 +1177,707 @@ cJSON*	vesCreateFaultFields(char *alarm_condition, char *alarm_object, char *sev
 	}
 
 	return faultFields;
+}
+
+static cJSON* createSeverityCounters(counterAlarms count)
+{
+    cJSON *severityCounters = cJSON_CreateObject();
+    if (severityCounters == NULL)
+    {
+        printf("Could not create JSON object: severityCounters\n");
+        return NULL;
+    }
+
+    if (cJSON_AddNumberToObject(severityCounters, "severity-normal", count.normal) == NULL)
+    {
+        printf("Could not create JSON object: severity-normal\n");
+        return NULL;
+    }
+
+    if (cJSON_AddNumberToObject(severityCounters, "severity-warning", count.warning) == NULL)
+    {
+        printf("Could not create JSON object: severity-warning\n");
+        return NULL;
+    }
+
+    if (cJSON_AddNumberToObject(severityCounters, "severity-minor", count.minor) == NULL)
+    {
+        printf("Could not create JSON object: severity-minor\n");
+        return NULL;
+    }
+
+    if (cJSON_AddNumberToObject(severityCounters, "severity-major", count.major) == NULL)
+    {
+        printf("Could not create JSON object: severity-major\n");
+        return NULL;
+    }
+
+    if (cJSON_AddNumberToObject(severityCounters, "severity-critical", count.critical) == NULL)
+    {
+        printf("Could not create JSON object: severity-critical\n");
+        return NULL;
+    }
+
+    return severityCounters;
+}
+
+void writeStatusFile(char *status)
+{
+	char status_file[200];
+	sprintf(status_file, "%s/status.json", getenv("SCRIPTS_DIR"));
+	FILE * f = fopen (status_file, "w");
+
+	if (f)
+	{
+		fputs(status, f);
+		fclose(f);
+	}
+	else
+	{
+		printf("Could not write status file!\n");
+	}
+}
+
+int 	writeSkeletonStatusFile()
+{
+    cJSON *statusObject = cJSON_CreateObject();
+    if (statusObject == NULL)
+    {
+        printf("Could not create JSON object: statusObject\n");
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    // counterAlarms counter = {
+    //     .normal = 0,
+    //     .warning = 0,
+    //     .minor = 0,
+    //     .major = 0,
+    //     .critical = 0
+    // };
+
+    // cJSON *totalVesNotifications = createSeverityCounters(counter);
+    // if (totalVesNotifications == NULL)
+    // {
+    //     printf("Could not create JSON object: totalVesNotifications\n");
+    //     cJSON_Delete(statusObject);
+    //     return SR_ERR_OPERATION_FAILED;
+    // }
+    // cJSON_AddItemToObject(statusObject, "total-ves-notifications-sent", totalVesNotifications);
+
+    // cJSON *totalNetconfNotifications = createSeverityCounters(counter);
+    // if (totalNetconfNotifications == NULL)
+    // {
+    //     printf("Could not create JSON object: totalNetconfNotifications\n");
+    //     cJSON_Delete(statusObject);
+    //     return SR_ERR_OPERATION_FAILED;
+    // }
+    // cJSON_AddItemToObject(statusObject, "total-netconf-notifications-sent", totalNetconfNotifications);
+
+    cJSON *deviceList = cJSON_CreateArray();
+    if (deviceList == NULL)
+    {
+        printf("Could not create JSON object: deviceList\n");
+        cJSON_Delete(statusObject);
+        return SR_ERR_OPERATION_FAILED;
+	}
+    cJSON_AddItemToObject(statusObject, "device-list", deviceList);
+
+    char *status_string = NULL;
+
+    status_string = cJSON_PrintUnformatted(statusObject);
+
+    writeStatusFile(status_string);
+
+    return SR_ERR_OK;
+}
+
+/*
+ * Dynamically allocated memory;
+ * Caller needs to free the memory after it uses the value.
+ *
+*/
+char* 	readStatusFileInString(void)
+{
+	char * buffer = 0;
+	long length;
+	char config_file[200];
+	sprintf(config_file, "%s/status.json", getenv("SCRIPTS_DIR"));
+	FILE * f = fopen (config_file, "rb");
+
+	if (f)
+	{
+	  fseek (f, 0, SEEK_END);
+	  length = ftell (f);
+	  fseek (f, 0, SEEK_SET);
+	  buffer = malloc (length + 1);
+	  if (buffer)
+	  {
+	    fread (buffer, 1, length, f);
+	  }
+	  fclose (f);
+	  buffer[length] = '\0';
+	}
+
+	if (buffer)
+	{
+	  return buffer;
+	}
+
+	return NULL;
+}
+
+/*
+ * Dynamically allocated memory;
+ * Caller needs to free the memory after it uses the value.
+ *
+*/
+cJSON*  getDeviceListFromStatusFile(void)
+{
+    char *stringStatus = readStatusFileInString();
+
+	if (stringStatus == NULL)
+	{
+		printf("Could not read status file!\n");
+		return NULL;
+	}
+
+	cJSON *jsonStatus = cJSON_Parse(stringStatus);
+	if (jsonStatus == NULL)
+	{
+		free(stringStatus);
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL)
+		{
+			fprintf(stderr, "Could not parse JSON status! Error before: %s\n", error_ptr);
+		}
+		return NULL;
+	}
+	//we don't need the string anymore
+	free(stringStatus);
+	stringStatus = NULL;
+
+    return jsonStatus;
+}
+
+cJSON* createDeviceListEntry(counterAlarms ves_counter, counterAlarms netconf_counter)
+{
+    cJSON *deviceListEntry = cJSON_CreateObject();
+    if (deviceListEntry == NULL)
+    {
+        printf("Could not create JSON object: deviceListEntry\n");
+        return NULL;
+    }
+
+    char hostname[100];
+    sprintf(hostname, "%s", getenv("HOSTNAME"));
+
+    if (cJSON_AddStringToObject(deviceListEntry, "device-name", hostname) == NULL)
+    {
+        printf("Could not create JSON object: device-name\n");
+        cJSON_Delete(deviceListEntry);
+        return NULL;
+    }
+
+    cJSON *vesNotificationsSent = createSeverityCounters(ves_counter);
+    if (vesNotificationsSent == NULL)
+    {
+        printf("Could not create JSON object: vesNotificationsSent\n");
+        cJSON_Delete(deviceListEntry);
+        return NULL;
+    }
+    cJSON_AddItemToObject(deviceListEntry, "ves-notifications-sent", vesNotificationsSent);
+
+    cJSON *netconfNotificationsSent = createSeverityCounters(netconf_counter);
+    if (netconfNotificationsSent == NULL)
+    {
+        printf("Could not create JSON object: netconfNotificationsSent\n");
+        cJSON_Delete(deviceListEntry);
+        return NULL;
+    }
+    cJSON_AddItemToObject(deviceListEntry, "netconf-notifications-sent", netconfNotificationsSent);
+
+    return deviceListEntry;
+}
+
+static void modifySeverityCounters(cJSON **severityCounters, counterAlarms count)
+{
+    cJSON *severity= cJSON_GetObjectItemCaseSensitive(*severityCounters, "severity-normal");
+    if (!cJSON_IsNumber(severity))
+    {
+        printf("Status JSON is not as expected: severity-normal is not an number");
+        return;
+    }
+    //we set the value of the severity-normal object
+    cJSON_SetNumberValue(severity, count.normal);
+
+    severity= cJSON_GetObjectItemCaseSensitive(*severityCounters, "severity-warning");
+    if (!cJSON_IsNumber(severity))
+    {
+        printf("Status JSON is not as expected: severity-warning is not an number");
+        return;
+    }
+    //we set the value of the severity-warning object
+    cJSON_SetNumberValue(severity, count.warning);
+
+    severity= cJSON_GetObjectItemCaseSensitive(*severityCounters, "severity-minor");
+    if (!cJSON_IsNumber(severity))
+    {
+        printf("Status JSON is not as expected: severity-minor is not an number");
+        return;
+    }
+    //we set the value of the severity-minor object
+    cJSON_SetNumberValue(severity, count.minor);
+
+    severity= cJSON_GetObjectItemCaseSensitive(*severityCounters, "severity-major");
+    if (!cJSON_IsNumber(severity))
+    {
+        printf("Status JSON is not as expected: severity-major is not an number");
+        return;
+    }
+    //we set the value of the severity-major object
+	cJSON_SetNumberValue(severity, count.major);
+
+    severity= cJSON_GetObjectItemCaseSensitive(*severityCounters, "severity-critical");
+    if (!cJSON_IsNumber(severity))
+    {
+        printf("Status JSON is not as expected: severity-critical is not an number");
+        return;
+    }
+    //we set the value of the severity-critical object
+	cJSON_SetNumberValue(severity, count.critical);
+
+    return;
+}
+
+static void modifyDeviceListEntry(cJSON **deviceListEntry, counterAlarms ves_counter, counterAlarms netconf_counter)
+{
+    cJSON *vesNotificationsSent= cJSON_GetObjectItemCaseSensitive(*deviceListEntry, "ves-notifications-sent");
+    if (!cJSON_IsObject(vesNotificationsSent))
+    {
+        printf("Status JSON is not as expected: ves-notifications-sent is not a object");
+        return;
+    }
+
+    modifySeverityCounters(&vesNotificationsSent, ves_counter);
+
+    cJSON *netconfNotificationsSent= cJSON_GetObjectItemCaseSensitive(*deviceListEntry, "netconf-notifications-sent");
+    if (!cJSON_IsObject(netconfNotificationsSent))
+    {
+        printf("Status JSON is not as expected: netconf-notifications-sent is not a object");
+        return;
+    }
+
+    modifySeverityCounters(&netconfNotificationsSent, netconf_counter);
+}
+
+int writeStatusNotificationCounters(counterAlarms ves_counter, counterAlarms netconf_counter)
+{
+	cJSON *jsonStatus = getDeviceListFromStatusFile();
+
+	cJSON *deviceList = cJSON_GetObjectItemCaseSensitive(jsonStatus, "device-list");
+	if (!cJSON_IsArray(deviceList))
+	{
+		printf("Status JSON is not as expected: device-list is not an object");
+		cJSON_Delete(jsonStatus);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+    int array_size = cJSON_GetArraySize(deviceList);
+
+    int found = 0;
+    for (int i=0; i<array_size; ++i)
+    {
+        cJSON *deviceListEntry = cJSON_GetArrayItem(deviceList, i);
+        char hostname[100];
+        sprintf(hostname, "%s", getenv("HOSTNAME"));
+
+        cJSON *deviceName = cJSON_GetObjectItemCaseSensitive(deviceListEntry, "device-name");
+        if (!cJSON_IsString(deviceName))
+        {
+            printf("Status JSON is not as expected: device-name is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        char *deviceNameString = cJSON_GetStringValue(deviceName);
+
+        if (strcmp(hostname, deviceNameString) == 0)
+        {
+            modifyDeviceListEntry(&deviceListEntry, ves_counter, netconf_counter);
+            found = 1;
+            break;
+        }
+    }
+    if (found == 0)
+    {
+        cJSON* deviceListEntry = createDeviceListEntry(ves_counter, netconf_counter);
+    
+        cJSON_AddItemToArray(deviceList, deviceListEntry);  
+    }
+
+	//writing the new JSON to the configuration file
+	char *stringStatus = cJSON_PrintUnformatted(jsonStatus);
+	writeStatusFile(stringStatus);
+
+	cJSON_Delete(jsonStatus);
+
+	return SR_ERR_OK;
+}
+
+
+int removeDeviceEntryFromStatusFile(char *containerId)
+{
+    cJSON *jsonStatus = getDeviceListFromStatusFile();
+
+	cJSON *deviceList = cJSON_GetObjectItemCaseSensitive(jsonStatus, "device-list");
+	if (!cJSON_IsArray(deviceList))
+	{
+		printf("Status JSON is not as expected: device-list is not an object");
+		cJSON_Delete(jsonStatus);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+    int array_size = cJSON_GetArraySize(deviceList);
+    int found = array_size;
+
+    for (int i=0; i<array_size; ++i)
+    {
+        cJSON *deviceListEntry = cJSON_GetArrayItem(deviceList, i);
+        char hostname[100];
+        sprintf(hostname, "%s", getenv("HOSTNAME"));
+
+        cJSON *deviceName = cJSON_GetObjectItemCaseSensitive(deviceListEntry, "device-name");
+        if (!cJSON_IsString(deviceName))
+        {
+            printf("Status JSON is not as expected: device-name is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        char *deviceNameString = cJSON_GetStringValue(deviceName);
+
+        if (strcmp(containerId, deviceNameString) == 0)
+        {
+            found = i;
+            break;
+        }
+    }
+
+    if (found < array_size)
+    {
+        cJSON_DeleteItemFromArray(deviceList, found);
+    }
+    else
+    {
+        printf("Could not find status file entry for device with id=\"%s\"", containerId);
+    }
+
+	//writing the new JSON to the configuration file
+	char *stringStatus = cJSON_PrintUnformatted(jsonStatus);
+	writeStatusFile(stringStatus);
+
+	cJSON_Delete(jsonStatus);
+
+	return SR_ERR_OK;
+}
+
+int compute_notifications_count(counterAlarms *ves_counter, counterAlarms *netconf_counter)
+{
+    ves_counter->normal = ves_counter->warning = \
+            ves_counter->minor = ves_counter->major = \
+            ves_counter->critical = 0;
+    netconf_counter->normal = netconf_counter->warning = \
+            netconf_counter->minor = netconf_counter->major = \
+            netconf_counter->critical = 0;
+
+    cJSON *jsonStatus = getDeviceListFromStatusFile();
+
+    cJSON *deviceList = cJSON_GetObjectItemCaseSensitive(jsonStatus, "device-list");
+	if (!cJSON_IsArray(deviceList))
+	{
+		printf("Status JSON is not as expected: device-list is not an object");
+		cJSON_Delete(jsonStatus);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+    int array_size = cJSON_GetArraySize(deviceList);
+
+    for (int i=0; i<array_size; ++i)
+    {
+        cJSON *deviceListEntry = cJSON_GetArrayItem(deviceList, i);
+
+        cJSON *vesNotifications = cJSON_GetObjectItemCaseSensitive(deviceListEntry, "ves-notifications-sent");
+        if (!cJSON_IsObject(vesNotifications))
+        {
+            printf("Status JSON is not as expected: ves-notifications-sent is not an object.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+
+        cJSON *severity = cJSON_GetObjectItemCaseSensitive(vesNotifications, "severity-normal");
+        if (!cJSON_IsNumber(severity))
+        {
+            printf("Status JSON is not as expected: severity-normal is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        int counter = (int)(severity->valuedouble);
+        ves_counter->normal += counter;
+
+        severity = cJSON_GetObjectItemCaseSensitive(vesNotifications, "severity-warning");
+        if (!cJSON_IsNumber(severity))
+        {
+            printf("Status JSON is not as expected: severity-warning is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        counter = (int)(severity->valuedouble);
+        ves_counter->warning += counter;
+
+        severity = cJSON_GetObjectItemCaseSensitive(vesNotifications, "severity-minor");
+        if (!cJSON_IsNumber(severity))
+        {
+            printf("Status JSON is not as expected: severity-minor is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        counter = (int)(severity->valuedouble);
+        ves_counter->minor += counter;
+
+        severity = cJSON_GetObjectItemCaseSensitive(vesNotifications, "severity-major");
+        if (!cJSON_IsNumber(severity))
+        {
+            printf("Status JSON is not as expected: severity-major is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        counter = (int)(severity->valuedouble);
+        ves_counter->major += counter;
+
+        severity = cJSON_GetObjectItemCaseSensitive(vesNotifications, "severity-critical");
+        if (!cJSON_IsNumber(severity))
+        {
+            printf("Status JSON is not as expected: severity-critical is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        counter = (int)(severity->valuedouble);
+        ves_counter->critical += counter;
+
+        cJSON *netconfNotifications = cJSON_GetObjectItemCaseSensitive(deviceListEntry, "netconf-notifications-sent");
+        if (!cJSON_IsObject(netconfNotifications))
+        {
+            printf("Status JSON is not as expected: netconf-notifications-sent is not an object.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+
+        severity = cJSON_GetObjectItemCaseSensitive(netconfNotifications, "severity-normal");
+        if (!cJSON_IsNumber(severity))
+        {
+            printf("Status JSON is not as expected: severity-normal is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        
+        counter = (int)(severity->valuedouble);
+        netconf_counter->normal += (counter * NETCONF_CONNECTIONS_PER_DEVICE);
+
+        severity = cJSON_GetObjectItemCaseSensitive(netconfNotifications, "severity-warning");
+        if (!cJSON_IsNumber(severity))
+        {
+            printf("Status JSON is not as expected: severity-warning is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        counter = (int)(severity->valuedouble);
+        netconf_counter->warning += (counter * NETCONF_CONNECTIONS_PER_DEVICE);
+
+        severity = cJSON_GetObjectItemCaseSensitive(netconfNotifications, "severity-minor");
+        if (!cJSON_IsNumber(severity))
+        {
+            printf("Status JSON is not as expected: severity-minor is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        counter = (int)(severity->valuedouble);
+        netconf_counter->minor += (counter * NETCONF_CONNECTIONS_PER_DEVICE);
+
+        severity = cJSON_GetObjectItemCaseSensitive(netconfNotifications, "severity-major");
+        if (!cJSON_IsNumber(severity))
+        {
+            printf("Status JSON is not as expected: severity-major is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        counter = (int)(severity->valuedouble);
+        netconf_counter->major += (counter * NETCONF_CONNECTIONS_PER_DEVICE);
+
+        severity = cJSON_GetObjectItemCaseSensitive(netconfNotifications, "severity-critical");
+        if (!cJSON_IsNumber(severity))
+        {
+            printf("Status JSON is not as expected: severity-critical is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        counter = (int)(severity->valuedouble);
+        netconf_counter->critical += (counter * NETCONF_CONNECTIONS_PER_DEVICE);
+    }
+
+    cJSON_Delete(jsonStatus);
+
+    return SR_ERR_OK;
+}
+
+int getDeviceCounters(char *containerId, counterAlarms *ves_counter, counterAlarms *netconf_counter)
+{
+    cJSON *jsonStatus = getDeviceListFromStatusFile();
+
+    cJSON *deviceList = cJSON_GetObjectItemCaseSensitive(jsonStatus, "device-list");
+	if (!cJSON_IsArray(deviceList))
+	{
+		printf("Status JSON is not as expected: device-list is not an object");
+		cJSON_Delete(jsonStatus);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+    int array_size = cJSON_GetArraySize(deviceList);
+
+    for (int i=0; i<array_size; ++i)
+    {
+        cJSON *deviceListEntry = cJSON_GetArrayItem(deviceList, i);
+
+        cJSON *deviceName = cJSON_GetObjectItemCaseSensitive(deviceListEntry, "device-name");
+        if (!cJSON_IsString(deviceName))
+        {
+            printf("Status JSON is not as expected: device-name is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        char *deviceNameString = cJSON_GetStringValue(deviceName);
+
+        if (strcmp(deviceNameString, containerId) != 0)
+        {
+            continue;
+        }
+
+        cJSON *vesNotifications = cJSON_GetObjectItemCaseSensitive(deviceListEntry, "ves-notifications-sent");
+        if (!cJSON_IsObject(vesNotifications))
+        {
+            printf("Status JSON is not as expected: ves-notifications-sent is not an object.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+
+        cJSON *severity = cJSON_GetObjectItemCaseSensitive(vesNotifications, "severity-normal");
+        if (!cJSON_IsNumber(severity))
+        {
+            printf("Status JSON is not as expected: severity-normal is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        int counter = (int)(severity->valuedouble);
+        ves_counter->normal = counter;
+
+        severity = cJSON_GetObjectItemCaseSensitive(vesNotifications, "severity-warning");
+        if (!cJSON_IsNumber(severity))
+        {
+            printf("Status JSON is not as expected: severity-warning is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        counter = (int)(severity->valuedouble);
+        ves_counter->warning = counter;
+
+        severity = cJSON_GetObjectItemCaseSensitive(vesNotifications, "severity-minor");
+        if (!cJSON_IsNumber(severity))
+        {
+            printf("Status JSON is not as expected: severity-minor is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        counter = (int)(severity->valuedouble);
+        ves_counter->minor = counter;
+
+        severity = cJSON_GetObjectItemCaseSensitive(vesNotifications, "severity-major");
+        if (!cJSON_IsNumber(severity))
+        {
+            printf("Status JSON is not as expected: severity-major is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        counter = (int)(severity->valuedouble);
+        ves_counter->major = counter;
+
+        severity = cJSON_GetObjectItemCaseSensitive(vesNotifications, "severity-critical");
+        if (!cJSON_IsNumber(severity))
+        {
+            printf("Status JSON is not as expected: severity-critical is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        counter = (int)(severity->valuedouble);
+        ves_counter->critical = counter;
+
+        cJSON *netconfNotifications = cJSON_GetObjectItemCaseSensitive(deviceListEntry, "netconf-notifications-sent");
+        if (!cJSON_IsObject(netconfNotifications))
+        {
+            printf("Status JSON is not as expected: netconf-notifications-sent is not an object.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+
+        severity = cJSON_GetObjectItemCaseSensitive(netconfNotifications, "severity-normal");
+        if (!cJSON_IsNumber(severity))
+        {
+            printf("Status JSON is not as expected: severity-normal is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        
+        counter = (int)(severity->valuedouble);
+        netconf_counter->normal = (counter * NETCONF_CONNECTIONS_PER_DEVICE);
+
+        severity = cJSON_GetObjectItemCaseSensitive(netconfNotifications, "severity-warning");
+        if (!cJSON_IsNumber(severity))
+        {
+            printf("Status JSON is not as expected: severity-warning is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        counter = (int)(severity->valuedouble);
+        netconf_counter->warning = (counter * NETCONF_CONNECTIONS_PER_DEVICE);
+
+        severity = cJSON_GetObjectItemCaseSensitive(netconfNotifications, "severity-minor");
+        if (!cJSON_IsNumber(severity))
+        {
+            printf("Status JSON is not as expected: severity-minor is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        counter = (int)(severity->valuedouble);
+        netconf_counter->minor = (counter * NETCONF_CONNECTIONS_PER_DEVICE);
+
+        severity = cJSON_GetObjectItemCaseSensitive(netconfNotifications, "severity-major");
+        if (!cJSON_IsNumber(severity))
+        {
+            printf("Status JSON is not as expected: severity-major is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        counter = (int)(severity->valuedouble);
+        netconf_counter->major = (counter * NETCONF_CONNECTIONS_PER_DEVICE);
+
+        severity = cJSON_GetObjectItemCaseSensitive(netconfNotifications, "severity-critical");
+        if (!cJSON_IsNumber(severity))
+        {
+            printf("Status JSON is not as expected: severity-critical is not a string.");
+            cJSON_Delete(jsonStatus);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        counter = (int)(severity->valuedouble);
+        netconf_counter->critical = (counter * NETCONF_CONNECTIONS_PER_DEVICE);
+    }
+
+    cJSON_Delete(jsonStatus);
+
+    return SR_ERR_OK;
 }

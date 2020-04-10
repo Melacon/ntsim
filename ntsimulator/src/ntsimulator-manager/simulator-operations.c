@@ -908,6 +908,12 @@ int stop_device(device_stack_t *theStack)
 		printf("Could not kill and remove docker container with uuid=\"%s\"\n", last_id);
 	}
 
+    rc = removeDeviceEntryFromStatusFile(last_id);
+    if (rc != SR_ERR_OK)
+    {
+        printf("Could not remove entry from status file for uuid=\"%s\"\n", last_id);
+    }
+
 	pop_device(theStack);
 
 	return SR_ERR_OK;
