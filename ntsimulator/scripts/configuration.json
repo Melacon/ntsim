@@ -1,9 +1,9 @@
 {
 	"notification-config":	{
-		"fault-notification-delay-period":	0,
 		"ves-heartbeat-period":	0,
 		"is-netconf-available":	true,
-		"is-ves-available":	true
+		"is-ves-available":	true,
+		"fault-notification-delay-period":	[3, 6]
 	},
 	"ves-endpoint-details":	{
 		"ves-endpoint-ip":	"172.17.0.1",

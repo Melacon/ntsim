@@ -16,7 +16,12 @@ module network-topology-simulator {
   description
     "This module contains a collection of YANG definitions for managing the Network Topology Simulator.";
 
-  
+  revision 2020-04-13 {
+    description
+      "Change fault-notification-delay-period to leaf-list.";
+    reference
+      "O-RAN SC SIM project";
+  }
   revision 2020-04-10 {
     description
       "Add notification count in status.";
@@ -198,11 +203,13 @@ module network-topology-simulator {
         "The number of devices to be mounted in ODL. The configured number should not exceed the number of mounted devices.";
     }
     container notification-config {
-      leaf fault-notification-delay-period {
+      leaf-list fault-notification-delay-period {
         type uint32;
-        default "0";
+        min-elements 1;
+        max-elements 99;
         description
-          "Interval in seconds between two consecutive notifications. If the attribute is set to 0, nofitications are not generated.";
+          "Defines a pattern of generating notifications, represented by the amount of time between two generated fault notifications. The pattern is circular, it restarts at the beginning after all the leaf-list items are being used.
+          E.g.: if the leaf-list contains three items: 4, 8 and 10, then a fault-notification will be generated, then after 4 seconds a new notification will be generaed, then after 8 seconds, then after 10 seconds, then again after 4 seconds etc.";
       }
       leaf ves-heartbeat-period {
         type uint32;

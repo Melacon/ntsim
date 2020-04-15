@@ -1076,7 +1076,7 @@ char* get_docker_container_resource_stats(device_stack_t *theStack)
 	return NULL;     /* return with exit code indicating success. */
 }
 
-int notification_delay_period_changed(int period)
+int notification_delay_period_changed(sr_val_t *val, size_t count)
 {
 	char *stringConfiguration = readConfigFileInString();
 
@@ -1110,15 +1110,49 @@ int notification_delay_period_changed(int period)
 	}
 
 	cJSON *faultNotifDelay = cJSON_GetObjectItemCaseSensitive(notifConfig, "fault-notification-delay-period");
-	if (!cJSON_IsNumber(faultNotifDelay))
+	if (!cJSON_IsArray(faultNotifDelay))
 	{
-		printf("Configuration JSON is not as expected: fault-notification-delay-period is not an object");
+		printf("Configuration JSON is not as expected: fault-notification-delay-period is not an array.");
 		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
-	//we set the value of the fault-notification-delay-period object
-	cJSON_SetNumberValue(faultNotifDelay, period);
+    cJSON_DeleteItemFromObject(notifConfig, "fault-notification-delay-period");
+
+    faultNotifDelay = NULL;
+
+    faultNotifDelay = cJSON_CreateArray();
+    if (faultNotifDelay == NULL) 
+    {
+        cJSON_Delete(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+    }
+    cJSON_AddItemToObject(notifConfig, "fault-notification-delay-period", faultNotifDelay);
+
+    if (val != NULL && count > 0)
+    {
+        cJSON *arrayEntry = NULL;
+        for (size_t i=0; i<count; ++i)
+        {
+            arrayEntry = cJSON_CreateNumber(val[i].data.uint32_val);
+            if (arrayEntry == NULL) 
+            {
+                cJSON_Delete(jsonConfig);
+                return SR_ERR_OPERATION_FAILED;
+            }
+            cJSON_AddItemToArray(faultNotifDelay, arrayEntry);
+        }
+    }
+    else
+    {
+        cJSON *arrayEntry =  cJSON_CreateNumber(0);
+        if (arrayEntry == NULL) 
+        {
+            cJSON_Delete(jsonConfig);
+            return SR_ERR_OPERATION_FAILED;
+        }
+        cJSON_AddItemToArray(faultNotifDelay, arrayEntry);
+    }
 
 	//writing the new JSON to the configuration file
 	stringConfiguration = cJSON_Print(jsonConfig);

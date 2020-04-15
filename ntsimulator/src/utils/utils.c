@@ -452,7 +452,7 @@ void 	writeConfigFile(char *config)
 	}
 }
 
-int 	getFaultNotificationDelayPeriodFromConfigJson(void)
+int getFaultNotificationDelayPeriodFromConfigJson(int *period_array, int *count)
 {
 	char *stringConfig = readConfigFileInString();
 	int notificationDelay = 0;
@@ -487,18 +487,34 @@ int 	getFaultNotificationDelayPeriodFromConfigJson(void)
 	}
 
 	cJSON *faultNotifDelay = cJSON_GetObjectItemCaseSensitive(notifConfig, "fault-notification-delay-period");
-	if (!cJSON_IsNumber(faultNotifDelay))
+	if (!cJSON_IsArray(faultNotifDelay))
 	{
-		printf("Configuration JSON is not as expected: fault-notification-delay-period is not a number");
+		printf("Configuration JSON is not as expected: fault-notification-delay-period is not an array.");
 		cJSON_Delete(jsonConfig);
 		return SR_ERR_OPERATION_FAILED;
 	}
 
-	notificationDelay = (int)(faultNotifDelay->valuedouble);
+    cJSON *iterator = NULL;
+    *count = 0;
+    int i = 0;
+
+    cJSON_ArrayForEach(iterator, faultNotifDelay) 
+    {
+        if (cJSON_IsNumber(iterator)) 
+        {
+            period_array[i++] = iterator->valueint;
+        } 
+        else 
+        {
+            printf("Invalid number in array!");
+        }
+    }
+
+    *count = i;
 
 	cJSON_Delete(jsonConfig);
 
-	return notificationDelay;
+	return SR_ERR_OK;
 }
 
 int 	getVesHeartbeatPeriodFromConfigJson(void)

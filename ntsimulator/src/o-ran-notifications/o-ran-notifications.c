@@ -389,27 +389,44 @@ main(int argc, char **argv)
     signal(SIGINT, sigint_handler);
     signal(SIGPIPE, SIG_IGN);
 
-
     while (!exit_application) {
-        notification_delay_period = getFaultNotificationDelayPeriodFromConfigJson();
+        int notif_delay[100], count = 0;
 
-        if (notification_delay_period > 0)
+        rc = getFaultNotificationDelayPeriodFromConfigJson(notif_delay, &count);
+        if (rc != SR_ERR_OK)
         {
-        	send_dummy_notif(session);
-
-            sleep(notification_delay_period);
+            printf("Could not get fault notification delay period.");
+            sleep(1);
+            continue;
         }
-        else
+
+        if (count > 1)
         {
-        	sleep(1);
-            // reset the counters when the notifciation delay period is switched back to 0
-            netconf_alarm_counter.normal = netconf_alarm_counter.warning = \
-            netconf_alarm_counter.minor = netconf_alarm_counter.major = \
-            netconf_alarm_counter.critical = 0;
-            
-            ves_alarm_counter.normal = ves_alarm_counter.warning = \
-            ves_alarm_counter.minor = ves_alarm_counter.major = \
-            ves_alarm_counter.critical = 0;
+            for (int i = 0; i < count; ++i)
+            {
+                sleep(notif_delay[i]);
+                send_dummy_notif(session);                
+            }
+        }
+        else if (count == 1)
+        {
+            if (notif_delay[0] > 0)
+            {
+                sleep(notif_delay[0]);
+                send_dummy_notif(session);
+            }
+            else 
+            {
+                sleep(1);
+                // reset the counters when the notifciation delay period is switched back to 0
+                netconf_alarm_counter.normal = netconf_alarm_counter.warning = \
+                netconf_alarm_counter.minor = netconf_alarm_counter.major = \
+                netconf_alarm_counter.critical = 0;
+                
+                ves_alarm_counter.normal = ves_alarm_counter.warning = \
+                ves_alarm_counter.minor = ves_alarm_counter.major = \
+                ves_alarm_counter.critical = 0;
+            }
         }
 
     }

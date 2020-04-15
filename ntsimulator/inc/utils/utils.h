@@ -73,7 +73,7 @@ cJSON*	vesCreateFaultFields(char *alarm_condition, char *alarm_object, char *sev
 char* 	readConfigFileInString(void);
 void 	writeConfigFile(char *config);
 
-int 	getFaultNotificationDelayPeriodFromConfigJson(void);
+int 	getFaultNotificationDelayPeriodFromConfigJson(int *period_array, int *count);
 int 	getVesHeartbeatPeriodFromConfigJson(void);
 char* 	getVesAuthMethodFromConfigJson(void);
 char* 	getVesIpFromConfigJson(void);

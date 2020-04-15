@@ -225,18 +225,19 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
     sr_free_val(val);
 	val = NULL;
 
+    size_t count = 0;
+
     /* get the value from sysrepo, we do not care if the value did not change in our case */
-    rc = sr_get_item(session, "/network-topology-simulator:simulator-config/notification-config/fault-notification-delay-period", &val);
+    rc = sr_get_items(session, "/network-topology-simulator:simulator-config/notification-config/fault-notification-delay-period", &val, &count);
     if (rc != SR_ERR_OK) {
         goto sr_error;
     }
 
-    rc = notification_delay_period_changed(val->data.uint32_val);
+    rc = notification_delay_period_changed(val, count);
     if (rc != SR_ERR_OK) {
         goto sr_error;
     }
-
-    sr_free_val(val);
+    sr_free_values(val, count);
 	val = NULL;
 
     /* get the value from sysrepo, we do not care if the value did not change in our case */
@@ -693,7 +694,7 @@ main(int argc, char **argv)
         goto cleanup;
     }
 
-    rc = notification_delay_period_changed(0);
+    rc = notification_delay_period_changed(NULL, 0);
     if (rc != SR_ERR_OK) {
     	printf("Could not write the delay period to file!\n");
         goto cleanup;
