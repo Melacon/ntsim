@@ -25,7 +25,7 @@
 CPU_CORES=`nproc`
 # the new lines thus resulting in a failure when using awk to process each line
 IFS=;
-mapfile -t DOCKER_PS_RESULT < <(/usr/bin/docker ps --all --format "{{.ID}}" --filter "label=NTS")
+mapfile -t DOCKER_PS_RESULT < <(/usr/bin/docker ps --all --format "{{.ID}}" --filter "label=NTS_Manager=$1")
 
 CONTAINERS=""
 

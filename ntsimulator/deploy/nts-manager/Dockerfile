@@ -140,7 +140,7 @@ ENV DOCKER_ENGINE_VERSION="1.40"
 ENV MODELS_IMAGE="ntsim_oran"
 
 RUN \
-      apt-get update && apt-get install -y supervisor
+      apt-get update && apt-get install -y supervisor bc
 
 # add netconf user
 RUN \
@@ -204,6 +204,8 @@ COPY --from=builder /usr/local/share/libnetconf2 /usr/local/share/libnetconf2
 RUN ldconfig
 
 COPY ntsimulator/deploy/nts-manager/supervisord.conf /etc/supervisord.conf
+
+COPY ntsimulator/deploy/nts-manager/docker_stats.sh /opt/dev/docker_stats.sh
 	  
 ARG BUILD_DATE
 LABEL build-date=$BUILD_DATE

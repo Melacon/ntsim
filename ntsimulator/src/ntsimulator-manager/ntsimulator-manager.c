@@ -661,6 +661,12 @@ main(int argc, char **argv)
         fprintf(stderr, "Could not initialize cURL: %s\n", sr_strerror(rc));
     }
 
+    rc = writeSkeletonConfigFile();
+    if (rc != SR_ERR_OK)
+    {
+        fprintf(stderr, "Could not initialize configuration JSON file: %s\n", sr_strerror(rc));
+    }
+
     /* connect to sysrepo */
     rc = sr_connect("network-topology-simulator", SR_CONN_DEFAULT, &connection);
     if (SR_ERR_OK != rc) {

@@ -455,7 +455,6 @@ void 	writeConfigFile(char *config)
 int getFaultNotificationDelayPeriodFromConfigJson(int *period_array, int *count)
 {
 	char *stringConfig = readConfigFileInString();
-	int notificationDelay = 0;
 
 	if (stringConfig == NULL)
 	{
@@ -1304,6 +1303,17 @@ int 	writeSkeletonStatusFile()
 
     writeStatusFile(status_string);
 
+    if (status_string != NULL)
+    {
+        free(status_string);
+        status_string = NULL;
+    }
+
+    if (statusObject != NULL)
+    {
+	    cJSON_Delete(statusObject);
+    }
+
     return SR_ERR_OK;
 }
 
@@ -1534,7 +1544,16 @@ int writeStatusNotificationCounters(counterAlarms ves_counter, counterAlarms net
 	char *stringStatus = cJSON_PrintUnformatted(jsonStatus);
 	writeStatusFile(stringStatus);
 
-	cJSON_Delete(jsonStatus);
+    if (stringStatus != NULL)
+    {
+        free(stringStatus);
+        stringStatus = NULL;
+    }
+
+    if (jsonStatus != NULL)
+    {
+	    cJSON_Delete(jsonStatus);
+    }
 
 	return SR_ERR_OK;
 }
@@ -1590,7 +1609,16 @@ int removeDeviceEntryFromStatusFile(char *containerId)
 	char *stringStatus = cJSON_PrintUnformatted(jsonStatus);
 	writeStatusFile(stringStatus);
 
-	cJSON_Delete(jsonStatus);
+    if (stringStatus != NULL)
+    {
+        free(stringStatus);
+        stringStatus = NULL;
+    }
+
+    if (jsonStatus != NULL)
+    {
+        cJSON_Delete(jsonStatus);
+    }
 
 	return SR_ERR_OK;
 }
@@ -1894,6 +1922,141 @@ int getDeviceCounters(char *containerId, counterAlarms *ves_counter, counterAlar
     }
 
     cJSON_Delete(jsonStatus);
+
+    return SR_ERR_OK;
+}
+
+int writeSkeletonConfigFile()
+{
+    cJSON *configObject = cJSON_CreateObject();
+    if (configObject == NULL)
+    {
+        printf("Could not create JSON object: configObject\n");
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    cJSON *notificationConfig = cJSON_CreateObject();
+    if (notificationConfig == NULL)
+    {
+        printf("Could not create JSON object: notificationConfig\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+    cJSON_AddItemToObject(configObject, "notification-config", notificationConfig);
+
+    if (cJSON_AddNumberToObject(notificationConfig, "ves-heartbeat-period", 0) == NULL)
+    {
+        printf("Could not create JSON object: ves-heartbeat-period\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    if (cJSON_AddTrueToObject(notificationConfig, "is-netconf-available") == NULL)
+    {
+        printf("Could not create JSON object: is-netconf-available\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    if (cJSON_AddTrueToObject(notificationConfig, "is-ves-available") == NULL)
+    {
+        printf("Could not create JSON object: is-ves-available\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    cJSON *faultNotificationDelayPeriod = cJSON_CreateArray();
+    if (faultNotificationDelayPeriod == NULL)
+    {
+        printf("Could not create JSON object: faultNotificationDelayPeriod\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+	}
+    cJSON_AddItemToObject(notificationConfig, "fault-notification-delay-period", faultNotificationDelayPeriod);
+
+    cJSON *arrayItem = cJSON_CreateNumber(0);
+    if (arrayItem == NULL)
+    {
+        printf("Could not create JSON object: arrayItem\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+	}
+    cJSON_AddItemToArray(faultNotificationDelayPeriod, arrayItem);
+
+    cJSON *vesEndPointDetails = cJSON_CreateObject();
+    if (vesEndPointDetails == NULL)
+    {
+        printf("Could not create JSON object: vesEndPointDetails\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+    cJSON_AddItemToObject(configObject, "ves-endpoint-details", vesEndPointDetails);
+
+    if (cJSON_AddStringToObject(vesEndPointDetails, "ves-endpoint-ip", "172.17.0.1") == NULL)
+    {
+        printf("Could not create JSON object: ves-endpoint-ip\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    if (cJSON_AddNumberToObject(vesEndPointDetails, "ves-endpoint-port", 30007) == NULL)
+    {
+        printf("Could not create JSON object: ves-endpoint-port\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    if (cJSON_AddStringToObject(vesEndPointDetails, "ves-endpoint-auth-method", "no-auth") == NULL)
+    {
+        printf("Could not create JSON object: ves-endpoint-auth-method\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    if (cJSON_AddStringToObject(vesEndPointDetails, "ves-endpoint-username", "") == NULL)
+    {
+        printf("Could not create JSON object: ves-endpoint-username\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    if (cJSON_AddStringToObject(vesEndPointDetails, "ves-endpoint-password", "") == NULL)
+    {
+        printf("Could not create JSON object: ves-endpoint-password\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    if (cJSON_AddStringToObject(vesEndPointDetails, "ves-endpoint-certificate", "") == NULL)
+    {
+        printf("Could not create JSON object: ves-endpoint-certificate\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    if (cJSON_AddFalseToObject(vesEndPointDetails, "ves-registration") == NULL)
+    {
+        printf("Could not create JSON object: ves-registration\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    char *config_string = NULL;
+
+    config_string = cJSON_PrintUnformatted(configObject);
+
+    writeConfigFile(config_string);
+
+    if (config_string != NULL)
+    {
+        free(config_string);
+        config_string = NULL;
+    }
+
+    if (configObject != NULL)
+    {
+        cJSON_Delete(configObject);
+    }
 
     return SR_ERR_OK;
 }
