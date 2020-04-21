@@ -2,12 +2,6 @@ FROM ubuntu:18.04 AS builder
 
 LABEL maintainer="alexandru.stancu@highstreet-technologies.com"
 
-ENV NETCONF_BASE=40000
-ENV NTS_IP="127.0.0.1"
-ENV SCRIPTS_DIR=/opt/dev/scripts
-ENV DOCKER_ENGINE_VERSION="1.40"
-ENV MODELS_IMAGE="ntsim_oran"
-
 RUN \
       apt-get update && apt-get install -y \
       # general tools
@@ -138,6 +132,12 @@ ENV NTS_IP="127.0.0.1"
 ENV SCRIPTS_DIR=/opt/dev/scripts
 ENV DOCKER_ENGINE_VERSION="1.40"
 ENV MODELS_IMAGE="ntsim_oran"
+ENV VesHeartbeatPeriod=0
+ENV IsVesAvailable=true
+ENV IsNetconfAvailable=true
+ENV VesRegistration=false
+ENV VesEndpointPort=8080
+ENV VesEndpointIp="172.17.0.1"
 
 RUN \
       apt-get update && apt-get install -y supervisor bc

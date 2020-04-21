@@ -288,15 +288,15 @@ static char* create_docker_container_curl(int base_netconf_port, cJSON* managerB
 	}
     cJSON_AddItemToArray(env_variables_array, env_var_obj_2);
 
-	char scripts_dir[200];
-	sprintf(scripts_dir, "SCRIPTS_DIR=%s", getenv("SCRIPTS_DIR"));
-	cJSON *env_var_obj_3 = cJSON_CreateString(scripts_dir);
-	if (env_var_obj_3 == NULL)
-	{
-		printf("Could not create JSON object: Env array object SCRIPTS_DIR\n");
-		return NULL;
-	}
-	cJSON_AddItemToArray(env_variables_array, env_var_obj_3);
+    char scripts_dir[200];
+    sprintf(scripts_dir, "SCRIPTS_DIR=%s", getenv("SCRIPTS_DIR"));
+    cJSON *env_var_obj_3 = cJSON_CreateString(scripts_dir);
+    if (env_var_obj_3 == NULL)
+    {
+        printf("Could not create JSON object: Env array object SCRIPTS_DIR\n");
+        return NULL;
+    }
+    cJSON_AddItemToArray(env_variables_array, env_var_obj_3);
 
     cJSON_AddItemToObject(hostConfig, "Binds", binds);
 
@@ -316,6 +316,11 @@ static char* create_docker_container_curl(int base_netconf_port, cJSON* managerB
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&curl_response_mem);
 
 	res = curl_easy_perform(curl);
+
+    if (post_data_string != NULL)
+    {
+        free(post_data_string);
+    }
 
 	if (res != CURLE_OK)
 	{

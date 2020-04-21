@@ -681,6 +681,150 @@ main(int argc, char **argv)
         goto cleanup;
     }
 
+    // setting the values that come in an ENV variable as defaults - ves-heartbeat-period
+    int vesHeartbeatPeriod = 0;
+
+    char *vesHeartbeatPeriodString = getenv("VesHeartbeatPeriod");
+
+    if (vesHeartbeatPeriodString != NULL)
+    {
+        rc = sscanf(vesHeartbeatPeriodString, "%d", &vesHeartbeatPeriod);
+        if (rc != 1)
+        {
+            printf("Could not get the vesHeartbeatPeriod! Using the default 0...\n");
+            vesHeartbeatPeriod = 0;
+        }
+    }
+
+    sr_val_t value = { 0 };
+    value.type = SR_UINT32_T;
+    value.data.uint32_val = vesHeartbeatPeriod;
+    rc = sr_set_item(session, "/network-topology-simulator:simulator-config/notification-config/ves-heartbeat-period", 
+            &value, SR_EDIT_DEFAULT);
+    if (SR_ERR_OK != rc) {
+        printf("Error by sr_set_item: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    rc = ves_heartbeat_period_changed(vesHeartbeatPeriod);
+    if (SR_ERR_OK != rc) {
+        printf("Error by ves_heartbeat_period_changed: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    // setting the values that come in an ENV variable as defaults - is-netconf-available
+
+    int isNetconfAvailable = 1;
+
+    char *isNetconfAvailablString = getenv("IsNetconfAvailable");
+    if (isNetconfAvailablString != NULL)
+    {
+        if (strcmp(isNetconfAvailablString, "false") == 0)
+        {
+            isNetconfAvailable = 0;
+        }
+    }
+
+    value = (const sr_val_t) { 0 };
+    value.type = SR_BOOL_T;
+    value.data.bool_val = isNetconfAvailable;
+    rc = sr_set_item(session, "/network-topology-simulator:simulator-config/notification-config/is-netconf-available", 
+            &value, SR_EDIT_DEFAULT);
+    if (SR_ERR_OK != rc) {
+        printf("Error by sr_set_item: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    rc = is_netconf_available_changed(isNetconfAvailable);
+    if (SR_ERR_OK != rc) {
+        printf("Error by is_netconf_available_changed: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    // setting the values that come in an ENV variable as defaults - is-ves-available
+
+    int isVesAvailable = 1;
+
+    char *isVesAvailablString = getenv("IsVesAvailable");
+    if (isVesAvailablString != NULL)
+    {
+        if (strcmp(isVesAvailablString, "false") == 0)
+        {
+            isVesAvailable = 0;
+        }
+    }
+
+    value = (const sr_val_t) { 0 };
+    value.type = SR_BOOL_T;
+    value.data.bool_val = isVesAvailable;
+    rc = sr_set_item(session, "/network-topology-simulator:simulator-config/notification-config/is-ves-available", 
+            &value, SR_EDIT_DEFAULT);
+    if (SR_ERR_OK != rc) {
+        printf("Error by sr_set_item: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    rc = is_ves_available_changed(isVesAvailable);
+    if (SR_ERR_OK != rc) {
+        printf("Error by is_ves_available_changed: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    // setting the values that come in an ENV variable as defaults - ves-endpoint-port
+
+    int vesEndpointPort = 8080;
+
+    char *vesEndpointPortString = getenv("VesEndpointPort");
+    if (vesEndpointPortString != NULL)
+    {
+        rc = sscanf(vesEndpointPortString, "%d", &vesEndpointPort);
+        if (rc != 1)
+        {
+            printf("Could not get the vesEndpointPort! Using the default 0...\n");
+        }
+    }
+
+    value = (const sr_val_t) { 0 };
+    value.type = SR_UINT16_T;
+    value.data.uint16_val = vesEndpointPort;
+    rc = sr_set_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-port", 
+            &value, SR_EDIT_DEFAULT);
+    if (SR_ERR_OK != rc) {
+        printf("Error by sr_set_item: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    rc = ves_port_changed(vesEndpointPort);
+    if (SR_ERR_OK != rc) {
+        printf("Error by ves_port_changed: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    // setting the values that come in an ENV variable as defaults - ves-endpoint-ip
+
+    value = (const sr_val_t) { 0 };
+    value.type = SR_STRING_T;
+    value.data.string_val = getenv("VesEndpointIp");
+    rc = sr_set_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-ip", 
+            &value, SR_EDIT_DEFAULT);
+    if (SR_ERR_OK != rc) {
+        printf("Error by sr_set_item: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    rc = ves_ip_changed(getenv("VesEndpointIp"));
+    if (SR_ERR_OK != rc) {
+        printf("Error by ves_ip_changed: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    //commit the changes that we have done until now
+    rc = sr_commit(session);
+    if (SR_ERR_OK != rc) {
+        printf("Error by sr_commit: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
 	/* read startup config */
 	printf("\n\n ========== READING STARTUP CONFIG network-topology-simulator: ==========\n\n");
 	print_current_config(session, "network-topology-simulator");

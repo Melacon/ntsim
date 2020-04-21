@@ -198,6 +198,9 @@ module network-topology-simulator {
     }
     leaf mounted-devices {
       type uint32;
+      must ". <= ../simulated-devices" {
+          error-message "The number of mounted devices cannot be greater that the number of simulated devices";
+      }
       default "0";
       description
         "The number of devices to be mounted in ODL. The configured number should not exceed the number of mounted devices.";
