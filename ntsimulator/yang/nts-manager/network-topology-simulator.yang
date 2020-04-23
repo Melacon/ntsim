@@ -16,6 +16,12 @@ module network-topology-simulator {
   description
     "This module contains a collection of YANG definitions for managing the Network Topology Simulator.";
 
+  revision 2020-04-22 {
+    description
+      "Add configuration for number of SSH and TLS connections exposed by each simulated device.";
+    reference
+      "O-RAN SC SIM project";
+  }
   revision 2020-04-13 {
     description
       "Change fault-notification-delay-period to leaf-list.";
@@ -188,6 +194,10 @@ module network-topology-simulator {
   }
 
   container simulator-config {
+    must "./ssh-connections + ./tls-connections <= 100" {
+      error-message "The total number of connections (SSH + TLS) needs to be less than or equal with 100.";
+    }
+    // presence "Enables NTS configuration.";
     description
       "Configuration container of the simulator.";
     leaf simulated-devices {
@@ -204,6 +214,20 @@ module network-topology-simulator {
       default "0";
       description
         "The number of devices to be mounted in ODL. The configured number should not exceed the number of mounted devices.";
+    }
+    leaf ssh-connections {
+      when "../simulated-devices = 0";
+      type uint32;
+      default "1";
+      description
+        "The number of SSH connections to be exposed by each simulated device.";
+    }
+    leaf tls-connections {
+    when "../simulated-devices = 0";
+      type uint32;
+      default "0";
+      description
+        "The number of TLS connections to be exposed by each simulated device.";
     }
     container notification-config {
       leaf-list fault-notification-delay-period {

@@ -324,6 +324,34 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
 	sr_free_val(val);
 	val = NULL;
 
+    /* get the value from sysrepo, we do not care if the value did not change in our case */
+    rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ssh-connections", &val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    rc = ssh_connections_changed(val->data.uint32_val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    sr_free_val(val);
+	val = NULL;
+
+    /* get the value from sysrepo, we do not care if the value did not change in our case */
+    rc = sr_get_item(session, "/network-topology-simulator:simulator-config/tls-connections", &val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    rc = tls_connections_changed(val->data.uint32_val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    sr_free_val(val);
+	val = NULL;
+
     return SR_ERR_OK;
 
 sr_error:
@@ -815,6 +843,66 @@ main(int argc, char **argv)
     rc = ves_ip_changed(getenv("VesEndpointIp"));
     if (SR_ERR_OK != rc) {
         printf("Error by ves_ip_changed: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    // setting the values that come in an ENV variable as defaults - ssh-connections
+
+    int sshConnections = 1;
+
+    char *sshConnectionsString = getenv("SshConnections");
+    if (sshConnectionsString != NULL)
+    {
+        rc = sscanf(sshConnectionsString, "%d", &sshConnections);
+        if (rc != 1)
+        {
+            printf("Could not get the sshConnections! Using the default 1...\n");
+        }
+    }
+
+    value = (const sr_val_t) { 0 };
+    value.type = SR_UINT32_T;
+    value.data.uint32_val = sshConnections;
+    rc = sr_set_item(session, "/network-topology-simulator:simulator-config/ssh-connections",
+            &value, SR_EDIT_DEFAULT);
+    if (SR_ERR_OK != rc) {
+        printf("Error by sr_set_item: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    rc = ssh_connections_changed(sshConnections);
+    if (SR_ERR_OK != rc) {
+        printf("Error by ssh_connections_changed: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    // setting the values that come in an ENV variable as defaults - tls-connections
+
+    int tlsConnections = 0;
+
+    char *tlsConnectionsString = getenv("TlsConnections");
+    if (tlsConnectionsString != NULL)
+    {
+        rc = sscanf(tlsConnectionsString, "%d", &tlsConnections);
+        if (rc != 1)
+        {
+            printf("Could not get the tlsConnections! Using the default 0...\n");
+        }
+    }
+
+    value = (const sr_val_t) { 0 };
+    value.type = SR_UINT32_T;
+    value.data.uint32_val = tlsConnections;
+    rc = sr_set_item(session, "/network-topology-simulator:simulator-config/tls-connections",
+            &value, SR_EDIT_DEFAULT);
+    if (SR_ERR_OK != rc) {
+        printf("Error by sr_set_item: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    rc = tls_connections_changed(tlsConnections);
+    if (SR_ERR_OK != rc) {
+        printf("Error by tls_connections_changed: %s\n", sr_strerror(rc));
         goto cleanup;
     }
 

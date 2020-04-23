@@ -7,7 +7,6 @@ services:
      - "172.17.0.1:8300:830"
     volumes:
      - "/var/run/docker.sock:/var/run/docker.sock"
-     #- "/home/alexs/workspace/ntsim-github/ntsimulator/scripts:/opt/dev/scripts"
      - "/var/tmp/NTS_Manager:/opt/dev/scripts"
      - "/usr/bin/docker:/usr/bin/docker"
     labels:
@@ -17,6 +16,11 @@ services:
       NETCONF_BASE: 50000
       DOCKER_ENGINE_VERSION: "1.40"
       MODELS_IMAGE: "ntsim_oran_light"
-      VesHeartbeatPeriod: 30
-      IsNetconfAvailable: "true"
+      VesHeartbeatPeriod: 0
       IsVesAvailable: "true"
+      IsNetconfAvailable: "true"
+      VesRegistration: "false"
+      VesEndpointPort: 8080
+      VesEndpointIp: "172.17.0.1"
+      SshConnections: 1
+      TlsConnections: 0

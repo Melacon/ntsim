@@ -103,7 +103,8 @@ int ves_port_changed(int new_port);
 int ves_registration_changed(cJSON_bool new_bool);
 int is_netconf_available_changed(cJSON_bool new_bool);
 int is_ves_available_changed(cJSON_bool new_bool);
-
+int ssh_connections_changed(int number);
+int tls_connections_changed(int number);
 
 
 int add_key_pair_to_odl(controller_t *controller_list, int controller_list_size);

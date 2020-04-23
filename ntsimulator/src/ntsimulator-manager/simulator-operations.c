@@ -1726,3 +1726,105 @@ int is_ves_available_changed(cJSON_bool new_bool)
 
 	return SR_ERR_OK;
 }
+
+    int ssh_connections_changed(int number)
+    {
+    char *stringConfiguration = readConfigFileInString();
+
+    if (stringConfiguration == NULL)
+    {
+        printf("Could not read configuration file!\n");
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    cJSON *jsonConfig = cJSON_Parse(stringConfiguration);
+    if (jsonConfig == NULL)
+    {
+        free(stringConfiguration);
+        const char *error_ptr = cJSON_GetErrorPtr();
+        if (error_ptr != NULL)
+        {
+            fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+        }
+        return SR_ERR_OPERATION_FAILED;
+    }
+    //we don't need the string anymore
+    free(stringConfiguration);
+    stringConfiguration = NULL;
+
+    cJSON *sshConnections = cJSON_GetObjectItemCaseSensitive(jsonConfig, "ssh-connections");
+    if (!cJSON_IsNumber(sshConnections))
+    {
+        printf("Configuration JSON is not as expected: ssh-connections is not an object");
+        cJSON_Delete(jsonConfig);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    //we set the value of the ssh-connections object
+    cJSON_SetNumberValue(sshConnections, number);
+
+    //writing the new JSON to the configuration file
+    stringConfiguration = cJSON_Print(jsonConfig);
+    writeConfigFile(stringConfiguration);
+
+    if (stringConfiguration != NULL)
+    {
+        free(stringConfiguration);
+        stringConfiguration = NULL;
+    }
+
+    cJSON_Delete(jsonConfig);
+
+    return SR_ERR_OK;
+}
+
+int tls_connections_changed(int number)
+    {
+    char *stringConfiguration = readConfigFileInString();
+
+    if (stringConfiguration == NULL)
+    {
+        printf("Could not read configuration file!\n");
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    cJSON *jsonConfig = cJSON_Parse(stringConfiguration);
+    if (jsonConfig == NULL)
+    {
+        free(stringConfiguration);
+        const char *error_ptr = cJSON_GetErrorPtr();
+        if (error_ptr != NULL)
+        {
+            fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+        }
+        return SR_ERR_OPERATION_FAILED;
+    }
+    //we don't need the string anymore
+    free(stringConfiguration);
+    stringConfiguration = NULL;
+
+    cJSON *tlsConnections = cJSON_GetObjectItemCaseSensitive(jsonConfig, "tls-connections");
+    if (!cJSON_IsNumber(tlsConnections))
+    {
+        printf("Configuration JSON is not as expected: tls-connections is not an object");
+        cJSON_Delete(jsonConfig);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    //we set the value of the tls-connections object
+    cJSON_SetNumberValue(tlsConnections, number);
+
+    //writing the new JSON to the configuration file
+    stringConfiguration = cJSON_Print(jsonConfig);
+    writeConfigFile(stringConfiguration);
+
+    if (stringConfiguration != NULL)
+    {
+        free(stringConfiguration);
+        stringConfiguration = NULL;
+    }
+
+    cJSON_Delete(jsonConfig);
+
+    return SR_ERR_OK;
+}

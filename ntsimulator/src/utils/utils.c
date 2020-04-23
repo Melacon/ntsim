@@ -2041,6 +2041,20 @@ int writeSkeletonConfigFile()
         return SR_ERR_OPERATION_FAILED;
     }
 
+    if (cJSON_AddNumberToObject(configObject, "ssh-connections", 1) == NULL)
+    {
+        printf("Could not create JSON object: ssh-connections\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    if (cJSON_AddNumberToObject(configObject, "tls-connections", 0) == NULL)
+    {
+        printf("Could not create JSON object: tls-connections\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
     char *config_string = NULL;
 
     config_string = cJSON_PrintUnformatted(configObject);

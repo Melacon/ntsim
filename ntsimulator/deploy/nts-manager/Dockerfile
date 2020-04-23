@@ -138,6 +138,8 @@ ENV IsNetconfAvailable=true
 ENV VesRegistration=false
 ENV VesEndpointPort=8080
 ENV VesEndpointIp="172.17.0.1"
+ENV SshConnections=1
+ENV TlsConnections=0
 
 RUN \
       apt-get update && apt-get install -y supervisor bc
