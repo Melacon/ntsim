@@ -1785,6 +1785,9 @@ int getDeviceCounters(char *containerId, counterAlarms *ves_counter, counterAlar
 
     int array_size = cJSON_GetArraySize(deviceList);
 
+    ves_counter->critical = ves_counter->major = ves_counter->minor = ves_counter->warning = ves_counter->normal = 0;
+    netconf_counter->critical = netconf_counter->major = netconf_counter->minor = netconf_counter->warning = netconf_counter->normal = 0;
+
     for (int i=0; i<array_size; ++i)
     {
         cJSON *deviceListEntry = cJSON_GetArrayItem(deviceList, i);
@@ -2073,4 +2076,99 @@ int writeSkeletonConfigFile()
     }
 
     return SR_ERR_OK;
+}
+
+int getIntFromString(char *string, int def_value)
+{
+    int rc, value = def_value;
+    if (string != NULL)
+    {
+        rc = sscanf(string, "%d", &value);
+        if (rc != 1)
+        {
+            printf("Could not get the %s! Using the default 0...\n", string);
+            value = def_value;
+        }
+    }
+    return value;
+}
+
+int     getSshConnectionsFromConfigJson(void)
+{
+    char *stringConfig = readConfigFileInString();
+
+    if (stringConfig == NULL)
+    {
+        printf("Could not read JSON configuration file in string.");
+        return 0;
+    }
+
+    cJSON *jsonConfig = cJSON_Parse(stringConfig);
+    if (jsonConfig == NULL)
+    {
+        free(stringConfig);
+        const char *error_ptr = cJSON_GetErrorPtr();
+        if (error_ptr != NULL)
+        {
+            fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+        }
+        return SR_ERR_OPERATION_FAILED;
+    }
+    //we don't need the string anymore
+    free(stringConfig);
+    stringConfig = NULL;
+
+    cJSON *sshConnections = cJSON_GetObjectItemCaseSensitive(jsonConfig, "ssh-connections");
+    if (!cJSON_IsNumber(sshConnections))
+    {
+        printf("Configuration JSON is not as expected: ssh-connections is not an object");
+        cJSON_Delete(jsonConfig);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    int num_of_ssh = (int)(sshConnections->valuedouble);
+
+    cJSON_Delete(jsonConfig);
+
+    return num_of_ssh;
+}
+
+int     getTlsConnectionsFromConfigJson(void)
+{
+    char *stringConfig = readConfigFileInString();
+
+    if (stringConfig == NULL)
+    {
+        printf("Could not read JSON configuration file in string.");
+        return 0;
+    }
+
+    cJSON *jsonConfig = cJSON_Parse(stringConfig);
+    if (jsonConfig == NULL)
+    {
+        free(stringConfig);
+        const char *error_ptr = cJSON_GetErrorPtr();
+        if (error_ptr != NULL)
+        {
+            fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+        }
+        return SR_ERR_OPERATION_FAILED;
+    }
+    //we don't need the string anymore
+    free(stringConfig);
+    stringConfig = NULL;
+
+    cJSON *tlsConnections = cJSON_GetObjectItemCaseSensitive(jsonConfig, "tls-connections");
+    if (!cJSON_IsNumber(tlsConnections))
+    {
+        printf("Configuration JSON is not as expected: ssh-connections is not an object");
+        cJSON_Delete(jsonConfig);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    int num_of_tls = (int)(tlsConnections->valuedouble);
+
+    cJSON_Delete(jsonConfig);
+
+    return num_of_tls;
 }

@@ -126,6 +126,16 @@ static int simulated_devices_changed(int new_value)
 {
 	int rc = SR_ERR_OK;
 
+    if (strcmp(getenv("K8S_DEPLOYMENT"), "true") == 0)
+    {
+        if (new_value != simulated_devices_config)
+        {
+            simulated_devices_config = new_value;
+            return send_k8s_scale(new_value);
+        }
+        return SR_ERR_OK;
+    }
+
     if (simulated_devices_config > new_value)
     {
     	//we are configuring less elements that currently
@@ -327,12 +337,14 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
     /* get the value from sysrepo, we do not care if the value did not change in our case */
     rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ssh-connections", &val);
     if (rc != SR_ERR_OK) {
-        goto sr_error;
+        printf("NTS Manager /network-topology-simulator:simulator-config/ssh-connections object not available, ignoring..");
     }
-
-    rc = ssh_connections_changed(val->data.uint32_val);
-    if (rc != SR_ERR_OK) {
-        goto sr_error;
+    else
+    {
+        rc = ssh_connections_changed(val->data.uint32_val);
+        if (rc != SR_ERR_OK) {
+            goto sr_error;
+        }
     }
 
     sr_free_val(val);
@@ -341,12 +353,14 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
     /* get the value from sysrepo, we do not care if the value did not change in our case */
     rc = sr_get_item(session, "/network-topology-simulator:simulator-config/tls-connections", &val);
     if (rc != SR_ERR_OK) {
-        goto sr_error;
+        printf("NTS Manager /network-topology-simulator:simulator-config/tls-connections object not available, ignoring..");
     }
-
-    rc = tls_connections_changed(val->data.uint32_val);
-    if (rc != SR_ERR_OK) {
-        goto sr_error;
+    else
+    {
+        rc = tls_connections_changed(val->data.uint32_val);
+        if (rc != SR_ERR_OK) {
+            goto sr_error;
+        }
     }
 
     sr_free_val(val);
@@ -379,7 +393,8 @@ simulator_status_cb(const char *xpath, sr_val_t **values, size_t *values_cnt,
         printf("Could not compute the total number of notification count.\n");
     }
 
-	if (sr_xpath_node_name_eq(xpath, "simulated-devices-list")) {
+	if (sr_xpath_node_name_eq(xpath, "simulated-devices-list")) 
+    {
 		sr_val_t *v;
 		size_t current_num_of_values= 0;
 
@@ -391,12 +406,12 @@ simulator_status_cb(const char *xpath, sr_val_t **values, size_t *values_cnt,
 			return SR_ERR_OK;
 		}
 
-		rc = get_docker_containers_operational_state_curl(device_list);
-		if (rc != SR_ERR_OK)
-		{
-			printf("Could not get the operational state for the devices simulated.\n");
-			return SR_ERR_OPERATION_FAILED;
-		}
+        rc = get_docker_containers_operational_state_curl(device_list);
+        if (rc != SR_ERR_OK)
+        {
+            printf("Could not get the operational state for the devices simulated.\n");
+            return SR_ERR_OPERATION_FAILED;
+        }
 
 		device_t *current_device = device_list->head;
 
@@ -710,19 +725,7 @@ main(int argc, char **argv)
     }
 
     // setting the values that come in an ENV variable as defaults - ves-heartbeat-period
-    int vesHeartbeatPeriod = 0;
-
-    char *vesHeartbeatPeriodString = getenv("VesHeartbeatPeriod");
-
-    if (vesHeartbeatPeriodString != NULL)
-    {
-        rc = sscanf(vesHeartbeatPeriodString, "%d", &vesHeartbeatPeriod);
-        if (rc != 1)
-        {
-            printf("Could not get the vesHeartbeatPeriod! Using the default 0...\n");
-            vesHeartbeatPeriod = 0;
-        }
-    }
+    int vesHeartbeatPeriod = getIntFromString(getenv("VesHeartbeatPeriod"), 0);
 
     sr_val_t value = { 0 };
     value.type = SR_UINT32_T;
@@ -800,17 +803,7 @@ main(int argc, char **argv)
 
     // setting the values that come in an ENV variable as defaults - ves-endpoint-port
 
-    int vesEndpointPort = 8080;
-
-    char *vesEndpointPortString = getenv("VesEndpointPort");
-    if (vesEndpointPortString != NULL)
-    {
-        rc = sscanf(vesEndpointPortString, "%d", &vesEndpointPort);
-        if (rc != 1)
-        {
-            printf("Could not get the vesEndpointPort! Using the default 0...\n");
-        }
-    }
+    int vesEndpointPort = getIntFromString(getenv("VesEndpointPort"), 8080);
 
     value = (const sr_val_t) { 0 };
     value.type = SR_UINT16_T;
@@ -848,17 +841,7 @@ main(int argc, char **argv)
 
     // setting the values that come in an ENV variable as defaults - ssh-connections
 
-    int sshConnections = 1;
-
-    char *sshConnectionsString = getenv("SshConnections");
-    if (sshConnectionsString != NULL)
-    {
-        rc = sscanf(sshConnectionsString, "%d", &sshConnections);
-        if (rc != 1)
-        {
-            printf("Could not get the sshConnections! Using the default 1...\n");
-        }
-    }
+    int sshConnections = getIntFromString(getenv("SshConnections"), 1);
 
     value = (const sr_val_t) { 0 };
     value.type = SR_UINT32_T;
@@ -878,17 +861,7 @@ main(int argc, char **argv)
 
     // setting the values that come in an ENV variable as defaults - tls-connections
 
-    int tlsConnections = 0;
-
-    char *tlsConnectionsString = getenv("TlsConnections");
-    if (tlsConnectionsString != NULL)
-    {
-        rc = sscanf(tlsConnectionsString, "%d", &tlsConnections);
-        if (rc != 1)
-        {
-            printf("Could not get the tlsConnections! Using the default 0...\n");
-        }
-    }
+    int tlsConnections = getIntFromString(getenv("TlsConnections"), 0);
 
     value = (const sr_val_t) { 0 };
     value.type = SR_UINT32_T;
@@ -944,6 +917,12 @@ main(int argc, char **argv)
         fprintf(stderr, "Could not initialize cURL for ODL connection: %s\n", sr_strerror(rc));
     }
 
+    rc = _init_curl_k8s();
+    if (rc != SR_ERR_OK)
+    {
+        fprintf(stderr, "Could not initialize cURL for K8S connection: %s\n", sr_strerror(rc));
+    }
+
     rc = sr_rpc_subscribe(session, "/network-topology-simulator:add-key-pair-to-odl", odl_add_key_pair_cb, (void *)session,
     		SR_SUBSCR_CTX_REUSE, &subscription);
 
@@ -981,12 +960,18 @@ cleanup:
     clean_current_docker_configuration();
     rc = cleanup_curl();
     rc = cleanup_curl_odl();
+    rc = cleanup_curl_k8s();
 
     return rc;
 }
 
 static void clean_current_docker_configuration(void)
 {
+    if (strcmp(getenv("K8S_DEPLOYMENT"), "true"))
+    {
+        return;
+    }
+
 	printf("Cleaning docker containers...\n");
 
 	if (device_list == NULL)

@@ -15,7 +15,7 @@ services:
       NTS_IP: "172.17.0.1"
       NETCONF_BASE: 50000
       DOCKER_ENGINE_VERSION: "1.40"
-      MODELS_IMAGE: "ntsim_oran_light"
+      MODELS_IMAGE: "ntsim_xran_light"
       VesHeartbeatPeriod: 0
       IsVesAvailable: "true"
       IsNetconfAvailable: "true"
@@ -24,3 +24,4 @@ services:
       VesEndpointIp: "172.17.0.1"
       SshConnections: 1
       TlsConnections: 0
+      K8S_DEPLOYMENT: "false"

@@ -24,6 +24,7 @@
 #include <math.h>
 #include <sys/time.h>
 #include <cjson/cJSON.h>
+#include <string.h>
 
 #include "sysrepo.h"
 #include "sysrepo/values.h"
@@ -99,7 +100,6 @@ static int cleanup_curl()
 
 static int send_fault_ves_message(char *alarm_condition, char *alarm_object, char *severity, char *date_time, char *specific_problem, int port)
 {
-	int rc = SR_ERR_OK;
 	CURLcode res;
 	static int sequence_id = 0;
 	int netconf_port_base = 0;
@@ -112,23 +112,14 @@ static int send_fault_ves_message(char *alarm_condition, char *alarm_object, cha
 	if (event == NULL)
 	{
 		printf("Could not create JSON object: event\n");
-		return 1;
+		return SR_ERR_OPERATION_FAILED;
 	}
 	cJSON_AddItemToObject(postDataJson, "event", event);
 
 	char *hostname = getenv("HOSTNAME");
-	char *netconf_base_string = getenv("NETCONF_BASE");
 
-	if (netconf_base_string != NULL)
-	{
-		rc = sscanf(netconf_base_string, "%d", &netconf_port_base);
-		if (rc != 1)
-		{
-			printf("Could not find the NETCONF base port, aborting the PNF registration...\n");
-			return 1;
-		}
-		netconf_port_base += port;
-	}
+    netconf_port_base = getIntFromString(getenv("NETCONF_BASE"), 1);
+    netconf_port_base += port;
 
 	char source_name[100];
 	sprintf(source_name, "%s_%d", hostname, netconf_port_base);
@@ -137,7 +128,7 @@ static int send_fault_ves_message(char *alarm_condition, char *alarm_object, cha
 	if (commonEventHeader == NULL)
 	{
 		printf("Could not create JSON object: commonEventHeader\n");
-		return 1;
+		return SR_ERR_OPERATION_FAILED;
 	}
 	cJSON_AddItemToObject(event, "commonEventHeader", commonEventHeader);
 
@@ -149,7 +140,7 @@ static int send_fault_ves_message(char *alarm_condition, char *alarm_object, cha
 		{
 			cJSON_Delete(postDataJson);
 		}
-		return 1;
+		return SR_ERR_OPERATION_FAILED;
 	}
 	cJSON_AddItemToObject(event, "faultFields", faultFields);
 
@@ -360,7 +351,6 @@ main(int argc, char **argv)
     sr_session_ctx_t *session = NULL;
     sr_subscription_ctx_t *subscription = NULL;
     int rc = SR_ERR_OK;
-    int notification_delay_period = 0; //seconds
 
     setbuf(stdout, NULL);
 

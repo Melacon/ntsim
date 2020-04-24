@@ -28,6 +28,11 @@
 
 static 	CURL *curl; //share the same curl connection for communicating with the Docker Engine API
 static 	CURL *curl_odl; //share the same curl connection for mounting servers in ODL
+static 	CURL *curl_k8s; //share the same curl connection for communicating with the K8S cluster
+
+/*
+curl -X POST -H 'Content-Type: application/json' -i http://localhost:5000/scale --data '{"simulatedDevices":2}'
+*/
 
 static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
@@ -51,26 +56,26 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
 
 static void set_curl_common_info()
 {
-	struct curl_slist *chunk = NULL;
-	chunk = curl_slist_append(chunk, "Content-Type: application/json");
-	chunk = curl_slist_append(chunk, "Accept: application/json");
+    struct curl_slist *chunk = NULL;
+    chunk = curl_slist_append(chunk, "Content-Type: application/json");
+    chunk = curl_slist_append(chunk, "Accept: application/json");
 
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
 
-	curl_easy_setopt(curl, CURLOPT_UNIX_SOCKET_PATH, "/var/run/docker.sock");
+    curl_easy_setopt(curl, CURLOPT_UNIX_SOCKET_PATH, "/var/run/docker.sock");
 
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
-    curl_easy_setopt(curl_odl, CURLOPT_CONNECTTIMEOUT, 2L); // seconds timeout for a connection
-    curl_easy_setopt(curl_odl, CURLOPT_TIMEOUT, 5L); //seconds timeout for an operation
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 2L); // seconds timeout for a connection
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5L); //seconds timeout for an operation
 
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 }
 
 static void set_curl_common_info_odl()
 {
-	struct curl_slist *chunk = NULL;
-	chunk = curl_slist_append(chunk, "Content-Type: application/xml");
-	chunk = curl_slist_append(chunk, "Accept: application/xml");
+    struct curl_slist *chunk = NULL;
+    chunk = curl_slist_append(chunk, "Content-Type: application/xml");
+    chunk = curl_slist_append(chunk, "Accept: application/xml");
 
     curl_easy_setopt(curl_odl, CURLOPT_HTTPHEADER, chunk);
 
@@ -78,6 +83,20 @@ static void set_curl_common_info_odl()
     curl_easy_setopt(curl_odl, CURLOPT_TIMEOUT, 5L); //seconds timeout for an operation
 
     curl_easy_setopt(curl_odl, CURLOPT_VERBOSE, 1L);
+}
+
+static void set_curl_common_info_k8s()
+{
+    struct curl_slist *chunk = NULL;
+    chunk = curl_slist_append(chunk, "Content-Type: application/json");
+    chunk = curl_slist_append(chunk, "Accept: application/json");
+
+    curl_easy_setopt(curl_k8s, CURLOPT_HTTPHEADER, chunk);
+
+    curl_easy_setopt(curl_k8s, CURLOPT_CONNECTTIMEOUT, 2L); // seconds timeout for a connection
+    curl_easy_setopt(curl_k8s, CURLOPT_TIMEOUT, 5L); //seconds timeout for an operation
+
+    curl_easy_setopt(curl_k8s, CURLOPT_VERBOSE, 1L);
 }
 
 static cJSON* get_docker_container_bindings(void)
@@ -591,9 +610,10 @@ static int send_mount_device(device_t *current_device, controller_t controller_d
 {
 	int rc = SR_ERR_OK;
 	bool is_mounted = true;
+    int port = 0;
 
 	//This is where we hardcoded: 7 devices will have SSH connections and 3 devices will have TLS connections
-	for (int port = 0; port < NETCONF_CONNECTIONS_PER_DEVICE - 3; ++port)
+	for (int i = 0; i < SSH_CONNECTIONS_PER_DEVICE; ++port, ++i)
 	{
 		rc = send_mount_device_instance_ssh(controller_details.url, controller_details.credentials,
 				current_device->device_id, current_device->netconf_port + port);
@@ -602,7 +622,7 @@ static int send_mount_device(device_t *current_device, controller_t controller_d
 			is_mounted = false;
 		}
 	}
-	for (int port = NETCONF_CONNECTIONS_PER_DEVICE - 3; port < NETCONF_CONNECTIONS_PER_DEVICE; ++port)
+	for (int i = 0; i < TLS_CONNECTIONS_PER_DEVICE; ++port, ++i)
 	{
 		rc = send_mount_device_instance_tls(controller_details.url, controller_details.credentials,
 				current_device->device_id, current_device->netconf_port + port);
@@ -688,19 +708,9 @@ int get_netconf_port_next(device_stack_t *theStack)
 
 int get_netconf_port_base()
 {
-	int netconf_port_base = 0, rc;
+	int netconf_port_base;
 
-	char *netconf_base_string = getenv("NETCONF_BASE");
-
-	if (netconf_base_string != NULL)
-	{
-		rc = sscanf(netconf_base_string, "%d", &netconf_port_base);
-		if (rc != 1)
-		{
-			printf("Could not get the NETCONF_BASE port! Using the default 30.000...\n");
-			netconf_port_base = 30000;
-		}
-	}
+    netconf_port_base = getIntFromString(getenv("NETCONF_BASE"), 50000);
 
 	return netconf_port_base;
 }
@@ -737,6 +747,12 @@ int get_current_number_of_mounted_devices(device_stack_t *theStack)
 
 int get_current_number_of_devices(device_stack_t *theStack)
 {
+    //TODO implement function for k8s deployment
+    if (strcmp(getenv("K8S_DEPLOYMENT"), "true") == 0)
+    {
+        return 0;
+    }
+
 	struct MemoryStruct curl_response_mem;
 
 	curl_response_mem.memory = malloc(1);  /* will be grown as needed by the realloc above */
@@ -902,6 +918,28 @@ int cleanup_curl_odl()
 	return SR_ERR_OK;
 }
 
+int _init_curl_k8s()
+{
+    curl_k8s = curl_easy_init();
+
+    if (curl_k8s == NULL) {
+        printf("cURL initialization error! Aborting call!\n");
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    return SR_ERR_OK;
+}
+
+int cleanup_curl_k8s()
+{
+    if (curl_k8s != NULL)
+    {
+        curl_easy_cleanup(curl_k8s);
+    }
+
+    return SR_ERR_OK;
+}
+
 int stop_device(device_stack_t *theStack)
 {
 	int rc = SR_ERR_OK;
@@ -980,6 +1018,13 @@ int unmount_device(device_stack_t *theStack, controller_t controller_list)
 
 int get_docker_containers_operational_state_curl(device_stack_t *theStack)
 {
+
+    //TODO implement function for k8s deployment
+    if (strcmp(getenv("K8S_DEPLOYMENT"), "true") == 0)
+    {
+        return SR_ERR_OK;
+    }
+
 	int rc = SR_ERR_OK;
 	struct MemoryStruct curl_response_mem;
 
@@ -1053,6 +1098,12 @@ int get_docker_containers_operational_state_curl(device_stack_t *theStack)
 
 char* get_docker_container_resource_stats(device_stack_t *theStack)
 {
+    //TOD need to implement this for k8s deployment
+    if (strcmp(getenv("K8S_DEPLOYMENT"), "true"))
+    {
+        return strdup("CPU=0%;RAM=0MiB");
+    }
+
 	char line[LINE_BUFSIZE];
 	int linenr;
 	FILE *pipe;
@@ -1825,6 +1876,53 @@ int tls_connections_changed(int number)
     }
 
     cJSON_Delete(jsonConfig);
+
+    return SR_ERR_OK;
+}
+
+/*
+curl -X POST -H 'Content-Type: application/json' -i http://localhost:5000/scale --data '{"simulatedDevices":2}'
+*/
+int send_k8s_scale(int number_of_devices)
+{
+    CURLcode res;
+
+    curl_easy_reset(curl_k8s);
+    set_curl_common_info_k8s();
+
+    char url_for_curl[100];
+    sprintf(url_for_curl, "http://localhost:5000/scale");
+
+    curl_easy_setopt(curl_k8s, CURLOPT_URL, url_for_curl);
+
+    char post_data_json[1500];
+
+    sprintf(post_data_json,
+            "{\"simulatedDevices\":%d}",
+            number_of_devices);
+
+    printf("Post data:\n%s\n", post_data_json);
+
+    curl_easy_setopt(curl_k8s, CURLOPT_POSTFIELDS, post_data_json);
+    curl_easy_setopt(curl_k8s, CURLOPT_CUSTOMREQUEST, "POST");
+
+    res = curl_easy_perform(curl_k8s);
+    if (res != CURLE_OK)
+    {
+        printf("cURL failed to url=%s\n", url_for_curl);
+    }
+
+    long http_response_code = 0;
+    curl_easy_getinfo (curl_k8s, CURLINFO_RESPONSE_CODE, &http_response_code);
+    if (http_response_code >= 200 && http_response_code <= 226 && http_response_code != CURLE_ABORTED_BY_CALLBACK)
+    {
+        printf("cURL succeeded to url=%s\n", url_for_curl);
+    }
+    else
+    {
+        printf("cURL to url=%s failed with code=%ld\n", url_for_curl, http_response_code);
+        return SR_ERR_OPERATION_FAILED;
+    }
 
     return SR_ERR_OK;
 }

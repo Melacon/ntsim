@@ -50,14 +50,8 @@ echo '<certificate>'"$CA_CERT"'</certificate></trusted-certificate></trusted-cer
 sysrepocfg --merge=load_server_certs.xml --format=xml ietf-keystore
 rm load_server_certs.xml
 
-echo '<netconf-server xmlns="urn:ietf:params:xml:ns:yang:ietf-netconf-server"><listen>' >> tls_endpoints.xml
-echo '<endpoint><name>MNG_TLS_1</name><tls><address>0.0.0.0</address><port>837</port><certificates><certificate><name>melacon_server_cert</name></certificate></certificates><client-auth><trusted-ca-certs>trusted_ca_list</trusted-ca-certs><cert-maps><cert-to-name><id>1</id><fingerprint>02:E9:38:1F:F6:8B:62:DE:0A:0B:C5:03:81:A8:03:49:A0:00:7F:8B:F3</fingerprint><map-type xmlns:x509c2n="urn:ietf:params:xml:ns:yang:ietf-x509-cert-to-name">x509c2n:specified</map-type><name>netconf</name></cert-to-name></cert-maps></client-auth></tls></endpoint>' >> tls_endpoints.xml
-echo '<endpoint><name>MNG_TLS_2</name><tls><address>0.0.0.0</address><port>838</port><certificates><certificate><name>melacon_server_cert</name></certificate></certificates><client-auth><trusted-ca-certs>trusted_ca_list</trusted-ca-certs><cert-maps><cert-to-name><id>1</id><fingerprint>02:E9:38:1F:F6:8B:62:DE:0A:0B:C5:03:81:A8:03:49:A0:00:7F:8B:F3</fingerprint><map-type xmlns:x509c2n="urn:ietf:params:xml:ns:yang:ietf-x509-cert-to-name">x509c2n:specified</map-type><name>netconf</name></cert-to-name></cert-maps></client-auth></tls></endpoint>' >> tls_endpoints.xml
-echo '<endpoint><name>MNG_TLS_3</name><tls><address>0.0.0.0</address><port>839</port><certificates><certificate><name>melacon_server_cert</name></certificate></certificates><client-auth><trusted-ca-certs>trusted_ca_list</trusted-ca-certs><cert-maps><cert-to-name><id>1</id><fingerprint>02:E9:38:1F:F6:8B:62:DE:0A:0B:C5:03:81:A8:03:49:A0:00:7F:8B:F3</fingerprint><map-type xmlns:x509c2n="urn:ietf:params:xml:ns:yang:ietf-x509-cert-to-name">x509c2n:specified</map-type><name>netconf</name></cert-to-name></cert-maps></client-auth></tls></endpoint>' >> tls_endpoints.xml
-echo '</listen></netconf-server>' >> tls_endpoints.xml
-
-sysrepocfg --merge=tls_endpoints.xml --format=xml ietf-netconf-server
-rm tls_endpoints.xml
+# enable the SSH and TLS connections, according to the configuration file
+./enable_connections.sh
 
 echo 'Done'
 exit 0

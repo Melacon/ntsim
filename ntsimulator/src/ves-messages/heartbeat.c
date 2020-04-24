@@ -241,7 +241,7 @@ static int send_pnf_registration_instance(char *hostname, int port, bool is_tls)
 	return SR_ERR_OK;
 }
 
-static void pnf_registration(void)
+static void *pnf_registration(void *arg)
 {
 	// delay the PNF Registration VES message, until anything else is initialized
 	printf("delay the PNF Registration VES message, until anything else is initialized");
@@ -253,25 +253,17 @@ static void pnf_registration(void)
 	{
 		//ves-registration object is set to False, we do not make an automatic PNF registration
 		printf("ves-registration object is set to False, we do not make an automatic PNF registration");
-		return;
+		return NULL;
 	}
 
 	int rc = SR_ERR_OK, netconf_port_base = 0;
-	char *netconf_base_string = getenv("NETCONF_BASE");
 	char *hostname_string = getenv("HOSTNAME");
+    int port = 0;
 
-	if (netconf_base_string != NULL)
-	{
-		rc = sscanf(netconf_base_string, "%d", &netconf_port_base);
-		if (rc != 1)
-		{
-			printf("Could not find the NETCONF base port, aborting the PNF registration...\n");
-			return;
-		}
-	}
+    netconf_port_base = getIntFromString(getenv("NETCONF_BASE"), 0);
 
 	//TODO This is where we hardcoded: 7 devices will have SSH connections and 3 devices will have TLS connections
-	for (int port = 0; port < NETCONF_CONNECTIONS_PER_DEVICE - 3; ++port)
+	for (int i = 0; i < SSH_CONNECTIONS_PER_DEVICE; ++port, ++i)
 	{
 		pthread_mutex_lock(&lock);
 		rc = send_pnf_registration_instance(hostname_string, netconf_port_base + port, FALSE);
@@ -281,7 +273,7 @@ static void pnf_registration(void)
 		}
 		pthread_mutex_unlock(&lock);
 	}
-	for (int port = NETCONF_CONNECTIONS_PER_DEVICE - 3; port < NETCONF_CONNECTIONS_PER_DEVICE; ++port)
+	for (int i = 0; port < TLS_CONNECTIONS_PER_DEVICE; ++port, ++i)
 	{
 		pthread_mutex_lock(&lock);
 		rc = send_pnf_registration_instance(hostname_string, netconf_port_base + port, TRUE);
@@ -292,7 +284,7 @@ static void pnf_registration(void)
 		}
 	}
 
-	return;
+	return NULL;
 }
 
 int
