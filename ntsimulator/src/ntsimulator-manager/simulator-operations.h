@@ -85,6 +85,9 @@ int cleanup_curl(void);
 int _init_curl_odl(void);
 int cleanup_curl_odl(void);
 
+int _init_curl_k8s(void);
+int cleanup_curl_k8s(void);
+
 int start_device(device_stack_t *theStack);
 int stop_device(device_stack_t *theStack);
 
@@ -110,6 +113,6 @@ int tls_connections_changed(int number);
 int add_key_pair_to_odl(controller_t *controller_list, int controller_list_size);
 
 int send_k8s_scale(int number_of_devices);
-
+int send_k8s_extend_port(void);
 
 #endif /* SRC_NTSIMULATOR_MANAGER_SIMULATOR_OPERATIONS_H_ */

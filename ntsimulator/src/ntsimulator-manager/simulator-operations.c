@@ -1881,6 +1881,55 @@ int tls_connections_changed(int number)
 }
 
 /*
+curl -X POST -H 'Content-Type: application/json' -i http://localhost:5000/extend-ports --data '{"number-of-ports":12}'
+*/
+int send_k8s_extend_port(void)
+{
+    int num_of_ports = getSshConnectionsFromConfigJson() + getTlsConnectionsFromConfigJson();
+
+    CURLcode res;
+
+    curl_easy_reset(curl_k8s);
+    set_curl_common_info_k8s();
+
+    char url_for_curl[100];
+    sprintf(url_for_curl, "http://localhost:5000/extend-ports");
+
+    curl_easy_setopt(curl_k8s, CURLOPT_URL, url_for_curl);
+
+    char post_data_json[1500];
+
+    sprintf(post_data_json,
+            "{\"number-of-ports\":%d}",
+            num_of_ports);
+
+    printf("Post data:\n%s\n", post_data_json);
+
+    curl_easy_setopt(curl_k8s, CURLOPT_POSTFIELDS, post_data_json);
+    curl_easy_setopt(curl_k8s, CURLOPT_CUSTOMREQUEST, "POST");
+
+    res = curl_easy_perform(curl_k8s);
+    if (res != CURLE_OK)
+    {
+        printf("cURL failed to url=%s\n", url_for_curl);
+    }
+
+    long http_response_code = 0;
+    curl_easy_getinfo (curl_k8s, CURLINFO_RESPONSE_CODE, &http_response_code);
+    if (http_response_code >= 200 && http_response_code <= 226 && http_response_code != CURLE_ABORTED_BY_CALLBACK)
+    {
+        printf("cURL succeeded to url=%s\n", url_for_curl);
+    }
+    else
+    {
+        printf("cURL to url=%s failed with code=%ld\n", url_for_curl, http_response_code);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    return SR_ERR_OK;
+}
+
+/*
 curl -X POST -H 'Content-Type: application/json' -i http://localhost:5000/scale --data '{"simulatedDevices":2}'
 */
 int send_k8s_scale(int number_of_devices)

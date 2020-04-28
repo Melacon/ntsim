@@ -131,7 +131,11 @@ static int simulated_devices_changed(int new_value)
         if (new_value != simulated_devices_config)
         {
             simulated_devices_config = new_value;
-            return send_k8s_scale(new_value);
+            rc = send_k8s_scale(new_value);
+            if (rc != SR_ERR_OK)
+            {
+                printf("Could not send new_scale=%d to k8s cluster.\n", new_value);
+            }
         }
         return SR_ERR_OK;
     }
@@ -345,6 +349,15 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
         if (rc != SR_ERR_OK) {
             goto sr_error;
         }
+
+        if (strcmp(getenv("K8S_DEPLOYMENT"), "true") == 0)
+        {
+            rc = send_k8s_extend_port();
+            if (rc != SR_ERR_OK)
+            {
+                printf("Could not send the extended port to k8s cluster.\n");
+            }
+        }
     }
 
     sr_free_val(val);
@@ -360,6 +373,15 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
         rc = tls_connections_changed(val->data.uint32_val);
         if (rc != SR_ERR_OK) {
             goto sr_error;
+        }
+
+        if (strcmp(getenv("K8S_DEPLOYMENT"), "true") == 0)
+        {
+            rc = send_k8s_extend_port();
+            if (rc != SR_ERR_OK)
+            {
+                printf("Could not send the extended port to k8s cluster.\n");
+            }
         }
     }
 
@@ -697,6 +719,12 @@ main(int argc, char **argv)
 
     setbuf(stdout, NULL);
 
+    rc = _init_curl_k8s();
+    if (rc != SR_ERR_OK)
+    {
+        fprintf(stderr, "Could not initialize cURL for K8S connection: %s\n", sr_strerror(rc));
+    }
+
     device_list = new_device_stack();
     rc = _init_curl();
     if (rc != SR_ERR_OK)
@@ -879,6 +907,15 @@ main(int argc, char **argv)
         goto cleanup;
     }
 
+    if (strcmp(getenv("K8S_DEPLOYMENT"), "true") == 0)
+    {
+        rc = send_k8s_extend_port();
+        if (rc != SR_ERR_OK)
+        {
+            printf("Could not send the number of ports to k8s cluster\n");
+        }
+    }
+
     //commit the changes that we have done until now
     rc = sr_commit(session);
     if (SR_ERR_OK != rc) {
@@ -915,12 +952,6 @@ main(int argc, char **argv)
     if (rc != SR_ERR_OK)
     {
         fprintf(stderr, "Could not initialize cURL for ODL connection: %s\n", sr_strerror(rc));
-    }
-
-    rc = _init_curl_k8s();
-    if (rc != SR_ERR_OK)
-    {
-        fprintf(stderr, "Could not initialize cURL for K8S connection: %s\n", sr_strerror(rc));
     }
 
     rc = sr_rpc_subscribe(session, "/network-topology-simulator:add-key-pair-to-odl", odl_add_key_pair_cb, (void *)session,
