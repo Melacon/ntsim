@@ -165,14 +165,87 @@ static cJSON* get_docker_container_bindings(void)
 	return NULL;
 }
 
-static char* create_docker_container_curl(int base_netconf_port, cJSON* managerBinds)
+static cJSON* get_docker_container_network_node(void)
 {
-	if (managerBinds == NULL)
+    struct MemoryStruct curl_response_mem;
+
+    curl_response_mem.memory = malloc(1);  /* will be grown as needed by the realloc above */
+    curl_response_mem.size = 0;    /* no data at this point */
+
+    CURLcode res;
+
+    curl_easy_reset(curl);
+    set_curl_common_info();
+
+    char url[200];
+    sprintf(url, "http:/v%s/containers/%s/json", getenv("DOCKER_ENGINE_VERSION"), getenv("HOSTNAME"));
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "");
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&curl_response_mem);
+
+    res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK)
+    {
+        return NULL;
+    }
+    else
+    {
+        cJSON *json_response = cJSON_Parse(curl_response_mem.memory);
+
+        printf("%lu bytes retrieved\n", (unsigned long)curl_response_mem.size);
+
+        if (json_response == NULL)
+        {
+            printf("Could not parse JSON response for url=\"%s\"\n", url);
+            return NULL;
+        }
+
+        cJSON *hostConfig = cJSON_GetObjectItemCaseSensitive(json_response, "HostConfig");
+
+        if (hostConfig == NULL)
+        {
+            printf("Could not get HostConfig object\n");
+            return NULL;
+        }
+
+        cJSON *networkMode = cJSON_GetObjectItemCaseSensitive(hostConfig, "NetworkMode");
+
+        if (networkMode == NULL)
+        {
+            printf("Could not get NetworkMode object\n");
+            return NULL;
+        }
+
+        cJSON *networkCopy = cJSON_Duplicate(networkMode, 1);
+
+        cJSON_Delete(json_response);
+
+        return networkCopy;
+    }
+
+    return NULL;
+}
+
+static char* create_docker_container_curl(int base_netconf_port, cJSON* managerBinds, cJSON* networkMode)
+{
+    if (managerBinds == NULL)
+    {
+        printf("Could not retrieve JSON object: Binds\n");
+        return NULL;
+    }
+    cJSON *binds = cJSON_Duplicate(managerBinds, 1);
+
+    if (networkMode == NULL)
 	{
-		printf("Could not retrieve JSON object: Binds\n");
+		printf("Could not retrieve JSON object: NetworkMode\n");
 		return NULL;
 	}
-	cJSON *binds = cJSON_Duplicate(managerBinds, 1);
+	cJSON *netMode = cJSON_Duplicate(networkMode, 1);
 
 	struct MemoryStruct curl_response_mem;
 
@@ -318,6 +391,8 @@ static char* create_docker_container_curl(int base_netconf_port, cJSON* managerB
     cJSON_AddItemToArray(env_variables_array, env_var_obj_3);
 
     cJSON_AddItemToObject(hostConfig, "Binds", binds);
+
+    cJSON_AddItemToObject(hostConfig, "NetworkMode", netMode);
 
     char *post_data_string = NULL;
 
@@ -848,16 +923,21 @@ char* get_docker_container_operational_state(device_stack_t *theStack, char *con
 int start_device(device_stack_t *theStack)
 {
 	int rc = SR_ERR_OK;
-	static cJSON* managerBindings = NULL;
+	static cJSON *managerBindings = NULL, *networkMode = NULL;
 
-	if (managerBindings == NULL)
+    if (managerBindings == NULL)
+    {
+        managerBindings = get_docker_container_bindings();
+    }
+
+    if (networkMode == NULL)
 	{
-		managerBindings = get_docker_container_bindings();
+		networkMode = get_docker_container_network_node();
 	}
 
 	int netconf_base = get_netconf_port_next(theStack);
 
-	char *dev_id = create_docker_container_curl(netconf_base, managerBindings);
+	char *dev_id = create_docker_container_curl(netconf_base, managerBindings, networkMode);
 
 	push_device(theStack, dev_id, netconf_base);
 

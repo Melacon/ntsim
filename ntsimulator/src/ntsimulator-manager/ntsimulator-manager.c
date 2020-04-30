@@ -84,11 +84,23 @@ print_current_config(sr_session_ctx_t *session, const char *module_name)
         }
     }
 
+    char *ipv6 = strchr(odl_ip->data.string_val, ':');
+    char odl_ip_string[URL_AND_CREDENTIALS_MAX_LEN];
+    if (ipv6 != NULL)
+    {
+        sprintf(odl_ip_string, "[%s]", odl_ip->data.string_val);
+    }
+    else
+    {
+        sprintf(odl_ip_string, "%s", odl_ip->data.string_val);
+    }
+
+
     //URL used for mounting/unmounting a device; the device name needs to be appended
    char url[URL_AND_CREDENTIALS_MAX_LEN];
    sprintf(url, "http://%s:%d/restconf/config/network-topology:network-topology/topology/"
 		 "topology-netconf/node/",
-		 odl_ip->data.string_val, odl_port->data.uint32_val);
+		 odl_ip_string, odl_port->data.uint32_val);
 
    char credentials[URL_AND_CREDENTIALS_MAX_LEN];
    sprintf(credentials, "%s:%s", odl_username->data.string_val, odl_password->data.string_val);
@@ -96,15 +108,15 @@ print_current_config(sr_session_ctx_t *session, const char *module_name)
    //URLs used for adding key pair to ODL, for TLS connections
    char url_for_keystore_add[URL_AND_CREDENTIALS_MAX_LEN];
    sprintf(url_for_keystore_add, "http://%s:%d/restconf/operations/netconf-keystore:add-keystore-entry",
-			 odl_ip->data.string_val, odl_port->data.uint32_val);
+			 odl_ip_string, odl_port->data.uint32_val);
 
    char url_for_private_key_add[URL_AND_CREDENTIALS_MAX_LEN];
    sprintf(url_for_private_key_add, "http://%s:%d/restconf/operations/netconf-keystore:add-private-key",
-			 odl_ip->data.string_val, odl_port->data.uint32_val);
+			 odl_ip_string, odl_port->data.uint32_val);
 
    char url_for_trusted_ca_add[URL_AND_CREDENTIALS_MAX_LEN];
    sprintf(url_for_trusted_ca_add, "http://%s:%d/restconf/operations/netconf-keystore:add-trusted-certificate",
-			 odl_ip->data.string_val, odl_port->data.uint32_val);
+			 odl_ip_string, odl_port->data.uint32_val);
 
    strcpy(controller_details.url, url);
    strcpy(controller_details.credentials, credentials);
