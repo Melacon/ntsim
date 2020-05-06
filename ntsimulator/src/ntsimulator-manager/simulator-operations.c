@@ -390,6 +390,16 @@ static char* create_docker_container_curl(int base_netconf_port, cJSON* managerB
     }
     cJSON_AddItemToArray(env_variables_array, env_var_obj_3);
 
+    char k8s_deployment[50];
+    sprintf(k8s_deployment, "K8S_DEPLOYMENT=%s", getenv("K8S_DEPLOYMENT"));
+    cJSON *env_var_obj_4 = cJSON_CreateString(k8s_deployment);
+    if (env_var_obj_4 == NULL)
+    {
+        printf("Could not create JSON object: Env array object K8S_DEPLOYMENT\n");
+        return NULL;
+    }
+    cJSON_AddItemToArray(env_variables_array, env_var_obj_4);
+
     cJSON_AddItemToObject(hostConfig, "Binds", binds);
 
     cJSON_AddItemToObject(hostConfig, "NetworkMode", netMode);
