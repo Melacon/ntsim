@@ -462,37 +462,76 @@ static char* create_docker_container_curl(int base_netconf_port, cJSON* managerB
 
 static int start_docker_container_curl(char *container_id)
 {
-	struct MemoryStruct curl_response_mem;
+    struct MemoryStruct curl_response_mem;
 
-	curl_response_mem.memory = malloc(1);  /* will be grown as needed by the realloc above */
-	curl_response_mem.size = 0;    /* no data at this point */
+    curl_response_mem.memory = malloc(1);  /* will be grown as needed by the realloc above */
+    curl_response_mem.size = 0;    /* no data at this point */
 
-	CURLcode res;
+    CURLcode res;
 
-	curl_easy_reset(curl);
-	set_curl_common_info();
+    curl_easy_reset(curl);
+    set_curl_common_info();
 
-	char url[100];
-	sprintf(url, "http:/v%s/containers/%s/start", getenv("DOCKER_ENGINE_VERSION"), container_id);
+    char url[100];
+    sprintf(url, "http:/v%s/containers/%s/start", getenv("DOCKER_ENGINE_VERSION"), container_id);
 
-	curl_easy_setopt(curl, CURLOPT_URL, url);
+    curl_easy_setopt(curl, CURLOPT_URL, url);
 
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "");
 
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&curl_response_mem);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&curl_response_mem);
 
-	res = curl_easy_perform(curl);
+    res = curl_easy_perform(curl);
 
-	if (res != CURLE_OK)
-	{
-		return SR_ERR_OPERATION_FAILED;
-	}
-	else
-	{
-		printf("Container %s started successfully!\n", container_id);
-	}
+    if (res != CURLE_OK)
+    {
+        return SR_ERR_OPERATION_FAILED;
+    }
+    else
+    {
+        printf("Container %s started successfully!\n", container_id);
+    }
 
-	return SR_ERR_OK;
+    return SR_ERR_OK;
+}
+
+static int rename_docker_container_curl(char *container_id, int device_number)
+{
+    struct MemoryStruct curl_response_mem;
+
+    curl_response_mem.memory = malloc(1);  /* will be grown as needed by the realloc above */
+    curl_response_mem.size = 0;    /* no data at this point */
+
+    CURLcode res;
+
+    curl_easy_reset(curl);
+    set_curl_common_info();
+
+    char device_name[100];
+    sprintf(device_name, "%s-%d", getenv("CONTAINER_NAME"), device_number);
+
+    char url[100];
+    sprintf(url, "http:/v%s/containers/%s/rename?name=%s", getenv("DOCKER_ENGINE_VERSION"), container_id,
+                device_name);
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "");
+
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&curl_response_mem);
+
+    res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK)
+    {
+        return SR_ERR_OPERATION_FAILED;
+    }
+    else
+    {
+        printf("Container %s renamed successfully to %s!\n", container_id, device_name);
+    }
+
+    return SR_ERR_OK;
 }
 
 static int kill_and_remove_docker_container_curl(char *container_id)
@@ -546,20 +585,20 @@ static int send_mount_device_instance_ssh(char *url, char *credentials, char *de
 	char post_data_xml[1500];
 
 	sprintf(post_data_xml,
-			"<node xmlns=\"urn:TBD:params:xml:ns:yang:network-topology\">"
-			"<node-id>%s_%d</node-id>"
-			"<host xmlns=\"urn:opendaylight:netconf-node-topology\">%s</host>"
-			"<port xmlns=\"urn:opendaylight:netconf-node-topology\">%d</port>"
-			"<username xmlns=\"urn:opendaylight:netconf-node-topology\">%s</username>"
-			"<password xmlns=\"urn:opendaylight:netconf-node-topology\">%s</password>"
-			"<tcp-only xmlns=\"urn:opendaylight:netconf-node-topology\">false</tcp-only>"
-			"<keepalive-delay xmlns=\"urn:opendaylight:netconf-node-topology\">120</keepalive-delay>"
-			"<reconnect-on-changed-schema xmlns=\"urn:opendaylight:netconf-node-topology\">false</reconnect-on-changed-schema>"
-			"<sleep-factor xmlns=\"urn:opendaylight:netconf-node-topology\">1.5</sleep-factor>"
-			"<connection-timeout-millis xmlns=\"urn:opendaylight:netconf-node-topology\">20000</connection-timeout-millis>"
-			"<max-connection-attempts xmlns=\"urn:opendaylight:netconf-node-topology\">100</max-connection-attempts>"
-			"<between-attempts-timeout-millis xmlns=\"urn:opendaylight:netconf-node-topology\">2000</between-attempts-timeout-millis>"
-			"</node>",
+            "<node xmlns=\"urn:TBD:params:xml:ns:yang:network-topology\">"
+            "<node-id>%s_%d</node-id>"
+            "<host xmlns=\"urn:opendaylight:netconf-node-topology\">%s</host>"
+            "<port xmlns=\"urn:opendaylight:netconf-node-topology\">%d</port>"
+            "<username xmlns=\"urn:opendaylight:netconf-node-topology\">%s</username>"
+            "<password xmlns=\"urn:opendaylight:netconf-node-topology\">%s</password>"
+            "<tcp-only xmlns=\"urn:opendaylight:netconf-node-topology\">false</tcp-only>"
+            "<keepalive-delay xmlns=\"urn:opendaylight:netconf-node-topology\">120</keepalive-delay>"
+            "<reconnect-on-changed-schema xmlns=\"urn:opendaylight:netconf-node-topology\">false</reconnect-on-changed-schema>"
+            "<sleep-factor xmlns=\"urn:opendaylight:netconf-node-topology\">1.5</sleep-factor>"
+            "<connection-timeout-millis xmlns=\"urn:opendaylight:netconf-node-topology\">20000</connection-timeout-millis>"
+            "<max-connection-attempts xmlns=\"urn:opendaylight:netconf-node-topology\">100</max-connection-attempts>"
+            "<between-attempts-timeout-millis xmlns=\"urn:opendaylight:netconf-node-topology\">2000</between-attempts-timeout-millis>"
+            "</node>",
 			device_name, device_port, getenv("NTS_IP"), device_port, "netconf", "netconf");
 
 	printf("Post data:\n%s\n", post_data_xml);
@@ -752,13 +791,14 @@ device_stack_t *new_device_stack(void)
 	return stack;
 }
 
-void push_device(device_stack_t *theStack, char *dev_id, int port)
+void push_device(device_stack_t *theStack, char *dev_id, int port, int dev_num)
 {
 	device_t *new_dev = malloc(sizeof(*new_dev));
 
 	if (new_dev) {
 		new_dev->device_id = strdup(dev_id);
 		new_dev->netconf_port = port;
+        new_dev->device_number = dev_num;
 		new_dev->is_mounted = false;
 		new_dev->operational_state = strdup("not-specified");
 
@@ -784,29 +824,38 @@ void pop_device(device_stack_t *theStack)
 
 int get_netconf_port_next(device_stack_t *theStack)
 {
-	if (theStack && theStack->stack_size > 0) {
-		return theStack->head->netconf_port + NETCONF_CONNECTIONS_PER_DEVICE;
-	}
+    if (theStack && theStack->stack_size > 0) {
+        return theStack->head->netconf_port + NETCONF_CONNECTIONS_PER_DEVICE;
+    }
 
-	return get_netconf_port_base();
+    return get_netconf_port_base();
 }
 
 int get_netconf_port_base()
 {
-	int netconf_port_base;
+    int netconf_port_base;
 
     netconf_port_base = getIntFromString(getenv("NETCONF_BASE"), 50000);
 
-	return netconf_port_base;
+    return netconf_port_base;
 }
 
+// we start numbering the containers from 0
+int get_device_number_next(device_stack_t *theStack)
+{
+    if (theStack && theStack->stack_size > 0) {
+        return theStack->head->device_number + 1;
+    }
+
+    return 0;
+}
 
 char *get_id_last_device(device_stack_t *theStack)
 {
-	if (theStack && theStack->head) {
-		return theStack->head->device_id;
-	}
-	return NULL;
+    if (theStack && theStack->head) {
+        return theStack->head->device_id;
+    }
+    return NULL;
 }
 
 int get_current_number_of_mounted_devices(device_stack_t *theStack)
@@ -946,6 +995,7 @@ int start_device(device_stack_t *theStack)
 	}
 
 	int netconf_base = get_netconf_port_next(theStack);
+    int device_number = get_device_number_next(theStack);
 
 	char *dev_id = create_docker_container_curl(netconf_base, managerBindings, networkMode);
     if (dev_id == NULL)
@@ -954,12 +1004,18 @@ int start_device(device_stack_t *theStack)
         return SR_ERR_OPERATION_FAILED;
     }
 
-	push_device(theStack, dev_id, netconf_base);
+	push_device(theStack, dev_id, netconf_base, device_number);
 
 	rc = start_docker_container_curl(dev_id);
 	if (rc != SR_ERR_OK)
 	{
 		printf("Could not start device with device_id=\"%s\"\n", dev_id);
+	}
+
+    rc = rename_docker_container_curl(dev_id, device_number);
+	if (rc != SR_ERR_OK)
+	{
+		printf("Could not rename device with device_id=\"%s\"\n", dev_id);
 	}
 
 	if (dev_id) {
