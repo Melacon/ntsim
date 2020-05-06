@@ -166,6 +166,10 @@ static int simulated_devices_changed(int new_value)
     	for (int i = 0; i < new_value - simulated_devices_config; ++i)
     	{
     		rc = start_device(device_list);
+            if (rc != SR_ERR_OK)
+            {
+                printf("ERROR: Could not start simulated device. Ignoring, trying with the next simulated device, if any...\n");
+            }
     	}
     }
 

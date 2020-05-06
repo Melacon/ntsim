@@ -249,6 +249,6 @@ ARG BUILD_DATE
 LABEL build-date=$BUILD_DATE
 	  
 ENV EDITOR vim
-EXPOSE 830-839
+EXPOSE 830-929
 
 CMD ["sh", "-c", "/usr/bin/supervisord -c /etc/supervisord.conf"]

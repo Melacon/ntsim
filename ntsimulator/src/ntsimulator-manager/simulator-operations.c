@@ -66,7 +66,7 @@ static void set_curl_common_info()
 
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
     curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 2L); // seconds timeout for a connection
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5L); //seconds timeout for an operation
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L); //seconds timeout for an operation
 
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 }
@@ -80,7 +80,7 @@ static void set_curl_common_info_odl()
     curl_easy_setopt(curl_odl, CURLOPT_HTTPHEADER, chunk);
 
     curl_easy_setopt(curl_odl, CURLOPT_CONNECTTIMEOUT, 2L); // seconds timeout for a connection
-    curl_easy_setopt(curl_odl, CURLOPT_TIMEOUT, 5L); //seconds timeout for an operation
+    curl_easy_setopt(curl_odl, CURLOPT_TIMEOUT, 10L); //seconds timeout for an operation
 
     curl_easy_setopt(curl_odl, CURLOPT_VERBOSE, 1L);
 }
@@ -94,7 +94,7 @@ static void set_curl_common_info_k8s()
     curl_easy_setopt(curl_k8s, CURLOPT_HTTPHEADER, chunk);
 
     curl_easy_setopt(curl_k8s, CURLOPT_CONNECTTIMEOUT, 2L); // seconds timeout for a connection
-    curl_easy_setopt(curl_k8s, CURLOPT_TIMEOUT, 5L); //seconds timeout for an operation
+    curl_easy_setopt(curl_k8s, CURLOPT_TIMEOUT, 10L); //seconds timeout for an operation
 
     curl_easy_setopt(curl_k8s, CURLOPT_VERBOSE, 1L);
 }
@@ -938,6 +938,11 @@ int start_device(device_stack_t *theStack)
 	int netconf_base = get_netconf_port_next(theStack);
 
 	char *dev_id = create_docker_container_curl(netconf_base, managerBindings, networkMode);
+    if (dev_id == NULL)
+    {
+        printf("ERROR: Could not create docker container!\n");
+        return SR_ERR_OPERATION_FAILED;
+    }
 
 	push_device(theStack, dev_id, netconf_base);
 
