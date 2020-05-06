@@ -38,6 +38,7 @@
 typedef struct device {
 	char *device_id;
 	int netconf_port;
+    int device_number;
 	bool is_mounted;
 	char *operational_state;
 	struct device *next;
@@ -61,10 +62,11 @@ typedef struct controller
 
 
 device_stack_t *new_device_stack(void);
-void push_device(device_stack_t *theStack, char *dev_id, int port);
+void push_device(device_stack_t *theStack, char *dev_id, int port, int dev_num);
 void pop_device(device_stack_t *theStack);
 int get_netconf_port_next(device_stack_t *theStack);
 int get_netconf_port_base(void);
+int get_device_number_next(device_stack_t *theStack);
 char *get_id_last_device(device_stack_t *theStack);
 int get_current_number_of_devices(device_stack_t *theStack);
 int get_current_number_of_mounted_devices(device_stack_t *theStack);
