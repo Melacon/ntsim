@@ -16,6 +16,12 @@ module network-topology-simulator {
   description
     "This module contains a collection of YANG definitions for managing the Network Topology Simulator.";
 
+revision 2020-05-14 {
+    description
+      "New RPC for generic NETCONF notification generation.";
+    reference
+      "O-RAN SC SIM project";
+  }
   revision 2020-04-22 {
     description
       "Add configuration for number of SSH and TLS connections exposed by each simulated device.";
@@ -392,6 +398,38 @@ module network-topology-simulator {
       "State data container of the simulator.";
   }
 
+  grouping notification-job-g {
+      leaf device-id {
+        type string;
+        mandatory true;
+        description
+          "Device to invoke the NETCONF notification. If it is not present, all simulated devices would invoke the notification.";
+      }
+      leaf notification-path {
+        type string;
+        mandatory true;
+        description
+          "xPath of the notification to be invoked.";
+      }
+      list attributes {
+          key "path";
+          leaf "path" {
+              type string;
+              description
+                "xPath of the attribute that we want to set.";
+          }
+          leaf value {
+              type string;
+              description
+                "Value of the attribute that we want to set.";
+          }
+          description
+            "A list of values to be set inside the notification.";
+      }
+      description
+        "Notification job object class.";
+  }
+
   rpc restart-simulation {
     description
       "Operation to restart all the simulated devices with the new configuration of the simulator.";
@@ -400,5 +438,18 @@ module network-topology-simulator {
   rpc add-key-pair-to-odl {
     description
       "Operation to add a key pair signed by the NTS to OpenDaylight, such that it can connect to devices using TLS.";
+  }
+
+  rpc invoke-notification {
+    description
+      "Operation to generate a NETCONF notification from a device.";
+    input {
+      uses notification-job-g;
+    }
+  }
+
+  rpc clean-all-jobs {
+      description
+      "Operation to remove all the jobs defined in the NTS Manager.";
   }
 }

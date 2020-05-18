@@ -37,12 +37,15 @@ RUN \
       echo "netconf:netconf" | chpasswd
 
 # generate ssh keys for netconf user
+USER netconf
 RUN \
       mkdir -p /home/netconf/.ssh && \
       ssh-keygen -A && \
       ssh-keygen -t dsa -P '' -f /home/netconf/.ssh/id_dsa && \
-      cat /home/netconf/.ssh/id_dsa.pub > /home/netconf/.ssh/authorized_keys && \
+      cat /home/netconf/.ssh/id_dsa.pub > /home/netconf/.ssh/authorized_keys
 #echo "Host *\n    StrictHostKeyChecking accept-new" >> /home/netconf/.ssh/config
+USER root
+RUN \
       echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config && \
       mkdir -p /root/.ssh && \
       cat /home/netconf/.ssh/id_dsa.pub > /root/.ssh/authorized_keys
@@ -94,7 +97,7 @@ RUN \
       cd /opt/dev && \
       cd Netopeer2 && \
       cd keystored && mkdir build && cd build && \
-      cmake -DCMAKE_BUILD_TYPE:String="Release" .. && \
+      cmake -DCMAKE_BUILD_TYPE:String="Release" -DKEYSTORED_KEYS_DIR=/home/netconf/.ssh .. && \
       make -j2 && \
       make install && \
       ldconfig
@@ -151,11 +154,16 @@ RUN \
       adduser --system netconf && \
       echo "netconf:netconf" | chpasswd
 
+USER netconf
 # generate ssh keys for netconf user
 RUN \
       mkdir -p /home/netconf/.ssh
 
 COPY --from=builder /home/netconf/.ssh /home/netconf/.ssh
+
+USER root
+COPY --from=builder /etc/ssh /etc/ssh
+COPY --from=builder /root/.ssh /root/.ssh
 COPY --from=builder /usr/local/lib /usr/local/lib
 COPY --from=builder /usr/local/bin /usr/local/bin
 COPY --from=builder /usr/local/include /usr/local/include
@@ -201,8 +209,8 @@ COPY --from=builder /lib/x86_64-linux-gnu/libkeyutils.so.1 /lib/x86_64-linux-gnu
 COPY --from=builder /etc/sysrepo /etc/sysrepo
 COPY --from=builder /var/run /var/run
 
-COPY --from=builder /usr/local/etc/keystored/keys/ssh_host_rsa_key.pem /usr/local/etc/keystored/keys/ssh_host_rsa_key.pem
-COPY --from=builder /usr/local/etc/keystored/keys/ssh_host_rsa_key.pem.pub /usr/local/etc/keystored/keys/ssh_host_rsa_key.pem.pub
+#COPY --from=builder /usr/local/etc/keystored/keys/ssh_host_rsa_key.pem /usr/local/etc/keystored/keys/ssh_host_rsa_key.pem
+#COPY --from=builder /usr/local/etc/keystored/keys/ssh_host_rsa_key.pem.pub /usr/local/etc/keystored/keys/ssh_host_rsa_key.pem.pub
 COPY --from=builder /usr/local/share/libnetconf2 /usr/local/share/libnetconf2
 
 RUN ldconfig
@@ -210,6 +218,11 @@ RUN ldconfig
 COPY ntsimulator/deploy/nts-manager/supervisord.conf /etc/supervisord.conf
 
 COPY ntsimulator/deploy/nts-manager/docker_stats.sh /opt/dev/docker_stats.sh
+
+# Fix for the NETCONF notifications
+RUN \
+    echo "Fixing the NETCONF notifications..." && \
+    mkdir -p /var/run/sysrepo-subscriptions/ietf-crypto-types
 	  
 ARG BUILD_DATE
 LABEL build-date=$BUILD_DATE

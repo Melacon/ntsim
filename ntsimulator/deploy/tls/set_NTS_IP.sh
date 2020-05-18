@@ -17,9 +17,10 @@
 
 ################################################################################
 
-sleep 10
+sleep 30
 
 if [ "$K8S_DEPLOYMENT" = "true" ]; then
+   NTS_IP=""
    while true
     do
         echo "Trying to set the NTS_IP env var..."
@@ -30,8 +31,9 @@ if [ "$K8S_DEPLOYMENT" = "true" ]; then
             export NTS_IP=$(echo ${!id})
             echo "NTS_IP=$NTS_IP"
         else
-                    break;
-            fi
+            echo "export NTS_IP=$NTS_IP" >> /root/.bashrc
+            source /root/.bashrc
+        fi
         sleep 10
     done
 else
