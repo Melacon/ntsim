@@ -37,14 +37,12 @@ RUN \
       echo "netconf:netconf" | chpasswd
 
 # generate ssh keys for netconf user
-USER netconf
 RUN \
       mkdir -p /home/netconf/.ssh && \
       ssh-keygen -A && \
-      ssh-keygen -t dsa -P '' -f /home/netconf/.ssh/id_dsa && \
+      ssh-keygen -t rsa -P '' -f /home/netconf/.ssh/id_dsa && \
       cat /home/netconf/.ssh/id_dsa.pub > /home/netconf/.ssh/authorized_keys
 #echo "Host *\n    StrictHostKeyChecking accept-new" >> /home/netconf/.ssh/config
-USER root
 RUN \
       echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config && \
       mkdir -p /root/.ssh && \
@@ -154,14 +152,12 @@ RUN \
       adduser --system netconf && \
       echo "netconf:netconf" | chpasswd
 
-USER netconf
 # generate ssh keys for netconf user
 RUN \
       mkdir -p /home/netconf/.ssh
 
 COPY --from=builder /home/netconf/.ssh /home/netconf/.ssh
 
-USER root
 COPY --from=builder /etc/ssh /etc/ssh
 COPY --from=builder /root/.ssh /root/.ssh
 COPY --from=builder /usr/local/lib /usr/local/lib
