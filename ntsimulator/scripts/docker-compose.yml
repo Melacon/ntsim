@@ -1,10 +1,11 @@
-version: '3'
+version: '2.4'
 services:
   ntsimulator:
     image: "ntsim_manager_light:latest"
+    #image: "10.20.6.10:30000/hightec/ntsim_manager:0.4.2-SNAPSHOT-latest"
     container_name: NTS_Manager
     ports:
-     - "172.17.0.1:8300:830"
+     - "::8300:830"
     volumes:
      - "/var/run/docker.sock:/var/run/docker.sock"
      - "/var/tmp/NTS_Manager:/opt/dev/scripts"
@@ -12,16 +13,66 @@ services:
     labels:
       "NTS-manager": ""
     environment:
-      NTS_IP: "172.17.0.1"
+      #NTS_IP: "2001:db8:1::1"
+      NTS_IP: "10.20.11.121"
       NETCONF_BASE: 50000
       DOCKER_ENGINE_VERSION: "1.40"
-      MODELS_IMAGE: "ntsim_xran_light"
+      MODELS_IMAGE: "ntsim_sandbox"
+      #MODELS_IMAGE: "10.20.6.10:30000/hightec/ntsim_oran:0.4.2-SNAPSHOT-latest"      
       VesHeartbeatPeriod: 0
       IsVesAvailable: "true"
       IsNetconfAvailable: "true"
       VesRegistration: "false"
       VesEndpointPort: 8080
       VesEndpointIp: "172.17.0.1"
-      SshConnections: 1
+      SshConnections: 10
       TlsConnections: 0
       K8S_DEPLOYMENT: "false"
+      CONTAINER_NAME: "ntsimulator"
+      NetconfCallHome: "true"
+      NetconfCallHomePort: 6666
+      ControllerIp: "10.20.11.121"
+      ControllerPort: 8181
+      ControllerUsername: "admin"
+      ControllerPassword: "admin"
+    networks:
+      app_net:
+        ipv6_address: 2001:3200:3200::30
+  
+  sdnr:
+    image: ${HT_DOCKER_REPO}${HT_DOCKER_IMAGE_NAME}:${HT_DOCKER_IMAGE_TAG}
+    container_name: odl-container
+    ports:
+      - "${PORTPREFIX}8181:8181"
+      - "${PORTPREFIX}8101:8101"
+      - "${PORTPREFIX}6666:6666"
+      # - "172.17.0.1:8101:8101"
+    environment:
+      - ODL_HOME=${ODL_HOME}
+      #- SDNRWT=${SDNRWT}
+    volumes:
+     - ${LOCAL_SDNR_MOUNT}/sdnr/logs:${ODL_HOME}/data/log
+     - type: bind 
+       source: ./org.apache.karaf.features.cfg
+       target: ${ODL_HOME}/etc/org.apache.karaf.features.cfg   
+     - type: bind
+       source: ./org.ops4j.pax.logging.cfg
+       target: ${ODL_HOME}/etc/org.ops4j.pax.logging.cfg
+    logging:
+      driver:   "json-file"
+      options:
+        max-size: "30m"
+        max-file: "5"
+    networks:
+      app_net:
+        ipv6_address: 2001:3200:3200::20
+  
+networks:
+  app_net:
+    enable_ipv6: true
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 2001:3200:3200::/64
+          gateway: 2001:3200:3200::1

@@ -143,6 +143,12 @@ ENV SshConnections=1
 ENV TlsConnections=0
 ENV K8S_DEPLOYMENT=false
 ENV CONTAINER_NAME="ntsim"
+ENV ControllerIp="172.17.0.1"
+ENV ControllerPort=8181
+ENV NetconfCallHomePort=6666
+ENV ControllerUsername="admin"
+ENV ControllerPassword="admin"
+ENV NetconfCallHome=false
 
 RUN \
       apt-get update && apt-get install -y supervisor bc

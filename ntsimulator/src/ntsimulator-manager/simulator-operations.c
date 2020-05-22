@@ -231,7 +231,7 @@ static cJSON* get_docker_container_network_node(void)
     return NULL;
 }
 
-static char* create_docker_container_curl(int base_netconf_port, cJSON* managerBinds, cJSON* networkMode)
+static char* create_docker_container_curl(int base_netconf_port, cJSON* managerBinds, cJSON* networkMode, int device_number)
 {
     if (managerBinds == NULL)
     {
@@ -270,26 +270,35 @@ static char* create_docker_container_curl(int base_netconf_port, cJSON* managerB
     cJSON *postDataJson = cJSON_CreateObject();
 
     if (cJSON_AddStringToObject(postDataJson, "Image", models_var) == NULL)
-	{
-    	printf("Could not create JSON object: Image\n");
-		return NULL;
-	}
+    {
+        printf("Could not create JSON object: Image\n");
+        return NULL;
+    }
+
+    char device_name[100];
+    sprintf(device_name, "%s-%d", getenv("CONTAINER_NAME"), device_number);
+
+    if (cJSON_AddStringToObject(postDataJson, "Hostname", device_name) == NULL)
+    {
+        printf("Could not create JSON object: Hostname\n");
+        return NULL;
+    }    
 
     cJSON *hostConfig = cJSON_CreateObject();
     if (hostConfig == NULL)
-	{
-    	printf("Could not create JSON object: HostConfig\n");
-		return NULL;
-	}
+    {
+        printf("Could not create JSON object: HostConfig\n");
+        return NULL;
+    }
 
     cJSON_AddItemToObject(postDataJson, "HostConfig", hostConfig);
 
     cJSON *portBindings = cJSON_CreateObject();
     if (portBindings == NULL)
-	{
-    	printf("Could not create JSON object: PortBindings\n");
-		return NULL;
-	}
+    {
+        printf("Could not create JSON object: PortBindings\n");
+        return NULL;
+    }
 
     cJSON_AddItemToObject(hostConfig, "PortBindings", portBindings);
 
@@ -997,7 +1006,7 @@ int start_device(device_stack_t *theStack)
 	int netconf_base = get_netconf_port_next(theStack);
     int device_number = get_device_number_next(theStack);
 
-	char *dev_id = create_docker_container_curl(netconf_base, managerBindings, networkMode);
+	char *dev_id = create_docker_container_curl(netconf_base, managerBindings, networkMode, device_number);
     if (dev_id == NULL)
     {
         printf("ERROR: Could not create docker container!\n");
@@ -2125,4 +2134,350 @@ int send_k8s_scale(int number_of_devices)
     }
 
     return SR_ERR_OK;
+}
+
+int controller_ip_changed(char *new_ip)
+{
+	char *stringConfiguration = readConfigFileInString();
+
+	if (stringConfiguration == NULL)
+	{
+		printf("Could not read configuration file!\n");
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *jsonConfig = cJSON_Parse(stringConfiguration);
+	if (jsonConfig == NULL)
+	{
+		free(stringConfiguration);
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL)
+		{
+			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+		}
+		return SR_ERR_OPERATION_FAILED;
+	}
+	//we don't need the string anymore
+	free(stringConfiguration);
+	stringConfiguration = NULL;
+
+	cJSON *controllerDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "controller-details");
+	if (!cJSON_IsObject(controllerDetails))
+	{
+		printf("Configuration JSON is not as expected: controller-details is not an object");
+		cJSON_Delete(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *controllerIp = cJSON_GetObjectItemCaseSensitive(controllerDetails, "controller-ip");
+	if (!cJSON_IsString(controllerIp))
+	{
+		printf("Configuration JSON is not as expected: controller-ip is not a string");
+		cJSON_Delete(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	//we set the value of the fault-notification-delay-period object
+	cJSON_ReplaceItemInObject(controllerDetails, "controller-ip", cJSON_CreateString(new_ip));
+
+	//writing the new JSON to the configuration file
+	stringConfiguration = cJSON_Print(jsonConfig);
+	writeConfigFile(stringConfiguration);
+
+    if (stringConfiguration != NULL)
+    {
+        free(stringConfiguration);
+        stringConfiguration = NULL;
+    }
+
+	cJSON_Delete(jsonConfig);
+
+	return SR_ERR_OK;
+}
+
+int controller_port_changed(int new_port)
+{
+	char *stringConfiguration = readConfigFileInString();
+
+	if (stringConfiguration == NULL)
+	{
+		printf("Could not read configuration file!\n");
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *jsonConfig = cJSON_Parse(stringConfiguration);
+	if (jsonConfig == NULL)
+	{
+		free(stringConfiguration);
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL)
+		{
+			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+		}
+		return SR_ERR_OPERATION_FAILED;
+	}
+	//we don't need the string anymore
+	free(stringConfiguration);
+	stringConfiguration = NULL;
+
+	cJSON *controllerDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "controller-details");
+	if (!cJSON_IsObject(controllerDetails))
+	{
+		printf("Configuration JSON is not as expected: controller-details is not an object");
+		cJSON_Delete(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *controllerPort = cJSON_GetObjectItemCaseSensitive(controllerDetails, "controller-port");
+	if (!cJSON_IsNumber(controllerPort))
+	{
+		printf("Configuration JSON is not as expected: controller-port is not a number.");
+		cJSON_Delete(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	//we set the value of the fault-notification-delay-period object
+	cJSON_SetNumberValue(controllerPort, new_port);
+
+	//writing the new JSON to the configuration file
+	stringConfiguration = cJSON_Print(jsonConfig);
+	writeConfigFile(stringConfiguration);
+
+    if (stringConfiguration != NULL)
+    {
+        free(stringConfiguration);
+        stringConfiguration = NULL;
+    }
+
+	cJSON_Delete(jsonConfig);
+
+	return SR_ERR_OK;
+}
+
+int controller_netconf_call_home_port_changed(int new_port)
+{
+	char *stringConfiguration = readConfigFileInString();
+
+	if (stringConfiguration == NULL)
+	{
+		printf("Could not read configuration file!\n");
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *jsonConfig = cJSON_Parse(stringConfiguration);
+	if (jsonConfig == NULL)
+	{
+		free(stringConfiguration);
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL)
+		{
+			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+		}
+		return SR_ERR_OPERATION_FAILED;
+	}
+	//we don't need the string anymore
+	free(stringConfiguration);
+	stringConfiguration = NULL;
+
+	cJSON *controllerDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "controller-details");
+	if (!cJSON_IsObject(controllerDetails))
+	{
+		printf("Configuration JSON is not as expected: controller-details is not an object");
+		cJSON_Delete(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *netconfCallHomePort = cJSON_GetObjectItemCaseSensitive(controllerDetails, "netconf-call-home-port");
+	if (!cJSON_IsNumber(netconfCallHomePort))
+	{
+		printf("Configuration JSON is not as expected: netconf-call-home-port is not a number.");
+		cJSON_Delete(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	//we set the value of the fault-notification-delay-period object
+	cJSON_SetNumberValue(netconfCallHomePort, new_port);
+
+	//writing the new JSON to the configuration file
+	stringConfiguration = cJSON_Print(jsonConfig);
+	writeConfigFile(stringConfiguration);
+
+    if (stringConfiguration != NULL)
+    {
+        free(stringConfiguration);
+        stringConfiguration = NULL;
+    }
+
+	cJSON_Delete(jsonConfig);
+
+	return SR_ERR_OK;
+}
+
+int controller_username_changed(char *new_username)
+{
+	char *stringConfiguration = readConfigFileInString();
+
+	if (stringConfiguration == NULL)
+	{
+		printf("Could not read configuration file!\n");
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *jsonConfig = cJSON_Parse(stringConfiguration);
+	if (jsonConfig == NULL)
+	{
+		free(stringConfiguration);
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL)
+		{
+			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+		}
+		return SR_ERR_OPERATION_FAILED;
+	}
+	//we don't need the string anymore
+	free(stringConfiguration);
+	stringConfiguration = NULL;
+
+	cJSON *controllerDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "controller-details");
+	if (!cJSON_IsObject(controllerDetails))
+	{
+		printf("Configuration JSON is not as expected: controller-details is not an object");
+		cJSON_Delete(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *controllerUsername = cJSON_GetObjectItemCaseSensitive(controllerDetails, "controller-username");
+	if (!cJSON_IsString(controllerUsername))
+	{
+		printf("Configuration JSON is not as expected: controller-username is not a string");
+		cJSON_Delete(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	//we set the value of the fault-notification-delay-period object
+	cJSON_ReplaceItemInObject(controllerDetails, "controller-username", cJSON_CreateString(new_username));
+
+	//writing the new JSON to the configuration file
+	stringConfiguration = cJSON_Print(jsonConfig);
+	writeConfigFile(stringConfiguration);
+
+    if (stringConfiguration != NULL)
+    {
+        free(stringConfiguration);
+        stringConfiguration = NULL;
+    }
+
+	cJSON_Delete(jsonConfig);
+
+	return SR_ERR_OK;
+}
+
+int controller_password_changed(char *new_password)
+{
+	char *stringConfiguration = readConfigFileInString();
+
+	if (stringConfiguration == NULL)
+	{
+		printf("Could not read configuration file!\n");
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *jsonConfig = cJSON_Parse(stringConfiguration);
+	if (jsonConfig == NULL)
+	{
+		free(stringConfiguration);
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL)
+		{
+			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+		}
+		return SR_ERR_OPERATION_FAILED;
+	}
+	//we don't need the string anymore
+	free(stringConfiguration);
+	stringConfiguration = NULL;
+
+	cJSON *controllerDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "controller-details");
+	if (!cJSON_IsObject(controllerDetails))
+	{
+		printf("Configuration JSON is not as expected: controller-details is not an object");
+		cJSON_Delete(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *controllerPassword = cJSON_GetObjectItemCaseSensitive(controllerDetails, "controller-password");
+	if (!cJSON_IsString(controllerPassword))
+	{
+		printf("Configuration JSON is not as expected: controller-password is not a string");
+		cJSON_Delete(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	//we set the value of the fault-notification-delay-period object
+	cJSON_ReplaceItemInObject(controllerDetails, "controller-password", cJSON_CreateString(new_password));
+
+	//writing the new JSON to the configuration file
+	stringConfiguration = cJSON_Print(jsonConfig);
+	writeConfigFile(stringConfiguration);
+
+    if (stringConfiguration != NULL)
+    {
+        free(stringConfiguration);
+        stringConfiguration = NULL;
+    }
+
+	cJSON_Delete(jsonConfig);
+
+	return SR_ERR_OK;
+}
+
+int netconf_call_home_changed(cJSON_bool new_bool)
+{
+	char *stringConfiguration = readConfigFileInString();
+
+	if (stringConfiguration == NULL)
+	{
+		printf("Could not read configuration file!\n");
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	cJSON *jsonConfig = cJSON_Parse(stringConfiguration);
+	if (jsonConfig == NULL)
+	{
+		free(stringConfiguration);
+		const char *error_ptr = cJSON_GetErrorPtr();
+		if (error_ptr != NULL)
+		{
+			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+		}
+		return SR_ERR_OPERATION_FAILED;
+	}
+	//we don't need the string anymore
+	free(stringConfiguration);
+	stringConfiguration = NULL;
+
+	cJSON *netconfCallHome = cJSON_GetObjectItemCaseSensitive(jsonConfig, "netconf-call-home");
+	if (!cJSON_IsBool(netconfCallHome))
+	{
+		printf("Configuration JSON is not as expected: netconf-call-home is not a bool.");
+		cJSON_Delete(jsonConfig);
+		return SR_ERR_OPERATION_FAILED;
+	}
+
+	//we set the value of the ves-registration object
+	cJSON_ReplaceItemInObject(jsonConfig, "netconf-call-home", cJSON_CreateBool(new_bool));
+
+	//writing the new JSON to the configuration file
+	stringConfiguration = cJSON_Print(jsonConfig);
+	writeConfigFile(stringConfiguration);
+
+    if (stringConfiguration != NULL)
+    {
+        free(stringConfiguration);
+        stringConfiguration = NULL;
+    }
+
+	cJSON_Delete(jsonConfig);
+
+	return SR_ERR_OK;
 }

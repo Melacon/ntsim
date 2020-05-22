@@ -340,19 +340,19 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
 	sr_free_val(val);
 	val = NULL;
 
-	/* get the value from sysrepo, we do not care if the value did not change in our case */
-	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/notification-config/is-ves-available", &val);
-	if (rc != SR_ERR_OK) {
-		goto sr_error;
-	}
+    /* get the value from sysrepo, we do not care if the value did not change in our case */
+    rc = sr_get_item(session, "/network-topology-simulator:simulator-config/notification-config/is-ves-available", &val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
 
-	rc = is_ves_available_changed(val->data.bool_val);
-	if (rc != SR_ERR_OK) {
-		goto sr_error;
-	}
+    rc = is_ves_available_changed(val->data.bool_val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
 
-	sr_free_val(val);
-	val = NULL;
+    sr_free_val(val);
+    val = NULL;
 
     /* get the value from sysrepo, we do not care if the value did not change in our case */
     rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ssh-connections", &val);
@@ -403,6 +403,90 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
 
     sr_free_val(val);
 	val = NULL;
+
+    /* get the value from sysrepo, we do not care if the value did not change in our case */
+    rc = sr_get_item(session, "/network-topology-simulator:simulator-config/netconf-call-home", &val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    rc = netconf_call_home_changed(val->data.bool_val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    sr_free_val(val);
+    val = NULL;
+
+    /* get the value from sysrepo, we do not care if the value did not change in our case */
+    rc = sr_get_item(session, "/network-topology-simulator:simulator-config/controller-details/controller-ip", &val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    rc = controller_ip_changed(val->data.string_val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    sr_free_val(val);
+    val = NULL;
+
+    /* get the value from sysrepo, we do not care if the value did not change in our case */
+    rc = sr_get_item(session, "/network-topology-simulator:simulator-config/controller-details/controller-port", &val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    rc = controller_port_changed(val->data.uint16_val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    sr_free_val(val);
+    val = NULL;
+
+    /* get the value from sysrepo, we do not care if the value did not change in our case */
+    rc = sr_get_item(session, "/network-topology-simulator:simulator-config/controller-details/netconf-call-home-port", &val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    rc = controller_netconf_call_home_port_changed(val->data.uint16_val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    sr_free_val(val);
+    val = NULL;
+
+    /* get the value from sysrepo, we do not care if the value did not change in our case */
+    rc = sr_get_item(session, "/network-topology-simulator:simulator-config/controller-details/controller-username", &val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    rc = controller_username_changed(val->data.string_val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    sr_free_val(val);
+    val = NULL;
+
+    /* get the value from sysrepo, we do not care if the value did not change in our case */
+    rc = sr_get_item(session, "/network-topology-simulator:simulator-config/controller-details/controller-password", &val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    rc = controller_password_changed(val->data.string_val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    sr_free_val(val);
+    val = NULL;
 
     return SR_ERR_OK;
 
@@ -930,6 +1014,129 @@ main(int argc, char **argv)
         {
             printf("Could not send the number of ports to k8s cluster\n");
         }
+    }
+
+    // setting the values that come in an ENV variable as defaults - controller-ip
+
+    value = (const sr_val_t) { 0 };
+    value.type = SR_STRING_T;
+    value.data.string_val = getenv("ControllerIp");
+    rc = sr_set_item(session, "/network-topology-simulator:simulator-config/controller-details/controller-ip", 
+            &value, SR_EDIT_DEFAULT);
+    if (SR_ERR_OK != rc) {
+        printf("Error by sr_set_item: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    rc = controller_ip_changed(getenv("ControllerIp"));
+    if (SR_ERR_OK != rc) {
+        printf("Error by controller_ip_changed: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    // setting the values that come in an ENV variable as defaults - controller-port
+
+    int controllerPort = getIntFromString(getenv("ControllerPort"), 8181);
+
+    value = (const sr_val_t) { 0 };
+    value.type = SR_UINT16_T;
+    value.data.uint16_val = controllerPort;
+    rc = sr_set_item(session, "/network-topology-simulator:simulator-config/controller-details/controller-port", 
+            &value, SR_EDIT_DEFAULT);
+    if (SR_ERR_OK != rc) {
+        printf("Error by sr_set_item: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    rc = controller_port_changed(controllerPort);
+    if (SR_ERR_OK != rc) {
+        printf("Error by controller_port_changed: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    // setting the values that come in an ENV variable as defaults - netconf-call-home-port
+
+    int netconfCallHomePort = getIntFromString(getenv("NetconfCallHomePort"), 6666);
+
+    value = (const sr_val_t) { 0 };
+    value.type = SR_UINT16_T;
+    value.data.uint16_val = netconfCallHomePort;
+    rc = sr_set_item(session, "/network-topology-simulator:simulator-config/controller-details/netconf-call-home-port", 
+            &value, SR_EDIT_DEFAULT);
+    if (SR_ERR_OK != rc) {
+        printf("Error by sr_set_item: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    rc = controller_netconf_call_home_port_changed(netconfCallHomePort);
+    if (SR_ERR_OK != rc) {
+        printf("Error by controller_netconf_call_home_port_changed: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    // setting the values that come in an ENV variable as defaults - controller-username
+
+    value = (const sr_val_t) { 0 };
+    value.type = SR_STRING_T;
+    value.data.string_val = getenv("ControllerUsername");
+    rc = sr_set_item(session, "/network-topology-simulator:simulator-config/controller-details/controller-username", 
+            &value, SR_EDIT_DEFAULT);
+    if (SR_ERR_OK != rc) {
+        printf("Error by sr_set_item: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    rc = controller_username_changed(getenv("ControllerUsername"));
+    if (SR_ERR_OK != rc) {
+        printf("Error by controller_username_changed: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    // setting the values that come in an ENV variable as defaults - controller-password
+
+    value = (const sr_val_t) { 0 };
+    value.type = SR_STRING_T;
+    value.data.string_val = getenv("ControllerPassword");
+    rc = sr_set_item(session, "/network-topology-simulator:simulator-config/controller-details/controller-password", 
+            &value, SR_EDIT_DEFAULT);
+    if (SR_ERR_OK != rc) {
+        printf("Error by sr_set_item: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    rc = controller_password_changed(getenv("ControllerPassword"));
+    if (SR_ERR_OK != rc) {
+        printf("Error by controller_password_changed: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    // setting the values that come in an ENV variable as defaults - netconf-call-home
+
+    int netconfCallHome = 1;
+
+    char *netconfCallHomeString = getenv("NetconfCallHome");
+    if (netconfCallHomeString != NULL)
+    {
+        if (strcmp(netconfCallHomeString, "false") == 0)
+        {
+            netconfCallHome = 0;
+        }
+    }
+
+    value = (const sr_val_t) { 0 };
+    value.type = SR_BOOL_T;
+    value.data.bool_val = netconfCallHome;
+    rc = sr_set_item(session, "/network-topology-simulator:simulator-config/netconf-call-home", 
+            &value, SR_EDIT_DEFAULT);
+    if (SR_ERR_OK != rc) {
+        printf("Error by sr_set_item: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    rc = netconf_call_home_changed(netconfCallHome);
+    if (SR_ERR_OK != rc) {
+        printf("Error by netconf_call_home_changed: %s\n", sr_strerror(rc));
+        goto cleanup;
     }
 
     //commit the changes that we have done until now

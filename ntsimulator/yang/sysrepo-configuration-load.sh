@@ -4,6 +4,14 @@ sleep 20
 
 echo "Loading data into sysrepo..."
 
+ssh-keyscan -p 830 127.0.0.1 >> ~/.ssh/known_hosts
+
+result=$(netopeer2-cli <<-END
+	knownhosts --del 0
+    knownhosts --del 0
+END
+)
+
 pyang -f sample-xml-skeleton --sample-xml-list-entries 2 *.yang
 
 result=$(netopeer2-cli <<-END

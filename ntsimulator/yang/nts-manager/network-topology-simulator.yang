@@ -125,6 +125,11 @@ revision 2020-05-14 {
       description
         "The Port of the SDN Controller.";
     }
+    leaf netconf-call-home-port {
+      type inet:port-number;
+      description
+        "The NETCONF Call Home Port of the SDN Controller.";      
+    }
     leaf controller-username {
       type string;
       description
@@ -203,7 +208,7 @@ revision 2020-05-14 {
     must "./ssh-connections + ./tls-connections <= 100" {
       error-message "The total number of connections (SSH + TLS) needs to be less than or equal with 100.";
     }
-    // presence "Enables NTS configuration.";
+    presence "Enables NTS configuration.";
     description
       "Configuration container of the simulator.";
     leaf simulated-devices {
@@ -234,6 +239,12 @@ revision 2020-05-14 {
       default "0";
       description
         "The number of TLS connections to be exposed by each simulated device.";
+    }
+    leaf netconf-call-home {
+        type boolean;
+        default "false";
+        description
+          "Configuration of NETCONF Call Home feature. If set to 'true', the device will use the SDN controller details and try to connect to it via Call Home.";
     }
     container notification-config {
       leaf-list fault-notification-delay-period {

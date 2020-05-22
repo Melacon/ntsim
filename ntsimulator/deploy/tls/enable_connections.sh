@@ -45,7 +45,7 @@ echo '<netconf-server xmlns="urn:ietf:params:xml:ns:yang:ietf-netconf-server"><l
 
 for (( ssh_counter=0; ssh_counter<$ssh_conn; ssh_counter++ ))
 do
-  echo "<endpoint><name>MNG$ssh_counter</name><ssh><address>::</address><port>$netconf_port</port><host-keys><host-key><name>imported SSH key</name><public-key>ssh_host_rsa_key</public-key></host-key></host-keys></ssh></endpoint>" >> connections.xml
+  echo "<endpoint><name>MNG$ssh_counter</name><ssh><address>::</address><port>$netconf_port</port><host-keys><host-key><name>imported SSH key</name><public-key>ssh_host_rsa_key</public-key></host-key><host-key><name>Melacon Server key</name><public-key>melacon_server_key</public-key></host-key></host-keys></ssh></endpoint>" >> connections.xml
   ((netconf_port++))
 done
 

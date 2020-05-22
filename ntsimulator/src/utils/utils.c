@@ -2044,6 +2044,50 @@ int writeSkeletonConfigFile()
         return SR_ERR_OPERATION_FAILED;
     }
 
+    cJSON *controllerDetails = cJSON_CreateObject();
+    if (controllerDetails == NULL)
+    {
+        printf("Could not create JSON object: controllerDetails\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+    cJSON_AddItemToObject(configObject, "controller-details", controllerDetails);
+
+    if (cJSON_AddStringToObject(controllerDetails, "controller-ip", "172.17.0.1") == NULL)
+    {
+        printf("Could not create JSON object: controller-ip\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    if (cJSON_AddNumberToObject(controllerDetails, "controller-port", 8181) == NULL)
+    {
+        printf("Could not create JSON object: controller-port\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    if (cJSON_AddNumberToObject(controllerDetails, "netconf-call-home-port", 6666) == NULL)
+    {
+        printf("Could not create JSON object: netconf-call-home-port\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    if (cJSON_AddStringToObject(controllerDetails, "controller-username", "admin") == NULL)
+    {
+        printf("Could not create JSON object: controller-username\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    if (cJSON_AddStringToObject(controllerDetails, "controller-password", "admin") == NULL)
+    {
+        printf("Could not create JSON object: controller-password\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
     if (cJSON_AddNumberToObject(configObject, "ssh-connections", 1) == NULL)
     {
         printf("Could not create JSON object: ssh-connections\n");
@@ -2054,6 +2098,13 @@ int writeSkeletonConfigFile()
     if (cJSON_AddNumberToObject(configObject, "tls-connections", 0) == NULL)
     {
         printf("Could not create JSON object: tls-connections\n");
+        cJSON_Delete(configObject);
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    if (cJSON_AddFalseToObject(configObject, "netconf-call-home") == NULL)
+    {
+        printf("Could not create JSON object: netconf-call-home\n");
         cJSON_Delete(configObject);
         return SR_ERR_OPERATION_FAILED;
     }

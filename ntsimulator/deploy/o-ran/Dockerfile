@@ -206,9 +206,11 @@ COPY --from=builder /usr/local/share/libnetconf2 /usr/local/share/libnetconf2
 RUN ldconfig
 
 WORKDIR /tmp
-RUN apt-get install -yqq wget \
+RUN \
+    apt-get update && apt-get install -yqq wget \
     openssh-client \
-    jq
+    jq \
+    curl
 
 RUN mkdir py_install && cd py_install && \
     wget https://files.pythonhosted.org/packages/b9/9a/3e9da40ea28b8210dd6504d3fe9fe7e013b62bf45902b458d1cdc3c34ed9/ipaddress-1.0.23.tar.gz && \
