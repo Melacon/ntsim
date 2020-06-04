@@ -355,56 +355,6 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
     val = NULL;
 
     /* get the value from sysrepo, we do not care if the value did not change in our case */
-    rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ssh-connections", &val);
-    if (rc != SR_ERR_OK) {
-        printf("NTS Manager /network-topology-simulator:simulator-config/ssh-connections object not available, ignoring..");
-    }
-    else
-    {
-        rc = ssh_connections_changed(val->data.uint32_val);
-        if (rc != SR_ERR_OK) {
-            goto sr_error;
-        }
-
-        if (strcmp(getenv("K8S_DEPLOYMENT"), "true") == 0)
-        {
-            rc = send_k8s_extend_port();
-            if (rc != SR_ERR_OK)
-            {
-                printf("Could not send the extended port to k8s cluster.\n");
-            }
-        }
-    }
-
-    sr_free_val(val);
-	val = NULL;
-
-    /* get the value from sysrepo, we do not care if the value did not change in our case */
-    rc = sr_get_item(session, "/network-topology-simulator:simulator-config/tls-connections", &val);
-    if (rc != SR_ERR_OK) {
-        printf("NTS Manager /network-topology-simulator:simulator-config/tls-connections object not available, ignoring..");
-    }
-    else
-    {
-        rc = tls_connections_changed(val->data.uint32_val);
-        if (rc != SR_ERR_OK) {
-            goto sr_error;
-        }
-
-        if (strcmp(getenv("K8S_DEPLOYMENT"), "true") == 0)
-        {
-            rc = send_k8s_extend_port();
-            if (rc != SR_ERR_OK)
-            {
-                printf("Could not send the extended port to k8s cluster.\n");
-            }
-        }
-    }
-
-    sr_free_val(val);
-	val = NULL;
-
-    /* get the value from sysrepo, we do not care if the value did not change in our case */
     rc = sr_get_item(session, "/network-topology-simulator:simulator-config/netconf-call-home", &val);
     if (rc != SR_ERR_OK) {
         goto sr_error;
@@ -689,6 +639,18 @@ simulator_status_cb(const char *xpath, sr_val_t **values, size_t *values_cnt,
 		v[current_num_of_values - 1].type = SR_UINT32_T;
 		v[current_num_of_values - 1].data.uint32_val = (int)mem_usage;
 
+        CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+        sr_val_build_xpath(&v[current_num_of_values - 1], "%s/%s", xpath, "ssh-connections");
+        v[current_num_of_values - 1].type = SR_UINT32_T;
+        v[current_num_of_values - 1].data.uint32_val = getSshConnectionsFromConfigJson();
+
+        CREATE_NEW_VALUE(rc, v, current_num_of_values);
+
+        sr_val_build_xpath(&v[current_num_of_values - 1], "%s/%s", xpath, "tls-connections");
+        v[current_num_of_values - 1].type = SR_UINT32_T;
+        v[current_num_of_values - 1].data.uint32_val = getTlsConnectionsFromConfigJson();
+
 		//return the values that we have just created
 		*values = v;
 		*values_cnt = current_num_of_values;
@@ -777,29 +739,70 @@ simulator_status_cb(const char *xpath, sr_val_t **values, size_t *values_cnt,
     return SR_ERR_OK;
 }
 
-int odl_add_key_pair_cb(const char *xpath, const sr_val_t *input, const size_t input_cnt,
-		sr_val_t **output, size_t *output_cnt, void *private_ctx)
+static int odl_add_key_pair_cb(const char *xpath, const sr_val_t *input, const size_t input_cnt,
+      sr_val_t **output, size_t *output_cnt, void *private_ctx)
 {
-	int rc = SR_ERR_OK;
-	controller_t controller_list[CONTROLLER_LIST_MAX_LEN];
-	int controller_list_size = 0;
+    int rc = SR_ERR_OK;
+    controller_t controller_list[CONTROLLER_LIST_MAX_LEN];
+    int controller_list_size = 0;
 
-	controller_list[0] = controller_details;
-	controller_list_size++;
+    controller_list[0] = controller_details;
+    controller_list_size++;
 
-	for (int i = 0; i < controller_list_size; ++i)
-	{
-		printf("%d iteration: Got back url=%s and credentials=%s\n", i, controller_list[i].url, controller_list[i].credentials);
-	}
+    for (int i = 0; i < controller_list_size; ++i)
+    {
+        printf("%d iteration: Got back url=%s and credentials=%s\n", i, controller_list[i].url, controller_list[i].credentials);
+    }
 
-	rc = add_key_pair_to_odl(controller_list, controller_list_size);
-	if (rc != SR_ERR_OK)
-	{
-		printf("Failed to add key pair to ODL.\n");
-		return SR_ERR_OPERATION_FAILED;
-	}
+    rc = add_key_pair_to_odl(controller_list, controller_list_size);
+    if (rc != SR_ERR_OK)
+    {
+        printf("Failed to add key pair to ODL.\n");
+        return SR_ERR_OPERATION_FAILED;
+    }
 
-	return rc;
+    return rc;
+}
+
+static int invoke_notification_cb(const char *xpath, const sr_val_t *input, const size_t input_cnt,
+      sr_val_t **output, size_t *output_cnt, void *private_ctx)
+{
+    int rc = SR_ERR_OK;
+
+    char *device_name = NULL, *module_name = NULL, *notification_object = NULL;
+    
+    /* print input values */
+    printf("\n\n ========== RECEIVED RPC REQUEST ==========\n\n");
+    printf(">>> RPC Input:\n\n");
+    
+    device_name = strdup(input[0].data.string_val);
+    module_name = strdup(input[1].data.string_val);
+    notification_object = strdup(input[2].data.string_val);
+
+    rc = sr_new_values(1, output);
+    if (SR_ERR_OK != rc) {
+        return rc;
+    }
+
+    /* set 'output/step-count' leaf */
+    rc = sr_val_set_xpath(&(*output)[0], "/network-topology-simulator:invoke-notification/status");
+    if (SR_ERR_OK != rc) {
+        return rc;
+    }
+
+    rc = invoke_device_notification(device_name, module_name, notification_object);
+    
+    if (rc != SR_ERR_OK)
+    {
+        sr_val_build_str_data(&(*output)[0], SR_ENUM_T, "%s", "ERROR");
+    }
+    else
+    {
+        sr_val_build_str_data(&(*output)[0], SR_ENUM_T, "%s", "SUCCESS");
+    }
+    *output_cnt = 1;
+
+    return SR_ERR_OK;
 }
 
 
@@ -971,16 +974,6 @@ main(int argc, char **argv)
 
     int sshConnections = getIntFromString(getenv("SshConnections"), 1);
 
-    value = (const sr_val_t) { 0 };
-    value.type = SR_UINT32_T;
-    value.data.uint32_val = sshConnections;
-    rc = sr_set_item(session, "/network-topology-simulator:simulator-config/ssh-connections",
-            &value, SR_EDIT_DEFAULT);
-    if (SR_ERR_OK != rc) {
-        printf("Error by sr_set_item: %s\n", sr_strerror(rc));
-        goto cleanup;
-    }
-
     rc = ssh_connections_changed(sshConnections);
     if (SR_ERR_OK != rc) {
         printf("Error by ssh_connections_changed: %s\n", sr_strerror(rc));
@@ -990,16 +983,6 @@ main(int argc, char **argv)
     // setting the values that come in an ENV variable as defaults - tls-connections
 
     int tlsConnections = getIntFromString(getenv("TlsConnections"), 0);
-
-    value = (const sr_val_t) { 0 };
-    value.type = SR_UINT32_T;
-    value.data.uint32_val = tlsConnections;
-    rc = sr_set_item(session, "/network-topology-simulator:simulator-config/tls-connections",
-            &value, SR_EDIT_DEFAULT);
-    if (SR_ERR_OK != rc) {
-        printf("Error by sr_set_item: %s\n", sr_strerror(rc));
-        goto cleanup;
-    }
 
     rc = tls_connections_changed(tlsConnections);
     if (SR_ERR_OK != rc) {
@@ -1187,6 +1170,15 @@ main(int argc, char **argv)
     {
         fprintf(stderr, "Could not initialize status JSON file: %s\n", sr_strerror(rc));
     }
+
+    rc = sr_rpc_subscribe(session, "/network-topology-simulator:invoke-notification", invoke_notification_cb,
+            (void *)session, SR_SUBSCR_DEFAULT, &subscription);
+    if (SR_ERR_OK != rc) {
+        fprintf(stderr, "Error by sr_rpc_subscribe: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    rc = pull_docker_image_of_simulated_device();
 
     /* loop until ctrl-c is pressed / SIGINT is received */
     signal(SIGINT, sigint_handler);

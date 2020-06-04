@@ -6,6 +6,7 @@ include_directories(
 )
 
 add_subdirectory(onf-notifications-1-4)
+add_subdirectory(generic-notifications)
 
 # sources
 set (UTILS_SOURCES

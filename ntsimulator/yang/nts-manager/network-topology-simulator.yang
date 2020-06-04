@@ -205,9 +205,6 @@ revision 2020-05-14 {
   }
 
   container simulator-config {
-    must "./ssh-connections + ./tls-connections <= 100" {
-      error-message "The total number of connections (SSH + TLS) needs to be less than or equal with 100.";
-    }
     presence "Enables NTS configuration.";
     description
       "Configuration container of the simulator.";
@@ -226,20 +223,6 @@ revision 2020-05-14 {
       description
         "The number of devices to be mounted in ODL. The configured number should not exceed the number of mounted devices.";
     }
-    leaf ssh-connections {
-      when "../simulated-devices = 0";
-      type uint32;
-      default "1";
-      description
-        "The number of SSH connections to be exposed by each simulated device.";
-    }
-    leaf tls-connections {
-    when "../simulated-devices = 0";
-      type uint32;
-      default "0";
-      description
-        "The number of TLS connections to be exposed by each simulated device.";
-    }
     leaf netconf-call-home {
         type boolean;
         default "false";
@@ -251,6 +234,7 @@ revision 2020-05-14 {
         type uint32;
         min-elements 1;
         max-elements 99;
+        ordered-by user;
         description
           "Defines a pattern of generating notifications, represented by the amount of time between two generated fault notifications. The pattern is circular, it restarts at the beginning after all the leaf-list items are being used.
           E.g.: if the leaf-list contains three items: 4, 8 and 10, then a fault-notification will be generated, then after 4 seconds a new notification will be generaed, then after 8 seconds, then after 10 seconds, then again after 4 seconds etc.";
@@ -343,6 +327,16 @@ revision 2020-05-14 {
         description
           "The current number of running simulated devices that are mounted in ODL.";
       }
+      leaf ssh-connections {
+        type uint32;
+        description
+          "The number of SSH connections that are exposed by each simulated device. This can be set through the ENV variable SshConnections when starting the NTS Manager.";
+      }
+      leaf tls-connections {
+        type uint32;
+        description
+          "The number of TLS connections that are exposed by each simulated device. This can be set through the ENV variable TlsConnections when starting the NTS Manager.";
+      }
       leaf base-netconf-port {
         type uint32;
         default "30000";
@@ -416,26 +410,17 @@ revision 2020-05-14 {
         description
           "Device to invoke the NETCONF notification. If it is not present, all simulated devices would invoke the notification.";
       }
-      leaf notification-path {
+      leaf yang-module-name {
         type string;
         mandatory true;
         description
-          "xPath of the notification to be invoked.";
+          "Name of the YANG module containing the notification to be invoked.";
       }
-      list attributes {
-          key "path";
-          leaf "path" {
-              type string;
-              description
-                "xPath of the attribute that we want to set.";
-          }
-          leaf value {
-              type string;
-              description
-                "Value of the attribute that we want to set.";
-          }
+      leaf notification-object {
+          type string;
+          mandatory true;
           description
-            "A list of values to be set inside the notification.";
+            "A JSON string containing the notification object to be sent by the device.";
       }
       description
         "Notification job object class.";
@@ -457,10 +442,22 @@ revision 2020-05-14 {
     input {
       uses notification-job-g;
     }
-  }
-
-  rpc clean-all-jobs {
-      description
-      "Operation to remove all the jobs defined in the NTS Manager.";
+    output {
+      leaf status {
+          type enumeration {
+            enum SUCCESS {
+            description
+                "This means that the RPC was successfully invoked.";
+            }
+            enum ERROR {
+            description
+                "This means that an error was encountered when invoking the notification.";
+            }
+          }
+        mandatory true;
+        description
+          "The status of the RPC.";
+      }
+    }
   }
 }

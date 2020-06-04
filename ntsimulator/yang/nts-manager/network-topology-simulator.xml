@@ -1,8 +1,6 @@
 <simulator-config xmlns="urn:onf:params:xml:ns:yang:network-topology-simulator">
     <simulated-devices>0</simulated-devices>
     <mounted-devices>0</mounted-devices>
-    <ssh-connections>1</ssh-connections>
-    <tls-connections>0</tls-connections>
     <netconf-call-home>false</netconf-call-home>
     <notification-config>
         <fault-notification-delay-period>0</fault-notification-delay-period>

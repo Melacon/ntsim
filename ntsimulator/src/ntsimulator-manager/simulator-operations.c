@@ -21,6 +21,7 @@
 #include <string.h>
 #include <math.h>
 #include <linux/limits.h>
+#include <unistd.h>
 
 #include "utils.h"
 
@@ -734,7 +735,6 @@ static int send_unmount_device_instance(char *url, char *credentials, char *devi
 		return SR_ERR_OPERATION_FAILED;
 	}
 
-
 	return SR_ERR_OK;
 }
 
@@ -745,11 +745,16 @@ static int send_mount_device(device_t *current_device, controller_t controller_d
 	bool is_mounted = true;
     int port = 0;
 
+    char device_name[100];
+    sprintf(device_name, "%s-%d", getenv("CONTAINER_NAME"), current_device->device_number);
+
 	//This is where we hardcoded: 7 devices will have SSH connections and 3 devices will have TLS connections
 	for (int i = 0; i < SSH_CONNECTIONS_PER_DEVICE; ++port, ++i)
 	{
+        
+
 		rc = send_mount_device_instance_ssh(controller_details.url, controller_details.credentials,
-				current_device->device_id, current_device->netconf_port + port);
+				device_name, current_device->netconf_port + port);
 		if (rc != SR_ERR_OK)
 		{
 			is_mounted = false;
@@ -758,7 +763,7 @@ static int send_mount_device(device_t *current_device, controller_t controller_d
 	for (int i = 0; i < TLS_CONNECTIONS_PER_DEVICE; ++port, ++i)
 	{
 		rc = send_mount_device_instance_tls(controller_details.url, controller_details.credentials,
-				current_device->device_id, current_device->netconf_port + port);
+				device_name, current_device->netconf_port + port);
 		if (rc != SR_ERR_OK)
 		{
 			is_mounted = false;
@@ -773,15 +778,17 @@ static int send_mount_device(device_t *current_device, controller_t controller_d
 static int send_unmount_device(device_t *current_device, controller_t controller_details)
 {
 	int rc = SR_ERR_OK;
+    char device_name[100];
+    sprintf(device_name, "%s-%d", getenv("CONTAINER_NAME"), current_device->device_number);
 
 	for (int port = 0; port < NETCONF_CONNECTIONS_PER_DEVICE; ++port)
 	{
 		rc = send_unmount_device_instance(controller_details.url, controller_details.credentials,
-				current_device->device_id, current_device->netconf_port + port);
+				device_name, current_device->netconf_port + port);
 		if (rc != SR_ERR_OK)
 		{
 			printf("Could not send unmount for ODL with url=\"%s\", for device=\"%s\" and port=%d\n",
-					controller_details.url, current_device->device_id, current_device->netconf_port);
+					controller_details.url, device_name, current_device->netconf_port);
 		}
 	}
 	current_device->is_mounted = false;
@@ -2480,4 +2487,314 @@ int netconf_call_home_changed(cJSON_bool new_bool)
 	cJSON_Delete(jsonConfig);
 
 	return SR_ERR_OK;
+}
+
+static int start_device_notification(char *exec_id)
+{
+    struct MemoryStruct curl_response_mem;
+
+    curl_response_mem.memory = malloc(1);  /* will be grown as needed by the realloc above */
+    curl_response_mem.size = 0;    /* no data at this point */
+
+    CURLcode res;
+
+    curl_easy_reset(curl);
+    set_curl_common_info();
+
+    char url[100];
+    sprintf(url, "http:/v%s/exec/%s/start", getenv("DOCKER_ENGINE_VERSION"), exec_id);
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+
+    cJSON *postDataJson = cJSON_CreateObject();
+
+    if (cJSON_AddFalseToObject(postDataJson, "Detach") == NULL)
+    {
+        printf("Could not create JSON object: Detach\n");
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    if (cJSON_AddFalseToObject(postDataJson, "Tty") == NULL)
+    {
+        printf("Could not create JSON object: Tty\n");
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    char *post_data_string = NULL;
+
+    post_data_string = cJSON_PrintUnformatted(postDataJson);
+
+    printf("Post data JSON:\n%s\n", post_data_string);
+
+    if (postDataJson != NULL)
+    {
+        cJSON_Delete(postDataJson);
+    }
+
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data_string);
+
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&curl_response_mem);
+
+    res = curl_easy_perform(curl);
+
+    if (post_data_string != NULL)
+    {
+        free(post_data_string);
+    }
+
+    if (res != CURLE_OK)
+    {
+        return SR_ERR_OPERATION_FAILED;
+    }
+    else
+    {
+        cJSON *json_response = cJSON_Parse(curl_response_mem.memory);
+        const cJSON *message = NULL;
+
+        printf("%lu bytes retrieved\n", (unsigned long)curl_response_mem.size);
+
+        message = cJSON_GetObjectItemCaseSensitive(json_response, "message");
+
+        if (cJSON_IsString(message) && (message->valuestring != NULL))
+        {
+            printf("Message: \"%s\"\n", message->valuestring);
+        }
+
+        cJSON_Delete(json_response);
+    }
+
+    return SR_ERR_OK;
+}
+
+static int inspect_device_notification_execution(char *exec_id)
+{
+    int rc = SR_ERR_OK;
+
+    struct MemoryStruct curl_response_mem;
+
+    curl_response_mem.memory = malloc(1);  /* will be grown as needed by the realloc above */
+    curl_response_mem.size = 0;    /* no data at this point */
+
+    CURLcode res;
+
+    curl_easy_reset(curl);
+    set_curl_common_info();
+
+    char url[100];
+    sprintf(url, "http:/v%s/exec/%s/json", getenv("DOCKER_ENGINE_VERSION"), exec_id);
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "");
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&curl_response_mem);
+
+    res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK)
+    {
+        rc = SR_ERR_OPERATION_FAILED;
+    }
+    else
+    {
+        cJSON *json_response = cJSON_Parse(curl_response_mem.memory);
+        const cJSON *exit_code = NULL;
+
+        exit_code = cJSON_GetObjectItemCaseSensitive(json_response, "ExitCode");
+
+        if (cJSON_IsNumber(exit_code))
+        {
+            rc = exit_code->valueint;
+        }
+        else
+        {
+            printf("Exit code is not a number!\n");
+            rc = SR_ERR_OPERATION_FAILED;
+        }
+        
+        cJSON_Delete(json_response);
+    }
+
+    return rc;
+}
+
+int invoke_device_notification(char *device_id, char *module_name, char *notification_string)
+{
+    int rc = SR_ERR_OK;
+
+    printf("Device-name = %s\nModule-name = %s\nNotification-object = %s\n", device_id, module_name, notification_string);
+
+    struct MemoryStruct curl_response_mem;
+
+    curl_response_mem.memory = malloc(1);  /* will be grown as needed by the realloc above */
+    curl_response_mem.size = 0;    /* no data at this point */
+
+    CURLcode res;
+
+    curl_easy_reset(curl);
+    set_curl_common_info();
+
+    char url[100];
+    sprintf(url, "http:/v%s/containers/%s/exec", getenv("DOCKER_ENGINE_VERSION"), device_id);
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+
+    cJSON *postDataJson = cJSON_CreateObject();
+
+    if (cJSON_AddFalseToObject(postDataJson, "AtttachStdin") == NULL)
+    {
+        printf("Could not create JSON object: AtttachStdin\n");
+        rc = SR_ERR_OPERATION_FAILED;
+        goto cleanup;
+    }
+
+    if (cJSON_AddTrueToObject(postDataJson, "AtttachStdout") == NULL)
+    {
+        printf("Could not create JSON object: AtttachStdout\n");
+        rc = SR_ERR_OPERATION_FAILED;
+        goto cleanup;
+    }
+
+    if (cJSON_AddTrueToObject(postDataJson, "AtttachStderr") == NULL)
+    {
+        printf("Could not create JSON object: AtttachStderr\n");
+        rc = SR_ERR_OPERATION_FAILED;
+        goto cleanup;
+    }
+
+    if (cJSON_AddTrueToObject(postDataJson, "Privileged") == NULL)
+    {
+        printf("Could not create JSON object: Privileged\n");
+        rc = SR_ERR_OPERATION_FAILED;
+        goto cleanup;
+    }
+
+    if (cJSON_AddStringToObject(postDataJson, "User", "root") == NULL)
+    {
+        printf("Could not create JSON object: User\n");
+        rc = SR_ERR_OPERATION_FAILED;
+        goto cleanup;
+    }
+
+    cJSON *cmd_array = cJSON_CreateArray();
+    if (cmd_array == NULL)
+    {
+        printf("Could not create JSON object: Cmd array\n");
+        rc = SR_ERR_OPERATION_FAILED;
+        goto cleanup;
+    }
+
+    cJSON_AddItemToObject(postDataJson, "Cmd", cmd_array);
+
+    cJSON *cmd_string_1 = cJSON_CreateString("sh");
+    cJSON_AddItemToArray(cmd_array, cmd_string_1);
+
+    cJSON *cmd_string_2 = cJSON_CreateString("-c");
+    cJSON_AddItemToArray(cmd_array, cmd_string_2);
+
+    char string_command[500];
+    sprintf(string_command, "/usr/local/bin/generic-notifications %s '%s'", module_name, notification_string);
+
+    cJSON *cmd_string_3 = cJSON_CreateString(string_command);
+    cJSON_AddItemToArray(cmd_array, cmd_string_3);
+
+    char *post_data_string = NULL;
+
+    post_data_string = cJSON_PrintUnformatted(postDataJson);
+
+    printf("Post data JSON:\n%s\n", post_data_string);
+
+    if (postDataJson != NULL)
+    {
+        cJSON_Delete(postDataJson);
+    }
+
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data_string);
+
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&curl_response_mem);
+
+    res = curl_easy_perform(curl);
+
+    if (post_data_string != NULL)
+    {
+        free(post_data_string);
+    }
+
+    if (res != CURLE_OK)
+    {
+        rc = SR_ERR_OPERATION_FAILED;
+        goto cleanup;
+    }
+    else
+    {
+        cJSON *json_response = cJSON_Parse(curl_response_mem.memory);
+        const cJSON *exec_id = NULL;
+
+        exec_id = cJSON_GetObjectItemCaseSensitive(json_response, "Id");
+
+        if (cJSON_IsString(exec_id) && (exec_id->valuestring != NULL))
+        {
+            printf("Exec id: \"%s\"\n", exec_id->valuestring);
+
+            rc = start_device_notification(exec_id->valuestring);
+            if (rc != SR_ERR_OK)
+            {
+                printf("Could not start the execution of the notification...\n");
+            }
+
+            sleep(1);
+
+            rc = inspect_device_notification_execution(exec_id->valuestring);
+        }
+
+        cJSON_Delete(json_response);
+    }
+
+cleanup:
+    if (device_id != NULL)
+    {
+        free(device_id);
+    }
+    if (module_name != NULL)
+    {
+        free(module_name);
+    }
+    if (notification_string != NULL)
+    {
+        free(notification_string);
+    }
+
+    return rc;
+}
+
+int pull_docker_image_of_simulated_device()
+{
+    struct MemoryStruct curl_response_mem;
+
+    curl_response_mem.memory = malloc(1);  /* will be grown as needed by the realloc above */
+    curl_response_mem.size = 0;    /* no data at this point */
+
+    CURLcode res;
+
+    curl_easy_reset(curl);
+    set_curl_common_info();
+
+    char url[100];
+    sprintf(url, "http:/v%s/images/create?fromImage=%s", getenv("DOCKER_ENGINE_VERSION"), getenv("MODELS_IMAGE"));
+
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, "");
+
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&curl_response_mem);
+
+    res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK)
+    {
+        return SR_ERR_OPERATION_FAILED;
+    }
+
+    return SR_ERR_OK;
 }

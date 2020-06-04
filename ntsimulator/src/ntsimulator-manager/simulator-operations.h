@@ -124,4 +124,8 @@ int add_key_pair_to_odl(controller_t *controller_list, int controller_list_size)
 int send_k8s_scale(int number_of_devices);
 int send_k8s_extend_port(void);
 
+int invoke_device_notification(char *device_id, char *module_name, char *notification_string);
+
+int pull_docker_image_of_simulated_device(void);
+
 #endif /* SRC_NTSIMULATOR_MANAGER_SIMULATOR_OPERATIONS_H_ */
