@@ -41,17 +41,23 @@ fi
 
 netconf_port=830
 
+if [ $IPv6Enabled = "true" ]; then
+    localhost_address="::"
+else
+    localhost_address="0.0.0.0"
+fi
+
 echo '<netconf-server xmlns="urn:ietf:params:xml:ns:yang:ietf-netconf-server"><listen>' > connections.xml
 
 for (( ssh_counter=0; ssh_counter<$ssh_conn; ssh_counter++ ))
 do
-  echo "<endpoint><name>MNG$ssh_counter</name><ssh><address>::</address><port>$netconf_port</port><host-keys><host-key><name>imported SSH key</name><public-key>ssh_host_rsa_key</public-key></host-key><host-key><name>Melacon Server key</name><public-key>melacon_server_key</public-key></host-key></host-keys></ssh></endpoint>" >> connections.xml
+  echo "<endpoint><name>MNG$ssh_counter</name><ssh><address>$localhost_address</address><port>$netconf_port</port><host-keys><host-key><name>imported SSH key</name><public-key>ssh_host_rsa_key</public-key></host-key><host-key><name>Melacon Server key</name><public-key>melacon_server_key</public-key></host-key></host-keys></ssh></endpoint>" >> connections.xml
   ((netconf_port++))
 done
 
 for (( tls_counter=0; tls_counter<$tls_conn; tls_counter++ ))
 do
-  echo "<endpoint><name>MNGTLS$tls_counter</name><tls><address>::</address><port>$netconf_port</port><certificates><certificate><name>melacon_server_cert</name></certificate></certificates><client-auth><trusted-ca-certs>trusted_ca_list</trusted-ca-certs><cert-maps><cert-to-name><id>1</id><fingerprint>02:E9:38:1F:F6:8B:62:DE:0A:0B:C5:03:81:A8:03:49:A0:00:7F:8B:F3</fingerprint><map-type xmlns:x509c2n=\"urn:ietf:params:xml:ns:yang:ietf-x509-cert-to-name\">x509c2n:specified</map-type><name>netconf</name></cert-to-name></cert-maps></client-auth></tls></endpoint>" >> connections.xml
+  echo "<endpoint><name>MNGTLS$tls_counter</name><tls><address>$localhost_address</address><port>$netconf_port</port><certificates><certificate><name>melacon_server_cert</name></certificate></certificates><client-auth><trusted-ca-certs>trusted_ca_list</trusted-ca-certs><cert-maps><cert-to-name><id>1</id><fingerprint>02:E9:38:1F:F6:8B:62:DE:0A:0B:C5:03:81:A8:03:49:A0:00:7F:8B:F3</fingerprint><map-type xmlns:x509c2n=\"urn:ietf:params:xml:ns:yang:ietf-x509-cert-to-name\">x509c2n:specified</map-type><name>netconf</name></cert-to-name></cert-maps></client-auth></tls></endpoint>" >> connections.xml
   ((netconf_port++))
 done
 

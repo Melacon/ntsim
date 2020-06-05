@@ -410,6 +410,16 @@ static char* create_docker_container_curl(int base_netconf_port, cJSON* managerB
     }
     cJSON_AddItemToArray(env_variables_array, env_var_obj_4);
 
+    char ipv6_enabled[50];
+    sprintf(ipv6_enabled, "IPv6Enabled=%s", getenv("IPv6Enabled"));
+    cJSON *env_var_obj_5 = cJSON_CreateString(ipv6_enabled);
+    if (env_var_obj_5 == NULL)
+    {
+        printf("Could not create JSON object: Env array object IPv6Enabled\n");
+        return NULL;
+    }
+    cJSON_AddItemToArray(env_variables_array, env_var_obj_5);
+
     cJSON_AddItemToObject(hostConfig, "Binds", binds);
 
     cJSON_AddItemToObject(hostConfig, "NetworkMode", netMode);

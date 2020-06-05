@@ -38,8 +38,10 @@ echo '<key-data>'"$SSH_PUB_KEY_MELACON"'</key-data></authorized-key></user></aut
 sysrepocfg --merge=load_auth_pubkey.xml --format=xml ietf-system
 rm load_auth_pubkey.xml
 
-ssh-keyscan -p 830 :: >> ~/.ssh/known_hosts
-ssh-keyscan -p 830 127.0.0.1 >> ~/.ssh/known_hosts
+if [ $IPv6Enabled = "true" ]; then
+   ssh-keyscan -p 830 :: >> ~/.ssh/known_hosts
+fi
+ssh-keyscan -p 830 127.0.0.1 >> /root/.ssh/known_hosts
 
 MELACON_SERVER_KEY="$(sed '1d;$d' melacon.server.key)"
 

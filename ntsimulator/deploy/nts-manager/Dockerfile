@@ -149,6 +149,7 @@ ENV NetconfCallHomePort=6666
 ENV ControllerUsername="admin"
 ENV ControllerPassword="admin"
 ENV NetconfCallHome=false
+ENV Ipv6Enabled=false
 
 RUN \
       apt-get update && apt-get install -y supervisor bc

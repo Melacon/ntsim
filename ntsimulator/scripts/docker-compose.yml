@@ -17,24 +17,25 @@ services:
       NTS_IP: "10.20.11.121"
       NETCONF_BASE: 50000
       DOCKER_ENGINE_VERSION: "1.40"
-      MODELS_IMAGE: "ntsim_sandbox"
-      #MODELS_IMAGE: "10.20.6.10:30000/hightec/ntsim_oran:0.4.2-SNAPSHOT-latest"      
+      MODELS_IMAGE: "ntsim_oran_light"
+      #MODELS_IMAGE: "10.20.6.10:30000/hightec/ntsim_oran:0.5.1-SNAPSHOT-latest"      
       VesHeartbeatPeriod: 0
       IsVesAvailable: "true"
       IsNetconfAvailable: "true"
       VesRegistration: "false"
       VesEndpointPort: 8080
       VesEndpointIp: "172.17.0.1"
-      SshConnections: 10
+      SshConnections: 4
       TlsConnections: 0
       K8S_DEPLOYMENT: "false"
       CONTAINER_NAME: "ntsimulator"
-      NetconfCallHome: "true"
+      NetconfCallHome: "false"
       NetconfCallHomePort: 6666
       ControllerIp: "10.20.11.121"
       ControllerPort: 8181
       ControllerUsername: "admin"
       ControllerPassword: "admin"
+      IPv6Enabled: "true"
     networks:
       app_net:
         ipv6_address: 2001:3200:3200::30
