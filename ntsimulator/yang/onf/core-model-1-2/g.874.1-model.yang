@@ -30,7 +30,7 @@ module g.874.1-model {
     **********************/ 
         grouping otn-current-data-g {
             leaf timestamp {
-                type date-and-time;
+                type yang:date-and-time;
                 description "The timestamp associated with when the current data was collected.";
             }
             uses q.822-current-data-g;

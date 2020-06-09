@@ -2799,6 +2799,8 @@ int pull_docker_image_of_simulated_device()
 
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&curl_response_mem);
 
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 300L);
+
     res = curl_easy_perform(curl);
 
     if (res != CURLE_OK)
