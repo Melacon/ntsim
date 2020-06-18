@@ -116,7 +116,7 @@ module: network-topology-simulator
 * **is-netconf-available** - if set to 'True', NETCONF notifications will be sent when a random fault notification is generated, The NETCONF notification that is being sent is currently *o-ran-fm:alarm-notif*; if set to 'False', NETCONF notifications are not being sent out;
 * **is-ves-available** - if set to 'True', VES *faultNotification* messages will be sent when a random fault notification is generated; if set to 'False', VES *faultNotification* messages are not generated;
 * **controller-details** - this container groups the configuration related to the ODL based SDN controller that the simulated devices can connect to;
-* **controller-ip** - the IP address of the ODL based SDN controller where the simulated devices can be mounted. Only IPv4 is supported currently;
+* **controller-ip** - the IP address of the ODL based SDN controller where the simulated devices can be mounted. Both IPv4 and IPv6 are supported;
 * **controller-port** - the port of the ODL based SDN controller;
 * **netconf-call-home-port** - the NETCONF Call Home port of the ODL based SDN controller;
 * **controller-username** - the username to be used when connecting to the ODL based SDN controller;
@@ -238,6 +238,7 @@ services:
       ControllerPort: 8181
       ControllerUsername: "admin"
       ControllerPassword: "admin"
+      IPv6Enabled: "true"
 ```
 
 
@@ -274,6 +275,7 @@ services:
     * **ControllerUsername** - this can change the default value of the **controller-username** leaf used by the NTS Manager. The default is `admin`.
     * **ControllerPassword** - this can change the default value of the **controller-password** leaf used by the NTS Manager. The default is `admin`.
     * **NetconfCallHome** - this can change the default value of the **netconf-call-home** leaf used by the NTS Manager. The default is `false`.
+    * **IPv6Enabled**: if this is set to `true`, IPv6 is enabled. **Please note that for a working configuration, it is the user responsibility to correctly configure the Docker daemon to work with IPv6, prior to starting the NTS Manager!**
     
 After modifying the `docker-compose.yml` file with values specific to your host, the NTS Manager can be started by running the command `docker-compose up` from the **scripts** folder.
 

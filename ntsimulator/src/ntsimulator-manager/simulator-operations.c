@@ -2790,7 +2790,7 @@ int pull_docker_image_of_simulated_device()
     curl_easy_reset(curl);
     set_curl_common_info();
 
-    char url[100];
+    char url[300];
     sprintf(url, "http:/v%s/images/create?fromImage=%s", getenv("DOCKER_ENGINE_VERSION"), getenv("MODELS_IMAGE"));
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
