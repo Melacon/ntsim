@@ -494,11 +494,14 @@ simulator_status_cb(const char *xpath, sr_val_t **values, size_t *values_cnt,
             if (rc != SR_ERR_OK)
             {
                 printf("Could not get Notification Counters for device with uuid=\"%s\"", current_device->device_id);
-            }            
+            }
+
+            char device_name[200];
+            sprintf(device_name, "%s-%d", getenv("CONTAINER_NAME"), current_device->device_number);            
 
 			CREATE_NEW_VALUE(rc, v, current_num_of_values);
 
-			sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/%s", xpath, current_device->device_id, "device-ip");
+			sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/%s", xpath, device_name, "device-ip");
 			v[current_num_of_values - 1].type = SR_STRING_T;
 			v[current_num_of_values - 1].data.string_val = getenv("NTS_IP");
 
@@ -506,14 +509,14 @@ simulator_status_cb(const char *xpath, sr_val_t **values, size_t *values_cnt,
 			{
 				CREATE_NEW_VALUE(rc, v, current_num_of_values);
 
-				sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/%s", xpath, current_device->device_id, "device-port");
+				sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/%s", xpath, device_name, "device-port");
 				v[current_num_of_values - 1].type = SR_UINT32_T;
 				v[current_num_of_values - 1].data.uint32_val = current_device->netconf_port + i;
 			}
 
 			CREATE_NEW_VALUE(rc, v, current_num_of_values);
 
-			sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/%s", xpath, current_device->device_id, "is-mounted");
+			sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/%s", xpath, device_name, "is-mounted");
 			v[current_num_of_values - 1].type = SR_BOOL_T;
 			v[current_num_of_values - 1].data.bool_val = current_device->is_mounted;
 
@@ -521,66 +524,66 @@ simulator_status_cb(const char *xpath, sr_val_t **values, size_t *values_cnt,
 
 			CREATE_NEW_VALUE(rc, v, current_num_of_values);
 
-			sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/%s", xpath, current_device->device_id, "operational-state");
+			sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/%s", xpath, device_name, "operational-state");
 			sr_val_build_str_data(&v[current_num_of_values - 1], SR_ENUM_T, "%s", operational_state);
 
             CREATE_NEW_VALUE(rc, v, current_num_of_values);
 
-            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/ves-notifications/%s", xpath, current_device->device_id, "normal");
+            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/ves-notifications/%s", xpath, device_name, "normal");
             v[current_num_of_values - 1].type = SR_UINT32_T;
             v[current_num_of_values - 1].data.uint32_val = vesCount.normal;
 
             CREATE_NEW_VALUE(rc, v, current_num_of_values);
 
-            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/ves-notifications/%s", xpath, current_device->device_id, "warning");
+            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/ves-notifications/%s", xpath, device_name, "warning");
             v[current_num_of_values - 1].type = SR_UINT32_T;
             v[current_num_of_values - 1].data.uint32_val = vesCount.warning;
 
             CREATE_NEW_VALUE(rc, v, current_num_of_values);
 
-            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/ves-notifications/%s", xpath, current_device->device_id, "minor");
+            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/ves-notifications/%s", xpath, device_name, "minor");
             v[current_num_of_values - 1].type = SR_UINT32_T;
             v[current_num_of_values - 1].data.uint32_val = vesCount.minor;
 
             CREATE_NEW_VALUE(rc, v, current_num_of_values);
 
-            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/ves-notifications/%s", xpath, current_device->device_id, "major");
+            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/ves-notifications/%s", xpath, device_name, "major");
             v[current_num_of_values - 1].type = SR_UINT32_T;
             v[current_num_of_values - 1].data.uint32_val = vesCount.major;
 
             CREATE_NEW_VALUE(rc, v, current_num_of_values);
 
-            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/ves-notifications/%s", xpath, current_device->device_id, "critical");
+            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/ves-notifications/%s", xpath, device_name, "critical");
             v[current_num_of_values - 1].type = SR_UINT32_T;
             v[current_num_of_values - 1].data.uint32_val = vesCount.critical;
 
             CREATE_NEW_VALUE(rc, v, current_num_of_values);
 
-            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/netconf-notifications/%s", xpath, current_device->device_id, "normal");
+            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/netconf-notifications/%s", xpath, device_name, "normal");
             v[current_num_of_values - 1].type = SR_UINT32_T;
             v[current_num_of_values - 1].data.uint32_val = netconfCount.normal;
 
             CREATE_NEW_VALUE(rc, v, current_num_of_values);
 
-            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/netconf-notifications/%s", xpath, current_device->device_id, "warning");
+            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/netconf-notifications/%s", xpath, device_name, "warning");
             v[current_num_of_values - 1].type = SR_UINT32_T;
             v[current_num_of_values - 1].data.uint32_val = netconfCount.warning;
 
             CREATE_NEW_VALUE(rc, v, current_num_of_values);
 
-            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/netconf-notifications/%s", xpath, current_device->device_id, "minor");
+            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/netconf-notifications/%s", xpath, device_name, "minor");
             v[current_num_of_values - 1].type = SR_UINT32_T;
             v[current_num_of_values - 1].data.uint32_val = netconfCount.minor;
 
             CREATE_NEW_VALUE(rc, v, current_num_of_values);
 
-            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/netconf-notifications/%s", xpath, current_device->device_id, "major");
+            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/netconf-notifications/%s", xpath, device_name, "major");
             v[current_num_of_values - 1].type = SR_UINT32_T;
             v[current_num_of_values - 1].data.uint32_val = netconfCount.major;
 
             CREATE_NEW_VALUE(rc, v, current_num_of_values);
 
-            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/netconf-notifications/%s", xpath, current_device->device_id, "critical");
+            sr_val_build_xpath(&v[current_num_of_values - 1], "%s[uuid='%s']/notification-count/netconf-notifications/%s", xpath, device_name, "critical");
             v[current_num_of_values - 1].type = SR_UINT32_T;
             v[current_num_of_values - 1].data.uint32_val = netconfCount.critical;
 

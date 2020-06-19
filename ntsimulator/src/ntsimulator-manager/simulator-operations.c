@@ -755,7 +755,7 @@ static int send_mount_device(device_t *current_device, controller_t controller_d
 	bool is_mounted = true;
     int port = 0;
 
-    char device_name[100];
+    char device_name[200];
     sprintf(device_name, "%s-%d", getenv("CONTAINER_NAME"), current_device->device_number);
 
 	//This is where we hardcoded: 7 devices will have SSH connections and 3 devices will have TLS connections
