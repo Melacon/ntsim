@@ -7,6 +7,7 @@ include_directories(
 
 add_subdirectory(onf-notifications-1-2)
 add_subdirectory(generic-notifications)
+add_subdirectory(ves-messages)
 
 # sources
 set (UTILS_SOURCES

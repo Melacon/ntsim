@@ -2511,7 +2511,7 @@ static int start_device_notification(char *exec_id)
     curl_easy_reset(curl);
     set_curl_common_info();
 
-    char url[100];
+    char url[500];
     sprintf(url, "http:/v%s/exec/%s/start", getenv("DOCKER_ENGINE_VERSION"), exec_id);
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -2590,7 +2590,7 @@ static int inspect_device_notification_execution(char *exec_id)
     curl_easy_reset(curl);
     set_curl_common_info();
 
-    char url[100];
+    char url[500];
     sprintf(url, "http:/v%s/exec/%s/json", getenv("DOCKER_ENGINE_VERSION"), exec_id);
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -2645,7 +2645,7 @@ int invoke_device_notification(char *device_id, char *module_name, char *notific
     curl_easy_reset(curl);
     set_curl_common_info();
 
-    char url[100];
+    char url[300];
     sprintf(url, "http:/v%s/containers/%s/exec", getenv("DOCKER_ENGINE_VERSION"), device_id);
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -2703,7 +2703,8 @@ int invoke_device_notification(char *device_id, char *module_name, char *notific
     cJSON *cmd_string_2 = cJSON_CreateString("-c");
     cJSON_AddItemToArray(cmd_array, cmd_string_2);
 
-    char string_command[500];
+    //some notifications require a really long notification object
+    char string_command[1000000];
     sprintf(string_command, "/usr/local/bin/generic-notifications %s '%s'", module_name, notification_string);
 
     cJSON *cmd_string_3 = cJSON_CreateString(string_command);

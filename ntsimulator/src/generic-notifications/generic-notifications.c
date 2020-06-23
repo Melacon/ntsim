@@ -218,6 +218,22 @@ static int op_add_srval(sr_val_t **values, size_t *values_cnt, struct lyd_node *
     return ret;
 }
 
+static void add_attrtibutes(sr_val_t **values_list, size_t *values_cnt, struct lyd_node *node)
+{
+    struct lyd_node *iter = NULL;
+
+    LY_TREE_FOR(node->child, iter) {
+        if (op_add_srval(values_list, values_cnt, iter)) {
+            printf("Could not transform libyang into sysrepo values...\n");
+            return;
+        }
+        if (iter->schema->nodetype == LYS_CONTAINER || iter->schema->nodetype == LYS_LIST)
+        {
+            add_attrtibutes(values_list, values_cnt, iter);
+        }
+    }
+}
+
 
 static int send_dummy_notif(sr_session_ctx_t *sess, const char *module_name, const char *notif_object)
 {
@@ -263,19 +279,18 @@ static int send_dummy_notif(sr_session_ctx_t *sess, const char *module_name, con
         }
     }
 
-    data = lyd_parse_mem(ctx, notif_object, LYD_JSON, LYD_OPT_NOTIF);
+    printf("Successfully loaded schemas, trying now to parse the JSON...\n");
+
+    data = lyd_parse_mem(ctx, notif_object, LYD_JSON, LYD_OPT_NOTIF, NULL);
     if (data == NULL)
     {
         printf("Could not create JSON object, not valid!\n");
         return SR_ERR_VALIDATION_FAILED;
     }
 
-    LY_TREE_FOR(data->child, iter) {
-        if (op_add_srval(&vnotif, &num_values, iter)) {
-            printf("Could not transform libyang into sysrepo values...\n");
-            return SR_ERR_OPERATION_FAILED;
-        }
-    }
+    printf("Successfully parsed the JSON notification object...\n");
+
+    add_attrtibutes(&vnotif, &num_values, data);
 
     if (num_values == 0)
     {
@@ -289,6 +304,13 @@ static int send_dummy_notif(sr_session_ctx_t *sess, const char *module_name, con
         printf("Error: could not send notification...\n");
         return SR_ERR_OPERATION_FAILED;
     }
+
+    lyd_free(data);
+    ly_ctx_destroy(ctx, NULL);
+
+    sr_free_values(vnotif, num_values);
+
+    printf("Successfully sent notification from module=%s with %d number of atttributes\n", module_name, num_values);
 
 	return rc;
 }
