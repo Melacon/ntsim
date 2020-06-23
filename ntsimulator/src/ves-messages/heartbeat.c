@@ -273,7 +273,7 @@ static void *pnf_registration(void *arg)
 		}
 		pthread_mutex_unlock(&lock);
 	}
-	for (int i = 0; port < TLS_CONNECTIONS_PER_DEVICE; ++port, ++i)
+	for (int i = 0; i < TLS_CONNECTIONS_PER_DEVICE; ++port, ++i)
 	{
 		pthread_mutex_lock(&lock);
 		rc = send_pnf_registration_instance(hostname_string, netconf_port_base + port, TRUE);
