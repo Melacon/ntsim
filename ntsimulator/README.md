@@ -365,6 +365,12 @@ This means that `MODELS_IMAGE: "ntsim_oran_light:latest"` can be used as an envi
 
 ## Release notes
 
+### **version 0.6.4**
+
+Bug fixes and improvements:
+* Fixed bug where pnfRegistration messages for TLS connections were not sent.
+* Fixed bug for manual notification generation failed when notification object was too long.
+
 ### **version 0.6.1**
 
 Added features:
