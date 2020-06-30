@@ -410,7 +410,26 @@ char* 	readConfigFileInString(void)
 	char * buffer = 0;
 	long length;
 	char config_file[200];
-	sprintf(config_file, "%s/configuration.json", getenv("SCRIPTS_DIR"));
+
+	//sprintf(config_file, "%s/configuration.json", getenv("SCRIPTS_DIR"));
+
+	// --> recommended fix, Karl Koch, Deutsche Telekom AG, 22. 5. 2020.
+	//     Path to config_file contains NULL when env variable is unset.
+	char *scripts_dir = getenv("SCRIPTS_DIR");
+	char *scripts_dir_default = "/opt/dev/ntsimulator/scripts";
+
+	if(NULL != scripts_dir)
+	{
+        sprintf(config_file, "%s/configuration.json", scripts_dir);
+	}
+	else
+	{
+        sprintf(config_file, "%s/configuration.json", scripts_dir_default);
+	    printf("warning: opening config file in default path: <%s>\n",
+		   config_file);
+	}
+	// end of fix <--
+
 	FILE * f = fopen (config_file, "rb");
 
 	if (f)
@@ -438,7 +457,26 @@ char* 	readConfigFileInString(void)
 void 	writeConfigFile(char *config)
 {
 	char config_file[200];
-	sprintf(config_file, "%s/configuration.json", getenv("SCRIPTS_DIR"));
+
+	//sprintf(config_file, "%s/configuration.json", getenv("SCRIPTS_DIR"));
+
+	// --> recommended fix, Karl Koch, Deutsche Telekom AG, 22. 5. 2020.
+	//     Path to config_file contains NULL when env variable is unset.
+	char *scripts_dir = getenv("SCRIPTS_DIR");
+	char *scripts_dir_default = "/opt/dev/ntsimulator/scripts";
+
+	if(NULL != scripts_dir)
+	{
+        sprintf(config_file, "%s/configuration.json", scripts_dir);
+	}
+	else
+	{
+        sprintf(config_file, "%s/configuration.json", scripts_dir_default);
+        printf("warning: opening config file in default path: <%s>\n",
+		   config_file);
+	}
+	// end of fix <--
+
 	FILE * f = fopen (config_file, "w");
 
 	if (f)

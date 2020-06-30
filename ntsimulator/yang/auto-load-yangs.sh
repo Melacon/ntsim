@@ -57,6 +57,13 @@ else
         skip_model=true
       fi
     done
+
+    isSubmoduleOnly=$(pyang -f submodule --submodule-only $model)
+
+    if [ "$isSubmoduleOnly" == "True" ]; then
+      echo "Skipping installation of model $modelName because it only contains submodules..."
+      continue
+    fi
     
     if [ "$skip_model" = true ]; then
       echo "Skipping installation of excluded model $modelName..."
