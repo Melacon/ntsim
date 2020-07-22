@@ -284,19 +284,61 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
 	sr_free_val(val);
 	val = NULL;
 
-	/* get the value from sysrepo, we do not care if the value did not change in our case */
-	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-ip", &val);
-	if (rc != SR_ERR_OK) {
-		goto sr_error;
-	}
+    /* get the value from sysrepo, we do not care if the value did not change in our case */
+    rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-ip", &val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
 
-	rc = ves_ip_changed(val->data.string_val);
-	if (rc != SR_ERR_OK) {
-		goto sr_error;
-	}
+    rc = ves_ip_changed(val->data.string_val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
 
-	sr_free_val(val);
-	val = NULL;
+    sr_free_val(val);
+    val = NULL;
+
+    /* get the value from sysrepo, we do not care if the value did not change in our case */
+    rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-auth-method", &val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    rc = ves_auth_method_changed(val->data.enum_val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    sr_free_val(val);
+    val = NULL;
+
+    /* get the value from sysrepo, we do not care if the value did not change in our case */
+    rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-username", &val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    rc = ves_username_changed(val->data.string_val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    sr_free_val(val);
+    val = NULL;
+
+    /* get the value from sysrepo, we do not care if the value did not change in our case */
+    rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-password", &val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    rc = ves_password_changed(val->data.string_val);
+    if (rc != SR_ERR_OK) {
+        goto sr_error;
+    }
+
+    sr_free_val(val);
+    val = NULL;
 
 	/* get the value from sysrepo, we do not care if the value did not change in our case */
 	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-port", &val);
@@ -970,6 +1012,93 @@ main(int argc, char **argv)
     rc = ves_ip_changed(getenv("VesEndpointIp"));
     if (SR_ERR_OK != rc) {
         printf("Error by ves_ip_changed: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    // setting the values that come in an ENV variable as defaults - ves-endpoint-auth-method
+
+    value = (const sr_val_t) { 0 };
+    value.type = SR_ENUM_T;
+    value.data.enum_val = getenv("VesEndpointAuthMethod");
+    rc = sr_set_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-auth-method", 
+            &value, SR_EDIT_DEFAULT);
+    if (SR_ERR_OK != rc) {
+        printf("Error by sr_set_item: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    rc = ves_auth_method_changed(getenv("VesEndpointAuthMethod"));
+    if (SR_ERR_OK != rc) {
+        printf("Error by ves_auth_method_changed: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    //TODO only basic-auth implemented vor VES
+    if (strcmp(getenv("VesEndpointAuthMethod"), "basic-auth")  == 0)
+    {
+        // setting the values that come in an ENV variable as defaults - ves-endpoint-usename
+
+        value = (const sr_val_t) { 0 };
+        value.type = SR_STRING_T;
+        value.data.string_val = getenv("VesEndpointUsername");
+        rc = sr_set_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-username",
+                &value, SR_EDIT_DEFAULT);
+        if (SR_ERR_OK != rc) {
+            printf("Error by sr_set_item: %s\n", sr_strerror(rc));
+            goto cleanup;
+        }
+
+        rc = ves_username_changed(getenv("VesEndpointUsername"));
+        if (SR_ERR_OK != rc) {
+            printf("Error by ves_username_changed: %s\n", sr_strerror(rc));
+            goto cleanup;
+        }
+
+        // setting the values that come in an ENV variable as defaults - ves-endpoint-password
+
+        value = (const sr_val_t) { 0 };
+        value.type = SR_STRING_T;
+        value.data.string_val = getenv("VesEndpointPassword");
+        rc = sr_set_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-password",
+                &value, SR_EDIT_DEFAULT);
+        if (SR_ERR_OK != rc) {
+            printf("Error by sr_set_item: %s\n", sr_strerror(rc));
+            goto cleanup;
+        }
+
+        rc = ves_password_changed(getenv("VesEndpointPassword"));
+        if (SR_ERR_OK != rc) {
+            printf("Error by ves_password_changed: %s\n", sr_strerror(rc));
+            goto cleanup;
+        }
+    }
+
+    // setting the values that come in an ENV variable as defaults - ves-registration
+
+    int vesRegistration = 1;
+
+    char *vesRegistrationString = getenv("VesRegistration");
+    if (vesRegistrationString != NULL)
+    {
+        if (strcmp(vesRegistrationString, "false") == 0)
+        {
+            vesRegistration = 0;
+        }
+    }
+
+    value = (const sr_val_t) { 0 };
+    value.type = SR_BOOL_T;
+    value.data.bool_val = vesRegistration;
+    rc = sr_set_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-registration",
+            &value, SR_EDIT_DEFAULT);
+    if (SR_ERR_OK != rc) {
+        printf("Error by sr_set_item: %s\n", sr_strerror(rc));
+        goto cleanup;
+    }
+
+    rc = ves_registration_changed(vesRegistration);
+    if (SR_ERR_OK != rc) {
+        printf("Error by ves_registration_changed: %s\n", sr_strerror(rc));
         goto cleanup;
     }
 

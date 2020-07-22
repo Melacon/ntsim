@@ -193,10 +193,30 @@ void prepare_ves_message_curl(CURL *curl)
 
 	char *ves_ip = getVesIpFromConfigJson();
 	int ves_port = getVesPortFromConfigJson();
+    char *ves_auth_method = getVesAuthMethodFromConfigJson();
+    if (strcmp(ves_auth_method, "basic-auth") == 0)
+    {
+        char *ves_username = getVesUsernameFromConfigJson();
+        char *ves_password = getVesPasswordFromConfigJson();
 
-	char url[100];
-	sprintf(url, "http://%s:%d/eventListener/v7", ves_ip, ves_port);
+        char credentials[200];
+        sprintf(credentials, "%s:%s", ves_username, ves_password);
+
+        free(ves_username);
+        free(ves_password);
+
+        curl_easy_setopt(curl, CURLOPT_USERPWD, credentials);
+    }
+    free(ves_auth_method);
+
+	char url[300];
+	sprintf(url, "https://%s:%d/eventListener/v7", ves_ip, ves_port);
 	curl_easy_setopt(curl, CURLOPT_URL, url);
+
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+    curl_easy_setopt(curl, CURLOPT_PROXY_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl, CURLOPT_PROXY_SSL_VERIFYHOST, 0L);
 
 	free(ves_ip);
 
@@ -664,50 +684,156 @@ char* 	getVesAuthMethodFromConfigJson(void)
 */
 char* 	getVesIpFromConfigJson(void)
 {
-	char *stringConfig = readConfigFileInString();
+    char *stringConfig = readConfigFileInString();
 
-	if (stringConfig == NULL)
-	{
-		printf("Could not read JSON configuration file in string.");
-		return 0;
-	}
+    if (stringConfig == NULL)
+    {
+        printf("Could not read JSON configuration file in string.");
+        return 0;
+    }
 
-	cJSON *jsonConfig = cJSON_Parse(stringConfig);
-	if (jsonConfig == NULL)
-	{
-		free(stringConfig);
-		const char *error_ptr = cJSON_GetErrorPtr();
-		if (error_ptr != NULL)
-		{
-			fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
-		}
-		return NULL;
-	}
-	//we don't need the string anymore
-	free(stringConfig);
-	stringConfig = NULL;
+    cJSON *jsonConfig = cJSON_Parse(stringConfig);
+    if (jsonConfig == NULL)
+    {
+        free(stringConfig);
+        const char *error_ptr = cJSON_GetErrorPtr();
+        if (error_ptr != NULL)
+        {
+            fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+        }
+        return NULL;
+    }
+    //we don't need the string anymore
+    free(stringConfig);
+    stringConfig = NULL;
 
-	cJSON *vesDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "ves-endpoint-details");
-	if (!cJSON_IsObject(vesDetails))
-	{
-		printf("Configuration JSON is not as expected: ves-endpoint-details is not an object");
-		cJSON_Delete(jsonConfig);
-		return NULL;
-	}
+    cJSON *vesDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "ves-endpoint-details");
+    if (!cJSON_IsObject(vesDetails))
+    {
+        printf("Configuration JSON is not as expected: ves-endpoint-details is not an object");
+        cJSON_Delete(jsonConfig);
+        return NULL;
+    }
 
-	cJSON *vesIp = cJSON_GetObjectItemCaseSensitive(vesDetails, "ves-endpoint-ip");
-	if (!cJSON_IsString(vesIp))
-	{
-		printf("Configuration JSON is not as expected: ves-endpoint-ip is not an object");
-		cJSON_Delete(jsonConfig);
-		return NULL;
-	}
+    cJSON *vesIp = cJSON_GetObjectItemCaseSensitive(vesDetails, "ves-endpoint-ip");
+    if (!cJSON_IsString(vesIp))
+    {
+        printf("Configuration JSON is not as expected: ves-endpoint-ip is not an object");
+        cJSON_Delete(jsonConfig);
+        return NULL;
+    }
 
-	char *ves_ip = strdup(cJSON_GetStringValue(vesIp));
+    char *ves_ip = strdup(cJSON_GetStringValue(vesIp));
 
-	cJSON_Delete(jsonConfig);
+    cJSON_Delete(jsonConfig);
 
-	return ves_ip;
+    return ves_ip;
+}
+
+/*
+ * Dynamically allocated memory;
+ * Caller needs to free the memory after it uses the value.
+ *
+*/
+char* 	getVesUsernameFromConfigJson(void)
+{
+    char *stringConfig = readConfigFileInString();
+
+    if (stringConfig == NULL)
+    {
+        printf("Could not read JSON configuration file in string.");
+        return 0;
+    }
+
+    cJSON *jsonConfig = cJSON_Parse(stringConfig);
+    if (jsonConfig == NULL)
+    {
+        free(stringConfig);
+        const char *error_ptr = cJSON_GetErrorPtr();
+        if (error_ptr != NULL)
+        {
+            fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+        }
+        return NULL;
+    }
+    //we don't need the string anymore
+    free(stringConfig);
+    stringConfig = NULL;
+
+    cJSON *vesDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "ves-endpoint-details");
+    if (!cJSON_IsObject(vesDetails))
+    {
+        printf("Configuration JSON is not as expected: ves-endpoint-details is not an object");
+        cJSON_Delete(jsonConfig);
+        return NULL;
+    }
+
+    cJSON *vesUsername = cJSON_GetObjectItemCaseSensitive(vesDetails, "ves-endpoint-username");
+    if (!cJSON_IsString(vesUsername))
+    {
+        printf("Configuration JSON is not as expected: ves-endpoint-username is not an object");
+        cJSON_Delete(jsonConfig);
+        return NULL;
+    }
+
+    char *ves_username = strdup(cJSON_GetStringValue(vesUsername));
+
+    cJSON_Delete(jsonConfig);
+
+    return ves_username;
+}
+
+/*
+ * Dynamically allocated memory;
+ * Caller needs to free the memory after it uses the value.
+ *
+*/
+char* 	getVesPasswordFromConfigJson(void)
+{
+    char *stringConfig = readConfigFileInString();
+
+    if (stringConfig == NULL)
+    {
+        printf("Could not read JSON configuration file in string.");
+        return 0;
+    }
+
+    cJSON *jsonConfig = cJSON_Parse(stringConfig);
+    if (jsonConfig == NULL)
+    {
+        free(stringConfig);
+        const char *error_ptr = cJSON_GetErrorPtr();
+        if (error_ptr != NULL)
+        {
+            fprintf(stderr, "Could not parse JSON configuration! Error before: %s\n", error_ptr);
+        }
+        return NULL;
+    }
+    //we don't need the string anymore
+    free(stringConfig);
+    stringConfig = NULL;
+
+    cJSON *vesDetails = cJSON_GetObjectItemCaseSensitive(jsonConfig, "ves-endpoint-details");
+    if (!cJSON_IsObject(vesDetails))
+    {
+        printf("Configuration JSON is not as expected: ves-endpoint-details is not an object");
+        cJSON_Delete(jsonConfig);
+        return NULL;
+    }
+
+    cJSON *vesPassword = cJSON_GetObjectItemCaseSensitive(vesDetails, "ves-endpoint-password");
+    if (!cJSON_IsString(vesPassword))
+    {
+        printf("Configuration JSON is not as expected: ves-endpoint-password is not an object");
+        cJSON_Delete(jsonConfig);
+        return NULL;
+    }
+
+    char *ves_password = strdup(cJSON_GetStringValue(vesPassword));
+
+    cJSON_Delete(jsonConfig);
+
+    return ves_password;
 }
 
 int 	getVesPortFromConfigJson(void)
@@ -858,7 +984,7 @@ cJSON*	vesCreatePnfRegistrationFields(int port, bool is_tls)
 		return NULL;
 	}
 
-	if (cJSON_AddStringToObject(pnfRegistrationFields, "oamV4IpAddress", getenv("NTS_IP")) == NULL)
+	if (cJSON_AddStringToObject(pnfRegistrationFields, "oamV4IpAddress", getenv("EXTERNAL_NTS_IP")) == NULL)
 	{
 		printf("Could not create JSON object: oamV4IpAddress\n");
 		cJSON_Delete(pnfRegistrationFields);
@@ -873,7 +999,7 @@ cJSON*	vesCreatePnfRegistrationFields(int port, bool is_tls)
 	}
 
 	char serial_number[100];
-	sprintf(serial_number, "%s-%s-%d-Simulated Device Melacon", getenv("HOSTNAME"), getenv("NTS_IP"), port);
+	sprintf(serial_number, "%s-%s-%d-Simulated Device Melacon", getenv("HOSTNAME"), getenv("EXTERNAL_NTS_IP"), port);
 
 	if (cJSON_AddStringToObject(pnfRegistrationFields, "serialNumber", serial_number) == NULL)
 	{

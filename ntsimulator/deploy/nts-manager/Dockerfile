@@ -130,6 +130,8 @@ LABEL maintainer="alexandru.stancu@highstreet-technologies.com"
 
 ENV NETCONF_BASE=40000
 ENV NTS_IP="127.0.0.1"
+# ENV EXTERNAL_NTS_IP="172.17.0.1" - this can be given in the docker-compose.yml file to
+# overwrite the IP that is exposed via pnfRegistration or via mount HTTP REST; if not specified, NTS_IP will be used
 ENV SCRIPTS_DIR=/opt/dev/scripts
 ENV DOCKER_ENGINE_VERSION="1.40"
 ENV MODELS_IMAGE="ntsim_oran"
@@ -139,6 +141,9 @@ ENV IsNetconfAvailable=true
 ENV VesRegistration=false
 ENV VesEndpointPort=8080
 ENV VesEndpointIp="172.17.0.1"
+ENV VesEndpointAuthMethod="no-auth"
+ENV VesEndpointUsername="admin"
+ENV VesEndpointPassword="admin"
 ENV SshConnections=1
 ENV TlsConnections=0
 ENV K8S_DEPLOYMENT=false

@@ -80,6 +80,8 @@ int 	getFaultNotificationDelayPeriodFromConfigJson(int *period_array, int *count
 int 	getVesHeartbeatPeriodFromConfigJson(void);
 char* 	getVesAuthMethodFromConfigJson(void);
 char* 	getVesIpFromConfigJson(void);
+char* 	getVesUsernameFromConfigJson(void);
+char* 	getVesPasswordFromConfigJson(void);
 int 	getVesPortFromConfigJson(void);
 int 	getVesRegistrationFromConfigJson(void);
 int 	getNetconfAvailableFromConfigJson(void);
