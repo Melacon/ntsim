@@ -42,21 +42,12 @@ module o-ran-supervision {
     contributors may be used to endorse or promote products derived from
     this software without specific prior written permission.";
 
-  revision "2019-04-11" {
+  revision "2019-07-03" {
     description
-      "version 1.0.2
+      "version 2.0.0
 
-      1) added leafs for CU plane monitoring as a companion change to
-      Change Request CIS-0001";
-
-    reference "ORAN-WG4.M.0-v01.00";
-  }
-
-  revision "2019-03-06" {
-    description
-      "version 1.0.1
-
-      1) backward compatible changes to introduce groupings.";
+      1) added leafs for CU plane monitoring
+      2) backward compatible changes to introduce groupings";
 
     reference "ORAN-WG4.M.0-v01.00";
   }

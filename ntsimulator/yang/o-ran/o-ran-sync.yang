@@ -45,9 +45,9 @@ module o-ran-sync {
     contributors may be used to endorse or promote products derived from
     this software without specific prior written permission.";
 
-  revision "2019-03-06" {
+  revision "2019-07-03" {
     description
-      "version 1.0.1
+      "version 1.1.0
 
       1) backward compatible changes to introduce groupings.";
 

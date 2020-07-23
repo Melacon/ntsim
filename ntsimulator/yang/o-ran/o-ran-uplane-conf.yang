@@ -13,6 +13,8 @@ module o-ran-uplane-conf {
 
   import o-ran-module-cap {
     prefix "mcap";
+    revision-date 2019-07-03;
+    // need to align/update with final date of publication
   }
 
   import o-ran-compression-factors {
@@ -54,11 +56,24 @@ module o-ran-uplane-conf {
     contributors may be used to endorse or promote products derived from
     this software without specific prior written permission.";
 
-  revision "2019-04-01" {
+  revision "2019-07-03" {
     description
       "version 1.1.0
 
-      1) removed redundant LAA import";
+      1) added new leaf multiple-numerology-supported to enable O-RU to report
+         whether it supports multiple numerologies.
+
+      2) fixing broken constraints (configuration cannot be dependent on
+        operational state). This is a backwards incompatible revision.
+
+       As these constraints only apply when the LAA feature is used, and also
+       when considering the limited number of implementation that need to be
+       taken into consideration for backwards compatibility, it has been
+       agreed to NOT increment the namespace integer.
+
+      3) added frequency related capabilities for tx-arrays and rx-array
+
+      4) removed redundant LAA import";
 
     reference "ORAN-WG4.M.0-v01.00";
   }
@@ -156,7 +171,7 @@ module o-ran-uplane-conf {
     }
 
     list max-cw-usage-counter {
-      when "/mcap:module-capability/mcap:band-capabilities[mcap:band-number = '46']/mcap:sub-band-info/mcap:self-configure = 'true'";
+      when "/mcap:module-capability/mcap:rw-sub-band-info/mcap:rw-self-configure = 'true'";
       key "priority";
       description "";
       leaf priority {
@@ -483,7 +498,7 @@ module o-ran-uplane-conf {
     }
   }
 
-  grouping common-array-carrier-elements {
+  grouping tx-common-array-carrier-elements {
     description
       "This grouping containes all common parameters for tx-array-carriers and rx-array-carriers";
 
@@ -589,7 +604,131 @@ module o-ran-uplane-conf {
 
       description
         "Type of duplex scheme O-RU supports.";
+    }
+    leaf rw-duplex-scheme {
+      type leafref {
+        path "/user-plane-configuration/tx-array-carriers[name=current()/../name]" + "/duplex-scheme";
+        require-instance false;
+      }
+      description
+        "Config true type of duplex scheme.";
+    }
+    leaf rw-type {
+      type leafref {
+        path "/user-plane-configuration/tx-array-carriers[name=current()/../name]" + "/type";
+        require-instance false;
+      }
+      description
+        "Config true type of carrier.";
+    }
+  }
 
+  grouping rx-common-array-carrier-elements {
+    description
+      "This grouping containes all common parameters for tx-array-carriers and rx-array-carriers";
+
+    leaf absolute-frequency-center {
+      type uint32;
+      mandatory true;
+      description
+        "Absolute Radio Frequency Channel Number - indirectly indicates RF center carrier frequency of signal.
+        Reflected in arfcn.";
+    }
+
+    leaf center-of-channel-bandwidth {
+      type uint64;
+          units Hz;
+      mandatory true;
+      description
+        "Center frequency of channel bandwidth in Hz. Common for all numerologies.";
+    }
+
+    leaf channel-bandwidth {
+      type uint64;
+      units Hz;
+      mandatory true;
+
+      description
+        "Width of carrier given in Hertz";
+    }
+
+    leaf active {
+      type enumeration {
+        enum INACTIVE {
+              description
+                "carrier does not provide signal - transmission is disabled";
+            }
+        enum SLEEP{
+              description
+                "carrier is fully configured and was active but is energy saving mode";
+            }
+        enum ACTIVE{
+              description
+                "carrier is fully configured and properly providing the signal";
+            }
+      }
+      default INACTIVE;
+
+      description
+        "Indicates if transmission is enabled for this array carriers. Note that Netconf server uses state parameter
+        to indicate actual state of array carriers operation. When array carriers is in sleep status,
+        Netconf server rejects all other operation request to tx-array-carriers object except either request to change from sleep
+        to active status or delete MO operation (see 4.8) to the object.";
+    }
+
+    leaf state {
+      type enumeration {
+        enum DISABLED {
+          description
+            "array carrier is not active - transmission of signal is disabled.";
+        }
+        enum BUSY {
+          description
+            "array carrier is processing an operation requested by change of active parameter.
+            When array carriers is BUSY the transmission of signal is not guaranteed.";
+        }
+        enum READY {
+          description
+            "array carrier had completed activation operation - is active and transmission of signal is ongoing.";
+        }
+      }
+      config false;
+      mandatory true;
+      description
+        "Indicates state of array carriers activation operation";
+    }
+
+    leaf type {
+      type enumeration {
+        enum NR {
+              description
+                "5G technology";
+            }
+        enum LTE {
+              description
+                "LTE technology";
+        }
+      }
+      config false;
+      mandatory true;
+      description
+        "Type of carrier. Indicates array-carrier technology.";
+    }
+    leaf duplex-scheme {
+      type enumeration {
+        enum TDD {
+              description
+                "TDD scheme";
+            }
+        enum FDD {
+              description
+                "FDD scheme";
+        }
+      }
+      config false;
+
+      description
+        "Type of duplex scheme O-RU supports.";
     }
   }
 
@@ -599,9 +738,9 @@ module o-ran-uplane-conf {
         range "1..12";
       }
       description
-        "Max number of C-plane sections (C-plane section is part of C-plane message that carries “section fields”)
+        "Max number of C-plane sections (C-plane section is part of C-plane message that carries 'section fields')
         referring to same U-plane section (U-plane section is part of U-plane message that carries
-        “section header fields” and “PRB fields”) that is supported by endpoint.
+        'section header fields' and 'PRB fields') that is supported by endpoint.
         Note that additional limitations specific for each section type apply on top of this number.";
     }
     leaf max-sections-per-symbol {
@@ -660,10 +799,16 @@ module o-ran-uplane-conf {
     }
 
     description
-      "Attributes presenting processing capacity related to numerology.";
+      "Attributes presenting processing capacity related to numerology.
+
+      This leaf contains valid data only when multiple-numerology-supported
+      is set to true.";
   }
 
   grouping uplane-conf-group {
+    description
+      "Grouping for uplane configuration related parameters";
+
     list low-level-tx-links {
       key name;
       description
@@ -815,6 +960,13 @@ module o-ran-uplane-conf {
           "Type of delay supported by the endpoint";
       }
 
+      leaf multiple-numerology-supported {
+        type boolean;
+        default true;
+        description
+          "Indicates whether the endpoint type supports multiple numerologies";
+      }
+
       leaf max-numerology-change-duration {
         type uint16 {
           range "0..10000";
@@ -822,8 +974,13 @@ module o-ran-uplane-conf {
 
         units Ts;
         description
-          "Maximum gap of endpoint operation that will be caused by changing of numerology.
-          This time is required for reconfiguration and flushing of pipes.";
+          "Maximum gap of endpoint operation that will be caused by changing of
+          numerology.
+
+          This time is required for reconfiguration and flushing of pipes.
+
+          This leaf contains valid data only when multiple-numerology-supported
+          is set to true.";
       }
 
       uses endpoint-section-capacity;
@@ -1106,7 +1263,7 @@ module o-ran-uplane-conf {
           "Unique name of tx-array-carriers object.";
       }
 
-      uses common-array-carrier-elements;
+      uses tx-common-array-carrier-elements;
 
       leaf band-number {
         if-feature mcap:LAA;
@@ -1121,7 +1278,7 @@ module o-ran-uplane-conf {
       }
 
       container lte-tdd-frame {
-        when "(/user-plane-configuration/rx-array-carriers/type = 'LTE') and  (/user-plane-configuration/rx-array-carriers/duplex-scheme = 'TDD')";
+        when "(/user-plane-configuration/tx-array-carriers/rw-type = 'LTE') and  (/user-plane-configuration/tx-array-carriers/rw-duplex-scheme = 'TDD')";
         description
           "Container which consists of global configurable parameters for tdd Frame";
 
@@ -1198,6 +1355,8 @@ module o-ran-uplane-conf {
       }
 
       container laa-carrier-configuration {
+        // [ast] Fix? added relative path
+        // when "../band-number = 46";
         when "./../band-number = 46";
         if-feature mcap:LAA;
         description "Container to specify LAA feature related carrier configuration.";
@@ -1251,7 +1410,7 @@ module o-ran-uplane-conf {
             "Unique name of rx-array-carriers object.";
       }
 
-      uses common-array-carrier-elements;
+      uses rx-common-array-carrier-elements;
 
       leaf downlink-radio-frame-offset {
         type uint32 {
@@ -1324,6 +1483,15 @@ module o-ran-uplane-conf {
           "If true then every element of array has own, power budget independent from power budget of other elements.
           Else all elements of array that are at same row and column and have same polarization share power budget";
       }
+
+      list capabilities {
+        description
+          "List of capabilities related to this tx-array";
+	// [ast] Fix for list without key
+        key max-supported-frequency-dl;
+        // [ast] end fix
+        uses mcap:support-for-dl;
+      }
     }
 
     list rx-arrays {
@@ -1352,6 +1520,15 @@ module o-ran-uplane-conf {
 
         description
           "Array gain correction factor";
+      }
+
+      list capabilities {
+        description
+          "List of capabilities related to this rx-array";
+	// [ast] Fix for list without key
+        key max-supported-frequency-ul;
+        // [ast] end fix
+        uses mcap:support-for-ul;
       }
     }
 
@@ -1418,6 +1595,9 @@ module o-ran-uplane-conf {
   }
 
   grouping tx-array-notification-group {
+    description
+      "Grouping for tx-array for notification";
+
     list tx-array-carriers{
       key name;
       description "notification of state change for tx-array-carriers";
@@ -1440,6 +1620,9 @@ module o-ran-uplane-conf {
   }
 
   grouping rx-array-notification-group {
+    description
+      "Grouping for rx-array for notification";
+
     list rx-array-carriers{
       key name;
       description

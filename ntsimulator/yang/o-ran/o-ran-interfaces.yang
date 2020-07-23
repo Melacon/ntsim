@@ -67,9 +67,9 @@ module o-ran-interfaces {
     contributors may be used to endorse or promote products derived from
     this software without specific prior written permission.";
 
-  revision "2019-03-28" {
+  revision "2019-07-03" {
     description
-      "version 1.0.1
+      "version 1.1.0
 
       1) increasing max elements for user plane DSCP markings to 64
       2) re-organizing layout to facilitate cross-WG adoption, whilst ensuring

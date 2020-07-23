@@ -42,6 +42,17 @@ module o-ran-module-cap {
     contributors may be used to endorse or promote products derived from
     this software without specific prior written permission.";
 
+  revision "2019-07-03" {
+    description
+      "version 1.1.0
+
+      1) backward compatible change to introduce new RW leafs for use in
+      constraints in uplane-config and laa models.
+      2) removing unnecessary relations to band 46 in uplink";
+
+    reference "ORAN-WG4.M.0-v01.00";
+  }
+
   revision "2019-02-04" {
     description
       "version 1.0.0
@@ -196,7 +207,9 @@ module o-ran-module-cap {
     }
 
     list compression-method-supported {
+      // [ast] Fix for list without a key
       key "iq-bitwidth compression-type";
+      // [ast] end fix
       uses cf:compression-details;
 
       description
@@ -333,11 +346,17 @@ module o-ran-module-cap {
 
     list ul-mixed-num-required-guard-rbs {
       key "scs-a scs-b";
+      description
+        "List of required number of guard resource blocks
+        for the combination of subcarrier spacing values for downlink";
 
       uses ul-mixed-num-required-guard-rbs;
     }
     list dl-mixed-num-required-guard-rbs {
       key "scs-a scs-b";
+      description
+        "List of required number of guard resource blocks
+        for the combination of subcarrier spacing values for uplink";
 
       uses dl-mixed-num-required-guard-rbs;
     }
@@ -444,42 +463,36 @@ module o-ran-module-cap {
       "Grouping for UL specific parameters";
 
     leaf max-supported-frequency-ul {
-      when "../band-number != '46'";
       type uint64;
       description
         "This value indicates Maximum supported uplink frequency. Value unit is Hz.";
     }
 
     leaf min-supported-frequency-ul {
-      when "../band-number != '46'";
       type uint64;
       description
         "This value indicates Minimum supported uplink frequency. Value unit is Hz.";
     }
 
     leaf max-supported-bandwidth-ul {
-      when "../band-number != '46'";
       type uint64;
       description
         "This value indicates Maximum total uplink bandwidth in module. Value unit is Hz.";
     }
 
     leaf max-num-carriers-ul {
-      when "../band-number != '46'";
       type uint32;
       description
         "This value indicates Maximum number of uplink carriers in module.";
     }
 
     leaf max-carrier-bandwidth-ul {
-      when "../band-number != '46'";
       type uint64;
       description
         "This value indicates Maximum bandwidth per uplink carrier. Value unit is Hz.";
     }
 
     leaf min-carrier-bandwidth-ul {
-      when "../band-number != '46'";
       type uint64;
       description
         "This value indicates Minimum bandwidth per uplink carrier. Value unit is Hz.";
@@ -557,11 +570,12 @@ module o-ran-module-cap {
   }
 
   container module-capability {
-    config false;
+
     description
       "module capability object responsible for providing module capability.";
 
     container ru-capabilities {
+      config false;
       description
         "Structure representing set of capabilities.";
 
@@ -570,10 +584,31 @@ module o-ran-module-cap {
 
     list band-capabilities {
       key band-number;
+      config false;
       description
         "Capabilities that are needed to be defined per each band";
 
       uses band-capabilities;
+    }
+    container rw-sub-band-info {
+      if-feature "o-ran-module-cap:LAA";
+      description "config true leafrefs for use as constraints for config true leafs";
+      leaf rw-number-of-laa-scarriers {
+        type leafref {
+          path "/module-capability/band-capabilities/sub-band-info/number-of-laa-scarriers";
+          require-instance false;
+        }
+        description
+          "This value indicates the number of LAA secondary carriers supported at O-RU.";
+      }
+      leaf rw-self-configure {
+        type leafref {
+          path "/module-capability/band-capabilities/sub-band-info/self-configure";
+          require-instance false;
+        }
+        description
+          "This value indicates that the O-RU can manage the contention window locally.";
+      }
     }
   }
 }

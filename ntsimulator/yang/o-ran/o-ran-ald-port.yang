@@ -38,9 +38,9 @@ module o-ran-ald-port {
     contributors may be used to endorse or promote products derived from
     this software without specific prior written permission.";
 
-  revision "2019-03-07" {
+  revision "2019-07-03" {
     description
-      "version 1.0.1
+      "version 1.1.0
 
       1) backward compatible changes to introduce groupings.";
 
@@ -232,7 +232,7 @@ module o-ran-ald-port {
     description
       "The equipment is able to report the change of 'dc-enabled-status' of the ald-port.
       This is applicable when the leaf 'dc-control-support' of the ald-pot is 'TRUE'.";
-      
+
     uses dc-enabled-group;
   }
 }

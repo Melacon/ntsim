@@ -61,6 +61,16 @@ module o-ran-processing-element {
     contributors may be used to endorse or promote products derived from
     this software without specific prior written permission.";
 
+  revision "2019-07-03" {
+    description
+      "version 1.1.0
+
+      1) added new leaf to enable O-RU to report the maximum number of
+      transport flows it can support, e.g., due to restrictions on number
+      of VLAN-IDs when ethernet type transport is used.";
+
+    reference "ORAN-WG4.M.0-v01.00";
+  }
   revision "2019-02-04" {
     description
       "version 1.0.0
@@ -74,6 +84,15 @@ module o-ran-processing-element {
 // groupings
 
   grouping pe-group {
+    leaf maximum-number-of-transport-flows {
+      type uint16 {
+        range "1..4094";
+      }
+      config false;
+      default 4094;
+      description
+        "The maximum number of transport flows that can be supported by an O-RU";
+    }
     leaf transport-session-type {
       type enumeration {
         enum ETH-INTERFACE {

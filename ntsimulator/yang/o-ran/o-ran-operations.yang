@@ -51,20 +51,13 @@ module o-ran-operations {
     contributors may be used to endorse or promote products derived from
     this software without specific prior written permission.";
 
-  revision "2019-04-08" {
+  revision "2019-07-03" {
     description
-      "version 1.0.2
+      "version 2.0.0
 
-      1) added ru-instance-id ";
-
-    reference "ORAN-WG4.M.0-v01.00";
-  }
-
-  revision "2019-03-07" {
-    description
-      "version 1.0.1
-
-      1) backward compatible changes to introduce groupings.";
+      1) added timezone-name
+      2) added ru-instance-id
+      3) backward compatible changes to introduce groupings.";
 
     reference "ORAN-WG4.M.0-v01.00";
   }
@@ -77,6 +70,24 @@ module o-ran-operations {
       2) changed namespace and reference from xran to o-ran";
 
     reference "ORAN-WG4.M.0-v01.00";
+  }
+
+
+  typedef timezone-name {
+    type string;
+    description
+      "A time zone name as used by the Time Zone Database,
+      sometimes referred to as the 'Olson Database'.
+
+      The complete set of valid values is defined in
+      https://www.iana.org/time-zones.
+
+      The exact set of supported values is an
+      implementation-specific matter.";
+
+    reference
+      "RFC 6557: Procedures for Maintaining the Time Zone Database
+      IANA Time Zone Database https://www.iana.org/time-zones ";
   }
 
   typedef version {
@@ -100,9 +111,14 @@ module o-ran-operations {
 
       leaf ru-instance-id {
         type string;
+	// [ast] added extra concat, because only 3 params are accepted in NTS
+	// must "re-match(current(), concat(/hw:hardware/hw:component/hw:mfg-name,
+        //  '_', /hw:hardware/hw:component/hw:model-name, '_',
+        //  /hw:hardware/hw:component/hw:serial-num ))";
         must "re-match(current(), concat(concat(/hw:hardware/hw:component/hw:mfg-name,
           '_', /hw:hardware/hw:component/hw:model-name), '_',
           /hw:hardware/hw:component/hw:serial-num))";
+	// [ast] end fix
         description
           "a unique instance identifier that may be used to identify a
           particular hardware instance, e.g., when used performing hierarchical
@@ -204,6 +220,19 @@ module o-ran-operations {
     container clock {
       description
         "System date and time properties used by all working groups.";
+
+      leaf timezone-name {
+        type timezone-name;
+        description
+          "An optional TZ database name to use for the system,
+           such as 'Europe/Stockholm'
+
+           Time zone name is an informative leaf and is NOT used in the
+           managed element to convert local time zone.
+
+           The managed element may include time zone name in measurement or
+           fault data.";
+      }
 
       leaf timezone-utc-offset {
         type int16 {

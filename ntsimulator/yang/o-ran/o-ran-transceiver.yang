@@ -46,13 +46,14 @@ module o-ran-transceiver {
     contributors may be used to endorse or promote products derived from
     this software without specific prior written permission.";
 
-  revision "2019-03-07" {
+  revision "2019-07-03" {
     description
-      "version 1.0.1
+      "version 2.0.0
 
-      1) backward compatible changes to introduce groupings.";
+      1) introduction of reporting for QSFP.
+      2) backward compatible changes to introduce groupings.";
 
-    reference "ORAN-WG4.M.0-v01.00";
+    reference "ORAN-WG4.M.0-v02.00";
   }
 
   revision "2019-02-04" {
@@ -64,6 +65,7 @@ module o-ran-transceiver {
 
     reference "ORAN-WG4.M.0-v01.00";
   }
+
 
   // Groupings
 
@@ -268,6 +270,61 @@ module o-ran-transceiver {
         reference "https://ta.snia.org/higherlogic/ws/public/document?document_id=944";
       }
 
+      leaf identifier {
+        type enumeration {
+          enum unknown {
+            description "encoded as 00h in Table 4-1 of SFF-8024";
+          }
+          enum gbic {
+            description "encoded as 01h in Table 4-1 of SFF-8024";
+          }
+          enum soldered {
+            description "encoded as 02h in Table 4-1 of SFF-8024";
+          }
+          enum sfp {
+            description "encoded as 03h in Table 4-1 of SFF-8024";
+          }
+          enum xbi {
+            description "encoded as 04h in Table 4-1 of SFF-8024";
+          }
+          enum xenpack {
+            description "encoded as 05h in Table 4-1 of SFF-8024";
+          }
+          enum xfp {
+            description "encoded as 06h in Table 4-1 of SFF-8024";
+          }
+          enum xff {
+            description "encoded as 07h in Table 4-1 of SFF-8024";
+          }
+          enum xfp-e {
+            description "encoded as 08h in Table 4-1 of SFF-8024";
+          }
+          enum xpak {
+            description "encoded as 09h in Table 4-1 of SFF-8024";
+          }
+          enum x2 {
+            description "encoded as 0Ah in Table 4-1 of SFF-8024";
+          }
+          enum dwdm-sfp {
+            description "encoded as 0Bh in Table 4-1 of SFF-8024";
+          }
+          enum qsfp {
+            description "encoded as 0Ch in Table 4-1 of SFF-8024";
+          }
+          enum qsfp+ {
+            description "encoded as 0Dh in Table 4-1 of SFF-8024";
+          }
+        }
+        config false;
+        description
+          "Connector identifier as defined in the identifer
+          types derived from table 4-1 in SFF-8024.
+
+          Optional node included when the NETCONF Server has determined
+          the identifier type.";
+        reference "https://members.snia.org/document/dl/26423";
+      }
+
       leaf nominal-bitrate {
         type uint32;
         config false;
@@ -329,7 +386,10 @@ module o-ran-transceiver {
           "Measured RX input power in mW.
 
           Optional node included when the NETCONF Server has determined
-          the measured RX power.";
+          the measured RX power.
+
+          If operating with QSFP, this power corresponds to that of
+          Lane/Channel 1.";
       }
 
       leaf tx-power {
@@ -353,7 +413,10 @@ module o-ran-transceiver {
           "Measured transmitter laser bias current in mA.
 
           Optional node included when the NETCONF Server has determined
-          the tx bias current.";
+          the tx bias current.
+
+          If operating with QSFP, this bias current corresponds to that of
+          Lane/Channel 1.";
       }
 
       leaf voltage {
@@ -379,7 +442,61 @@ module o-ran-transceiver {
           Optional node included when the NETCONF Server has determined
           the temperature.";
       }
+
+      list additional-multi-lane-reporting {
+        when "(../identifier ='qsfp')or(../identifier ='qsfp+')";
+        config false;
+        description
+          "Additional reporting according to SFF8436 which specifies real time
+          channel monitoring for each transmit and receive channel and includes
+          optical input power and Tx bias current. ";
+        key lane;
+        leaf lane {
+          type uint8 {
+            range "2..4";
+          }
+          description
+            "the specific lane/channel associated with the report parameters";
+        }
+        leaf rx-power {
+          type decimal64{
+            fraction-digits 4;
+          }
+          config false;
+          description
+            "Measured RX input power in mW.
+
+            Optional node included when the NETCONF Server has determined
+            the measured RX power for a particular lane/channel
+            - see tabel 7-10 of SFF-8636.";
+        }
+        leaf tx-bias-current {
+          type decimal64{
+            fraction-digits 4;
+          }
+          config false;
+          description
+            "Measured transmitter laser bias current in mA.
+
+            Optional node included when the NETCONF Server has determined
+            the tx bias current for a particular lane/channel
+            - see tabel 7-10 of SFF-8636.";
+        }
+        leaf tx-power {
+          type decimal64{
+            fraction-digits 4;
+          }
+          config false;
+          description
+            "Measured coupled TX output power in mW.
+
+            Optional node included when the NETCONF Server has determined
+            the measured coupled TX power or a particular lane/channel
+            - see tabel 7010 of SFF-8636.";
+        }
+      }
     }
+
   }
 
   // Top Level Container

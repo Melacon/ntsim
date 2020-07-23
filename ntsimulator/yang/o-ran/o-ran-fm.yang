@@ -75,7 +75,9 @@ module o-ran-fm {
     }
 
     list affected-objects {
+      // [ast] Fix for list without a key
       key name;
+      // [ast] end fix
       leaf name {
         type string {
           length "1..255";
@@ -147,7 +149,9 @@ module o-ran-fm {
 
   container active-alarm-list {
     list active-alarms {
+      // [ast] Fix for list without a key
       key fault-id;
+      // [ast] end fix
       uses alarm;
 
       description

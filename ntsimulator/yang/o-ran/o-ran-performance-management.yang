@@ -72,34 +72,19 @@ module o-ran-performance-management {
     contributors may be used to endorse or promote products derived from
     this software without specific prior written permission.";
 
-  revision "2019-06-05" {
+  revision "2019-07-03" {
     description
-      "version 1.0.2
+      "version 2.0.0
 
-      1) backward compatible changes according to NOK-0002 sFTP Server Authentication Correction.
-      2) simplifying file management and authentication to reuse from o-ran-file-management module
-      3) minor fixes according to lack of descriptions and reference";
+      1) added new measurement objects for QSFP
+      2) backward compatible changes to correct sFTP Server Authentication.
+      3) simplifying file management and authentication to reuse from o-ran-file-management module
+      4) minor fixes according to lack of descriptions and reference
+      5) added to descriptions to indicate applicability of leafs and Containers
+      to separate O-RAN use cases
+      6) backward compatible changes to introduce groupings.";
 
-    reference "ORAN-WG4.M.0-v01.00";
-  }
-
-  revision "2019-03-28" {
-    description
-      "version 1.0.2
-
-      1) added to descriptions to indicate applicability of leafs and Containers
-      to separate O-RAN use cases";
-
-    reference "ORAN-WG4.M.0-v01.00";
-  }
-
-  revision "2019-03-07" {
-    description
-      "version 1.0.1
-
-      1) backward compatible changes to introduce groupings.";
-
-    reference "ORAN-WG4.M.0-v01.00";
+    reference "ORAN-WG4.M.0-v02.00";
   }
 
   revision "2019-02-04" {
@@ -279,7 +264,9 @@ module o-ran-performance-management {
 
       case TRANSPORT {
         list tr-measured-result{
+	  // [ast] Fix for list without key
           key name;
+	  // [ast] end fix
           leaf name{
             type leafref{
               path "/o-ran-elements:processing-elements/o-ran-elements:ru-elements/o-ran-elements:name";
@@ -307,7 +294,9 @@ module o-ran-performance-management {
 
       case EAXC_ID {
         list eaxc-measured-result {
+	  // [ast] Fix for list without key
           key eaxc-id;
+	  // [ast] end fix
           leaf eaxc-id{
             type uint16;
 
@@ -438,15 +427,51 @@ module o-ran-performance-management {
         type enumeration {
           enum RX_POWER {
             description
-              "Measured Rx input power in mW";
+              "Measured Rx input power in mW for SFP or lane 1 of QSFP";
+          }
+          enum RX_POWER_LANE_2 {
+            description
+              "Measured Rx input power in mW for lane 2 of QSFP";
+          }
+          enum RX_POWER_LANE_3 {
+            description
+              "Measured Rx input power in mW for lane 3 of QSFP";
+          }
+          enum RX_POWER_LANE_4 {
+            description
+              "Measured Rx input power in mW for lane 4 of QSFP";
           }
           enum TX_POPWER {
             description
               "Measured Tx input power in mW.";
           }
+          enum TX_POWER_LANE_2 {
+            description
+              "Measured Tx input power in mW for lane 2 of QSFP";
+          }
+          enum TX_POWER_LANE_3 {
+            description
+              "Measured Tx input power in mW for lane 3 of QSFP";
+          }
+          enum TX_POWER_LANE_4 {
+            description
+              "Measured Tx input power in mW for lane 4 of QSFP";
+          }
           enum TX_BIAS_COUNT {
             description
-              "Internally measured Tx Bias Current in mA";
+              "Internally measured Tx Bias Current in mA for SFP or lane 1 of QSFP";
+          }
+          enum TX_BIAS_COUNT_LANE_2 {
+            description
+              "Internally measured Tx Bias Current in mA for lane 2 of QSFP";
+          }
+          enum TX_BIAS_COUNT_LANE_3 {
+            description
+              "Internally measured Tx Bias Current in mA for lane 3 of QSFP";
+          }
+          enum TX_BIAS_COUNT_LANE_4 {
+            description
+              "Internally measured Tx Bias Current in mA for lane 4 of QSFP";
           }
           enum VOLTAGE {
             description

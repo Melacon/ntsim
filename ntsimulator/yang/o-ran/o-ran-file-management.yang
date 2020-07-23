@@ -42,21 +42,13 @@ module o-ran-file-management {
     contributors may be used to endorse or promote products derived from
     this software without specific prior written permission.";
 
-  revision "2019-06-05" {
+  revision "2019-07-03" {
     description
-      "version 1.0.2
+      "version 1.1.0
 
-      1) backward compatible changes according to NOK-0002 sFTP Server Authentication Correction.
-      2) minor fixes according to lack of descriptions";
-
-    reference "ORAN-WG4.M.0-v01.00";
-  }
-
-  revision "2019-03-07" {
-    description
-      "version 1.0.1
-
-      1) backward compatible changes to introduce groupings.";
+      1) backward compatible changes to correct sFTP Server Authentication .
+      2) minor fixes according to lack of descriptions
+      3) backward compatible changes to introduce groupings";
 
     reference "ORAN-WG4.M.0-v01.00";
   }

@@ -50,21 +50,15 @@ module o-ran-dhcp {
     contributors may be used to endorse or promote products derived from
     this software without specific prior written permission.";
 
-  revision "2019-05-25" {
+  revision "2019-07-03" {
     description
       "version 1.1.0
 
-      1) backward compatible changes to introduce reporting of 3GPP
-      discovered MV-PnP information, including CA/RA Servers and SeGW ";
-
-    reference "ORAN-WG4.M.0-v01.00";
-  }
-
-  revision "2019-03-07" {
-    description
-      "version 1.0.1
-
-      1) backward compatible changes to introduce groupings.";
+      1) backward compatible changes to fix pen number which always
+      should have been 32 bits
+      2) backward compatible changes to introduce reporting of 3GPP
+      discovered MV-PnP information, including CA/RA Servers and SeGW
+      3) backward compatible changes to introduce groupings";
 
     reference "ORAN-WG4.M.0-v01.00";
   }
@@ -255,9 +249,15 @@ module o-ran-dhcp {
     container m-plane-dhcp {
       description "leafs covering off DHCP aspects of m-plane operations";
       leaf private-enterprise-number {
+        status deprecated;
         type uint16;
         default 53148;
         description "the private enteprise number allocated to O-RAN Alliance";
+      }
+      leaf private-enterprise-num {
+        type uint32;
+        default 53148;
+        description "the private enterprise number allocated to O-RAN Alliance";
       }
       leaf vendor-class-data {
         type string;

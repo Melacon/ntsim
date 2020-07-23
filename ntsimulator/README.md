@@ -365,6 +365,11 @@ This means that `MODELS_IMAGE: "ntsim_oran_light:latest"` can be used as an envi
 
 ## Release notes
 
+### **version 0.6.5**
+
+Added features:
+* **basic-auth** is now available for pnfRegistration messages - if the VES Endpoint supports basic-auth (with username and password), the user can configure these endpoint details and the pnfRegistration message will use them.
+
 ### **version 0.6.4**
 
 Bug fixes and improvements:

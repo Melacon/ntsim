@@ -5,6 +5,7 @@ module o-ran-laa {
 
   import o-ran-module-cap {
     prefix "mcap";
+    revision-date 2019-07-03;
   }
 
   organization "O-RAN Alliance";
@@ -42,6 +43,21 @@ module o-ran-laa {
     contributors may be used to endorse or promote products derived from
     this software without specific prior written permission.";
 
+  revision "2019-07-03" {
+    description
+      "version 1.1.0
+
+      1) fixing broken constraints (configuration cannot be dependent on
+        operational state). This is a backwards incompatible revision.
+
+        As these constraints only apply when the LAA feature is used, and also
+        when considering the limited number of implementation that need to be
+        taken into consideration for backwards compatibility, it has been
+        agreed to NOT increment the namespace integer.";
+
+    reference "ORAN-WG4.M.0-v01.00";
+  }
+
   revision "2019-02-04" {
     description
       "version 1.0.0
@@ -51,11 +67,11 @@ module o-ran-laa {
 
     reference "ORAN-WG4.M.0-v01.00";
   }
-  
+
   grouping laa-configuration {
     description
       "Grouping for LAA configuration";
-      
+
     leaf number-of-laa-scarriers {
       type uint8;
       description "Number of LAA secondary carriers to be supported at O-RU.";
@@ -99,7 +115,7 @@ module o-ran-laa {
   }
 
   container laa-config {
-    must "number-of-laa-scarriers <= /mcap:module-capability/mcap:band-capabilities[mcap:band-number = '46']/mcap:sub-band-info/mcap:number-of-laa-scarriers" {
+    must "number-of-laa-scarriers <= /mcap:module-capability/mcap:rw-sub-band-info/mcap:rw-number-of-laa-scarriers" {
       error-message "number of laa secondary carriers must be less than supported number of laa scells.";
     }
     presence "indicates LAA configuration";

@@ -37,10 +37,11 @@ module o-ran-trace {
     contributors may be used to endorse or promote products derived from
     this software without specific prior written permission.";
 
-  revision "2019-02-21" {
+  revision "2019-07-03" {
     description
       "version 1.0.0
-      Initial module definition.";
+
+      1) Initial module definition.";
 
     reference "ORAN-WG4.M.0-v01.00";
   }
@@ -90,7 +91,7 @@ module o-ran-trace {
       description
         "The list of trace log file names on the O-RU.";
     }
-    
+
     leaf is-notification-last {
       type boolean;
       default false;
