@@ -1,0 +1,101 @@
+version: '2.4'
+services:
+  nts-roadma:
+    image: "ntsim_openroadm_standalone:latest"
+    container_name: NTS-ROADMA
+    ports:
+     - "::50000:830"
+    volumes:
+     - type: bind 
+       source: ./configuration.json
+       target: /opt/dev/scripts/configuration.json  
+     - type: bind 
+       source: ./oper-ROADMA.xml
+       target: /opt/dev/scripts/startup-load.xml  
+    environment:
+      NTS_IP: "10.20.11.121"
+      EXTERNAL_NTS_IP: "10.20.11.121"
+      NETCONF_BASE: 50000
+      SCRIPTS_DIR: "/opt/dev/scripts"
+      K8S_DEPLOYMENT: "false"
+      IPv6Enabled: "false"
+
+  nts-roadmb:
+    image: "ntsim_openroadm_standalone:latest"
+    container_name: NTS-ROADMB
+    ports:
+     - "::50001:830"
+    volumes:
+     - type: bind 
+       source: ./configuration.json
+       target: /opt/dev/scripts/configuration.json       
+     - type: bind 
+       source: ./oper-ROADMB.xml
+       target: /opt/dev/scripts/startup-load.xml  
+    environment:
+      NTS_IP: "10.20.11.121"
+      EXTERNAL_NTS_IP: "10.20.11.121"
+      NETCONF_BASE: 50001
+      SCRIPTS_DIR: "/opt/dev/scripts"
+      K8S_DEPLOYMENT: "false"
+      IPv6Enabled: "false"
+
+  nts-roadmc:
+    image: "ntsim_openroadm_standalone:latest"
+    container_name: NTS-ROADMC
+    ports:
+     - "::50002:830"
+    volumes:
+     - type: bind 
+       source: ./configuration.json
+       target: /opt/dev/scripts/configuration.json       
+     - type: bind 
+       source: ./oper-ROADMC.xml
+       target: /opt/dev/scripts/startup-load.xml  
+    environment:
+      NTS_IP: "10.20.11.121"
+      EXTERNAL_NTS_IP: "10.20.11.121"
+      NETCONF_BASE: 50002
+      SCRIPTS_DIR: "/opt/dev/scripts"
+      K8S_DEPLOYMENT: "false"
+      IPv6Enabled: "false"
+
+  nts-xpdra:
+    image: "ntsim_openroadm_standalone:latest"
+    container_name: NTS-XPDRA
+    ports:
+     - "::50003:830"
+    volumes:
+     - type: bind 
+       source: ./configuration.json
+       target: /opt/dev/scripts/configuration.json       
+     - type: bind 
+       source: ./oper-XPDRA.xml
+       target: /opt/dev/scripts/startup-load.xml  
+    environment:
+      NTS_IP: "10.20.11.121"
+      EXTERNAL_NTS_IP: "10.20.11.121"
+      NETCONF_BASE: 50003
+      SCRIPTS_DIR: "/opt/dev/scripts"
+      K8S_DEPLOYMENT: "false"
+      IPv6Enabled: "false"
+
+  nts-xpdrc:
+    image: "ntsim_openroadm_standalone:latest"
+    container_name: NTS-XPDRC
+    ports:
+     - "::50004:830"
+    volumes:
+     - type: bind 
+       source: ./configuration.json
+       target: /opt/dev/scripts/configuration.json       
+     - type: bind 
+       source: ./oper-XPDRC.xml
+       target: /opt/dev/scripts/startup-load.xml  
+    environment:
+      NTS_IP: "10.20.11.121"
+      EXTERNAL_NTS_IP: "10.20.11.121"
+      NETCONF_BASE: 50004
+      SCRIPTS_DIR: "/opt/dev/scripts"
+      K8S_DEPLOYMENT: "false"
+      IPv6Enabled: "false"

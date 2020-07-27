@@ -309,36 +309,44 @@ simulator_config_change_cb(sr_session_ctx_t *session, const char *module_name, s
         goto sr_error;
     }
 
-    sr_free_val(val);
-    val = NULL;
+    if (strcmp(val->data.enum_val, "basic-auth") == 0)
+    {
+        sr_free_val(val);
+        val = NULL;
 
-    /* get the value from sysrepo, we do not care if the value did not change in our case */
-    rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-username", &val);
-    if (rc != SR_ERR_OK) {
-        goto sr_error;
+        /* get the value from sysrepo, we do not care if the value did not change in our case */
+        rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-username", &val);
+        if (rc != SR_ERR_OK) {
+            goto sr_error;
+        }
+
+        rc = ves_username_changed(val->data.string_val);
+        if (rc != SR_ERR_OK) {
+            goto sr_error;
+        }
+
+        sr_free_val(val);
+        val = NULL;
+
+        /* get the value from sysrepo, we do not care if the value did not change in our case */
+        rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-password", &val);
+        if (rc != SR_ERR_OK) {
+            goto sr_error;
+        }
+
+        rc = ves_password_changed(val->data.string_val);
+        if (rc != SR_ERR_OK) {
+            goto sr_error;
+        }
+
+        sr_free_val(val);
+        val = NULL;
     }
-
-    rc = ves_username_changed(val->data.string_val);
-    if (rc != SR_ERR_OK) {
-        goto sr_error;
+    else
+    {
+        sr_free_val(val);
+        val = NULL;
     }
-
-    sr_free_val(val);
-    val = NULL;
-
-    /* get the value from sysrepo, we do not care if the value did not change in our case */
-    rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-password", &val);
-    if (rc != SR_ERR_OK) {
-        goto sr_error;
-    }
-
-    rc = ves_password_changed(val->data.string_val);
-    if (rc != SR_ERR_OK) {
-        goto sr_error;
-    }
-
-    sr_free_val(val);
-    val = NULL;
 
 	/* get the value from sysrepo, we do not care if the value did not change in our case */
 	rc = sr_get_item(session, "/network-topology-simulator:simulator-config/ves-endpoint-details/ves-endpoint-port", &val);

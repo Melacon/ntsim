@@ -1,0 +1,27 @@
+{
+	"notification-config":	{
+		"ves-heartbeat-period":	0,
+		"is-netconf-available":	true,
+		"is-ves-available":	true,
+		"fault-notification-delay-period":	[0]
+	},
+	"ves-endpoint-details":	{
+		"ves-endpoint-ip":	"172.17.0.1",
+		"ves-endpoint-port":	8080,
+		"ves-endpoint-auth-method":	"no-auth",
+		"ves-endpoint-username":	"",
+		"ves-endpoint-password":	"",
+		"ves-endpoint-certificate":	"",
+		"ves-registration":	false
+	},
+	"controller-details":	{
+		"controller-ip":	"10.20.11.121",
+		"controller-port":	8181,
+		"netconf-call-home-port":	6666,
+		"controller-username":	"admin",
+		"controller-password":	"admin"
+	},
+	"ssh-connections":	1,
+	"tls-connections":	0,
+	"netconf-call-home":	false
+}
