@@ -6,7 +6,7 @@ echo "Loading data into sysrepo..."
 
 : ${SYSREPOCFG:=sysrepocfg}
 
-$model="org-openroadm-device"
+model="org-openroadm-device"
 
 echo "Importing data for module: $model"
 $SYSREPOCFG --import=/opt/dev/scripts/startup-load.xml --format=xml $model

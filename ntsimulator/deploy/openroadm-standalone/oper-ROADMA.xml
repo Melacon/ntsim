@@ -38,6 +38,7 @@
     </users>
     <circuit-packs>
       <circuit-pack-name>1/0</circuit-pack-name>
+      <is-pluggable-optics>true</is-pluggable-optics>
       <circuit-pack-type>WSSDEG</circuit-pack-type>
       <circuit-pack-product-code>DegW</circuit-pack-product-code>
       <administrative-state>inService</administrative-state>
@@ -133,6 +134,7 @@
     </circuit-packs>
     <circuit-packs>
       <circuit-pack-name>1/0/ETH-PLUG</circuit-pack-name>
+      <is-pluggable-optics>true</is-pluggable-optics>
       <circuit-pack-type>port</circuit-pack-type>
       <circuit-pack-product-code>Eth</circuit-pack-product-code>
       <administrative-state>inService</administrative-state>
@@ -169,6 +171,10 @@
     </circuit-packs>
     <circuit-packs>
       <circuit-pack-name>1/0/OSC-PLUG</circuit-pack-name>
+      <circuit-pack-category>
+        <type>circuitPack</type>
+      </circuit-pack-category>
+      <is-pluggable-optics>true</is-pluggable-optics>
       <circuit-pack-type>port</circuit-pack-type>
       <administrative-state>inService</administrative-state>
       <vendor>vendorA</vendor>
@@ -199,6 +205,7 @@
     </circuit-packs>
     <circuit-packs>
       <circuit-pack-name>2/0</circuit-pack-name>
+      <is-pluggable-optics>true</is-pluggable-optics>
       <circuit-pack-type>WSSDEG</circuit-pack-type>
       <circuit-pack-product-code>DegE</circuit-pack-product-code>
       <administrative-state>inService</administrative-state>
@@ -300,6 +307,7 @@
     </circuit-packs>
     <circuit-packs>
       <circuit-pack-name>2/0/ETH-PLUG</circuit-pack-name>
+      <is-pluggable-optics>true</is-pluggable-optics>
       <circuit-pack-type>port</circuit-pack-type>
       <circuit-pack-product-code>Eth</circuit-pack-product-code>
       <administrative-state>inService</administrative-state>
@@ -336,6 +344,10 @@
     </circuit-packs>
     <circuit-packs>
       <circuit-pack-name>2/0/OSC-PLUG</circuit-pack-name>
+      <is-pluggable-optics>true</is-pluggable-optics>
+      <circuit-pack-category>
+        <type>circuitPack</type>
+      </circuit-pack-category>
       <circuit-pack-type>port</circuit-pack-type>
       <administrative-state>inService</administrative-state>
       <vendor>vendorA</vendor>
@@ -366,6 +378,7 @@
     </circuit-packs>
     <circuit-packs>
       <circuit-pack-name>3/0</circuit-pack-name>
+      <is-pluggable-optics>true</is-pluggable-optics>
       <circuit-pack-type>ADDDROP</circuit-pack-type>
       <circuit-pack-product-code>SRGRx</circuit-pack-product-code>
       <administrative-state>inService</administrative-state>
@@ -472,6 +485,7 @@
     </circuit-packs>
     <circuit-packs>
       <circuit-pack-name>5/0</circuit-pack-name>
+      <is-pluggable-optics>true</is-pluggable-optics>
       <circuit-pack-type>ADDDROP</circuit-pack-type>
       <circuit-pack-product-code>SRGRx</circuit-pack-product-code>
       <administrative-state>inService</administrative-state>
@@ -635,6 +649,45 @@
       <administrative-state>inService</administrative-state>      
     </interface>
 
+    <protocols>
+      <lldp xmlns="http://org/openroadm/lldp">
+        <global-config>
+          <adminStatus>enable</adminStatus>
+          <msgTxHoldMultiplier>4</msgTxHoldMultiplier>
+          <msgTxInterval>20</msgTxInterval>
+        </global-config>
+        <nbr-list>
+          <if-name>
+            <ifName>1GE-interface-1</ifName>
+            <remoteSysName>ROADM-B1</remoteSysName>
+            <remoteMgmtAddress>1.1.1.1</remoteMgmtAddress>
+            <remoteChassisId>1?</remoteChassisId>
+            <remotePortId>1GE-interface-1</remotePortId>
+            <remoteChassisIdSubType>chassiscomponent</remoteChassisIdSubType>
+            <remotePortIdSubType>ifalias</remotePortIdSubType>
+            <remoteMgmtAddressSubType>ipV4</remoteMgmtAddressSubType>
+          </if-name>
+          <if-name>
+            <ifName>1GE-interface-2</ifName>
+            <remoteSysName>ROADM-C1</remoteSysName>
+            <remoteMgmtAddress>1.1.1.1</remoteMgmtAddress>
+            <remoteChassisId>1?</remoteChassisId>
+            <remotePortId>1GE-interface-1</remotePortId>
+            <remoteChassisIdSubType>chassiscomponent</remoteChassisIdSubType>
+            <remotePortIdSubType>ifalias</remotePortIdSubType>
+            <remoteMgmtAddressSubType>ipV4</remoteMgmtAddressSubType>
+          </if-name>
+        </nbr-list>
+        <port-config>
+          <ifName>1GE-interface-1</ifName>
+          <adminStatus>txandrx</adminStatus>
+        </port-config>
+        <port-config>
+          <ifName>1GE-interface-2</ifName>
+          <adminStatus>txandrx</adminStatus>
+        </port-config>
+      </lldp>
+    </protocols>
 
     <degree>
       <degree-number>1</degree-number>

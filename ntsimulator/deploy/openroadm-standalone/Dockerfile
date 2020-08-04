@@ -222,7 +222,7 @@ COPY --from=builder /root/.ssh /root/.ssh
 
 WORKDIR /opt/dev
 # run only specific programs in this image
-COPY ./ntsimulator/deploy/openroadm/supervisord.conf /etc/supervisord.conf
+COPY ./ntsimulator/deploy/openroadm-standalone/supervisord.conf /etc/supervisord.conf
 
 # tls configuratoin
 COPY ./ntsimulator/deploy/tls /home/netconf/.ssh
@@ -232,7 +232,7 @@ COPY --from=builder /opt/dev/sysrepo/build/examples/application_example /opt/dev
 # YANG models and related scripts
 COPY ./ntsimulator/yang/openroadm /opt/dev/yang
 COPY ./ntsimulator/yang/auto-load-yangs.sh /opt/dev/yang
-COPY ./ntsimulator/deploy/openroadm/sysrepo-configuration-load.sh /opt/dev/yang
+COPY ./ntsimulator/deploy/openroadm-standalone/sysrepo-configuration-load.sh /opt/dev/yang
 WORKDIR /opt/dev
 RUN \
 	  cd yang && \
