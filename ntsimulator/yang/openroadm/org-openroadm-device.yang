@@ -554,6 +554,7 @@ module org-openroadm-device {
         "Software version running on the circuit pack.";
     }
     list circuit-pack-features {
+      // [ast] Added key for config false list as workaround in NTS
       key "to-be-deleted";
       config false;
       leaf to-be-deleted {
@@ -582,6 +583,7 @@ module org-openroadm-device {
       }
     }
     list circuit-pack-components {
+      // [ast] Added key for config false list as workaround in NTS
       key "to-be-deleted";
       config false;
       leaf to-be-deleted {

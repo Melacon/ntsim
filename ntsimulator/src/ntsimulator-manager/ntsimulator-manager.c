@@ -539,15 +539,15 @@ simulator_status_cb(const char *xpath, sr_val_t **values, size_t *values_cnt,
 
 		while (current_device != NULL)
 		{
+            char device_name[200];
+            sprintf(device_name, "%s-%d", getenv("CONTAINER_NAME"), current_device->device_number);
+
             counterAlarms vesCount, netconfCount;
-            rc = getDeviceCounters(current_device->device_id, &vesCount, &netconfCount);
+            rc = getDeviceCounters(device_name, &vesCount, &netconfCount);
             if (rc != SR_ERR_OK)
             {
                 printf("Could not get Notification Counters for device with uuid=\"%s\"", current_device->device_id);
             }
-
-            char device_name[200];
-            sprintf(device_name, "%s-%d", getenv("CONTAINER_NAME"), current_device->device_number);            
 
 			CREATE_NEW_VALUE(rc, v, current_num_of_values);
 
