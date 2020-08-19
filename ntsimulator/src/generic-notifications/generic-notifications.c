@@ -266,7 +266,7 @@ static int send_dummy_notif(sr_session_ctx_t *sess, const char *module_name, con
     {
         schema_path = schemas[i].revision.file_path_yang;
 
-        if (NULL != schema_path && 0 == strcmp(module_name, schemas[i].module_name)) {
+        if (NULL != schema_path) {
             printf("Trying to install schema: %s\n", schema_path);
             if (NULL == lys_parse_path(ctx, schema_path, LYS_IN_YANG)) 
             {
@@ -275,7 +275,7 @@ static int send_dummy_notif(sr_session_ctx_t *sess, const char *module_name, con
                 return SR_ERR_OPERATION_FAILED;
                 // continue;
             }
-            break;
+            // break;
         }
     }
 

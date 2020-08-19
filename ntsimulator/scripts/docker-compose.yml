@@ -2,7 +2,7 @@ version: '2.4'
 services:
   ntsimulator:
     image: "ntsim_manager_light:latest"
-    #image: "10.20.6.10:30000/hightec/ntsim_manager:0.4.2-SNAPSHOT-latest"
+    #image: "10.20.6.10:30000/hightec/ntsim_manager:0.6.1-SNAPSHOT-latest"
     container_name: NTS_Manager
     ports:
      - "::8300:830"
@@ -15,17 +15,21 @@ services:
     environment:
       #NTS_IP: "2001:db8:1::1"
       NTS_IP: "10.20.11.121"
+      #EXTERNAL_NTS_IP: "8.8.8.8"
       NETCONF_BASE: 50000
       DOCKER_ENGINE_VERSION: "1.40"
-      MODELS_IMAGE: "ntsim_oran_light"
-      #MODELS_IMAGE: "10.20.6.10:30000/hightec/ntsim_oran:0.5.1-SNAPSHOT-latest"      
+      MODELS_IMAGE: "ntsim_onf_core_model_1_4:latest"
+      #MODELS_IMAGE: "10.20.6.10:30000/hightec/ntsim_openroadm_device:0.6.4-SNAPSHOT-latest"      
       VesHeartbeatPeriod: 0
       IsVesAvailable: "true"
       IsNetconfAvailable: "true"
       VesRegistration: "false"
       VesEndpointPort: 8080
       VesEndpointIp: "172.17.0.1"
-      SshConnections: 4
+      VesEndpointAuthMethod: "no-auth"
+      VesEndpointUsername: "sample1"
+      VesEndpointPassword: "sample1"
+      SshConnections: 1
       TlsConnections: 0
       K8S_DEPLOYMENT: "false"
       CONTAINER_NAME: "ntsimulator"
@@ -35,7 +39,7 @@ services:
       ControllerPort: 8181
       ControllerUsername: "admin"
       ControllerPassword: "admin"
-      IPv6Enabled: "true"
+      IPv6Enabled: "false"
     networks:
       app_net:
         ipv6_address: 2001:3200:3200::30
